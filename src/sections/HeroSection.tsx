@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Building2 } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,6 +12,8 @@ interface HeroSectionProps {
 }
 
 const HeroSection = ({ className = '' }: HeroSectionProps) => {
+  const navigate = useNavigate();
+  const session = useAuthStore((state) => state.session);
   const sectionRef = useRef<HTMLElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -122,13 +126,23 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
 
             {/* CTAs */}
             <div ref={ctaRef} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <button 
-                onClick={() => scrollToSection('pricing')}
-                className="sp-btn-primary flex items-center justify-center gap-2"
-              >
-                Join the Network
-                <ArrowRight size={18} />
-              </button>
+              {session ? (
+                <button 
+                  onClick={() => navigate('/profile')}
+                  className="sp-btn-primary flex items-center justify-center gap-2"
+                >
+                  Go to Dashboard
+                  <ArrowRight size={18} />
+                </button>
+              ) : (
+                <button 
+                  onClick={() => scrollToSection('pricing')}
+                  className="sp-btn-primary flex items-center justify-center gap-2"
+                >
+                  Join the Network
+                  <ArrowRight size={18} />
+                </button>
+              )}
               <button 
                 onClick={() => scrollToSection('opportunities')}
                 className="sp-btn-secondary flex items-center justify-center gap-2"

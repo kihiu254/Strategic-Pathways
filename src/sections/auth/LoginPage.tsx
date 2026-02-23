@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, ArrowRight, Linkedin, KeyRound, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,7 +9,15 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const setSession = useAuthStore((state) => state.setSession);
   const setUser = useAuthStore((state) => state.setUser);
+  const session = useAuthStore((state) => state.session);
   
+  useEffect(() => {
+    // Redirect to profile if already logged in
+    if (session) {
+      navigate('/profile');
+    }
+  }, [session, navigate]);
+
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   // State to track if we're technically "signing up" or just "signing in"
@@ -39,8 +47,8 @@ const LoginPage = () => {
   };
 
   // Step 1: Send Magic Link / OTP
-  const handleSendToken = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendToken = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setLoading(true);
 
     try {
@@ -68,7 +76,26 @@ const LoginPage = () => {
     }
   };
 
-  // Step 2: Verify the 6-digit Token
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast.error('Please enter your email address first.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/profile`,
+      });
+      if (error) throw error;
+      toast.success('Password reset instructions sent to your email!');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send reset instructions.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Verify the 8-digit Token
   const handleVerifyToken = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -194,6 +221,18 @@ const LoginPage = () => {
                     />
                     <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                   </div>
+                  {!isSignUp && (
+                    <div className="flex justify-end mt-2">
+                      <button 
+                        type="button" 
+                        onClick={handleForgotPassword}
+                        disabled={loading}
+                        className="text-sm text-[var(--sp-accent)] hover:text-[var(--text-primary)] transition-colors"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -226,17 +265,17 @@ const LoginPage = () => {
               <form onSubmit={handleVerifyToken} className="space-y-5">
                 <div>
                   <label className="text-[var(--text-secondary)] text-sm block mb-2 text-center">
-                    Enter the 6-digit code sent to your email
+                    Enter the 8-digit code sent to your email
                   </label>
                   <div className="relative mt-4">
                     <input
                       type="text"
                       required
-                      maxLength={6}
+                      maxLength={8}
                       value={formData.token}
                       onChange={(e) => setFormData({ ...formData, token: e.target.value.replace(/\D/g, '') })}
                       className="input-glass w-full pl-10 pr-4 py-4 text-center text-2xl tracking-[0.5em] text-[var(--text-primary)] uppercase font-mono"
-                      placeholder="000000"
+                      placeholder="00000000"
                     />
                     <KeyRound size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                   </div>
@@ -244,7 +283,7 @@ const LoginPage = () => {
 
                 <button
                   type="submit"
-                  disabled={loading || formData.token.length < 6}
+                  disabled={loading || formData.token.length < 8}
                   className="w-full sp-btn-primary py-3 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {loading ? (
@@ -255,10 +294,17 @@ const LoginPage = () => {
                 </button>
               </form>
               
-              <div className="text-center">
+              <div className="flex flex-col items-center gap-3 mt-4">
+                <button 
+                  onClick={() => handleSendToken()} 
+                  disabled={loading}
+                  className="text-sm text-[var(--sp-accent)] hover:text-[var(--text-primary)] transition-colors font-medium"
+                >
+                  Resend Code
+                </button>
                 <button 
                   onClick={() => setOtpSent(false)} 
-                  className="text-sm text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors mt-4"
+                  className="text-sm text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors"
                 >
                   Try a different email
                 </button>
