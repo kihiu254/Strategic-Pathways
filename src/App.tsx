@@ -18,12 +18,14 @@ import Footer from './sections/Footer';
 import AuthLayout from './sections/auth/AuthLayout';
 import AnimatedCursor from './components/ui/AnimatedCursor';
 import SEO from './components/SEO';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy-loaded Pages
 const AdminDashboard = lazy(() => import('./sections/AdminDashboard'));
 const ConceptNotePage = lazy(() => import('./sections/ConceptNotePage'));
 const ProfilePage = lazy(() => import('./sections/ProfilePage'));
 const LoginPage = lazy(() => import('./sections/auth/LoginPage'));
+const AdminRoute = lazy(() => import('./sections/auth/AdminRoute'));
 const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPage'));
 
 gsap.registerPlugin(ScrollTrigger);
@@ -168,7 +170,11 @@ function MainLayout() {
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/admin" element={<AdminDashboard />} />
+                
+                {/* Protected Admin Route */}
+                <Route element={<AdminRoute />}>
+                  <Route path="/admin" element={<AdminDashboard />} />
+                </Route>
               </Route>
             </Routes>
           </Suspense>
@@ -187,6 +193,7 @@ function App() {
       <Router>
         <MainLayout />
       </Router>
+      <Analytics />
     </HelmetProvider>
   );
 }
