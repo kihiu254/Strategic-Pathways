@@ -38,7 +38,8 @@ const ProfilePage = () => {
     connections: 0,
     rating: 0.0,
     memberSince: '',
-    tier: 'Community'
+    tier: 'Community',
+    avatar_url: ''
   });
 
   useEffect(() => {
@@ -69,7 +70,8 @@ const ProfilePage = () => {
             location: data.location || '',
             tier: data.tier || 'Community',
             title: data.role === 'admin' ? 'Administrator' : 'Professional Member',
-            memberSince: monthYear
+            memberSince: monthYear,
+            avatar_url: data.avatar_url || ''
           }));
         }
       } catch (err: any) {
@@ -126,6 +128,53 @@ const ProfilePage = () => {
     }
   };
 
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      if (!user) {
+        throw new Error("You must be logged in to upload a profile picture.");
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+      
+      setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+      toast.success('Profile picture updated successfully!');
+    } catch (error: any) {
+      toast.error('Failed to upload profile picture: ' + error.message);
+    } finally {
+      setIsUploadingAvatar(false);
+      e.target.value = '';
+    }
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'projects', label: 'Projects', icon: Briefcase },
@@ -158,10 +207,28 @@ const ProfilePage = () => {
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             {/* Avatar Section */}
             <div className="relative">
-              <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full profile-avatar flex items-center justify-center overflow-hidden">
-                <User size={64} className="text-[var(--sp-accent)]" />
+              <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full profile-avatar flex items-center justify-center overflow-hidden bg-white/5 border-2 border-[var(--sp-accent)]/20">
+                {isUploadingAvatar ? (
+                  <Loader2 size={40} className="text-[var(--sp-accent)] animate-spin" />
+                ) : profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={64} className="text-[var(--sp-accent)]" />
+                )}
               </div>
-              <button className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[var(--sp-accent)] flex items-center justify-center text-[var(--text-inverse)] hover:bg-[#D4B76E] transition-colors">
+              <input 
+                type="file" 
+                id="avatar-upload"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+                disabled={isUploadingAvatar}
+              />
+              <button 
+                onClick={() => document.getElementById('avatar-upload')?.click()}
+                disabled={isUploadingAvatar}
+                className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[var(--sp-accent)] flex items-center justify-center text-[var(--text-inverse)] hover:bg-[#D4B76E] transition-colors shadow-lg disabled:opacity-50"
+              >
                 <Camera size={18} />
               </button>
             </div>

@@ -171,6 +171,29 @@ CREATE POLICY "Admins can view all resumes" ON storage.objects FOR SELECT TO aut
   bucket_id = 'resumes' AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
+-- ==========================================
+-- 6. AVATARS STORAGE BUCKET (For Profile Pictures)
+-- ==========================================
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT DO NOTHING;
+
+-- Policy: Anyone can view avatars (since bucket is public)
+CREATE POLICY "Anyone can view avatars" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+
+-- Policy: Users can upload their own avatar
+CREATE POLICY "Users can upload their own avatars" ON storage.objects FOR INSERT TO authenticated WITH CHECK (
+  bucket_id = 'avatars' AND (auth.uid()::text = (string_to_array(name, '/'))[1])
+);
+
+-- Policy: Users can update their own avatar
+CREATE POLICY "Users can update their own avatars" ON storage.objects FOR UPDATE TO authenticated USING (
+  bucket_id = 'avatars' AND (auth.uid()::text = (string_to_array(name, '/'))[1])
+);
+
+-- Policy: Users can delete their own avatar
+CREATE POLICY "Users can delete their own avatars" ON storage.objects FOR DELETE TO authenticated USING (
+  bucket_id = 'avatars' AND (auth.uid()::text = (string_to_array(name, '/'))[1])
+);
+
 
 -- ==============================================================================
 -- UTILITY COMMANDS (Run these manually as needed)
