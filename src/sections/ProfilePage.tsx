@@ -391,6 +391,65 @@ const ProfilePage = () => {
 
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Recommended Opportunities Widget */}
+            <div className="glass-card p-6 border border-[var(--sp-accent)]/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--sp-accent)]/10 blur-[50px] rounded-full pointer-events-none" />
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2 relative z-10">
+                <Star size={18} className="text-[var(--sp-accent)] fill-[var(--sp-accent)]" />
+                Recommended for You
+              </h3>
+              
+              <div className="space-y-4 relative z-10">
+                {(() => {
+                  // Mock Opportunities Database
+                  const opportunities = [
+                    { id: 1, title: 'Digital Transformation Consultant', org: 'Nairobi County Government', location: 'Nairobi', tags: ['Tech', 'Public Sector'], description: 'Lead the digital transformation strategy for county service delivery.' },
+                    { id: 2, title: 'AgriTech Value Chain Expert', org: 'Green Innovations NGO', location: 'Nakuru (Hybrid)', tags: ['Agriculture', 'NGO'], description: 'Design and implement supply chain optimizations for local farmers.' },
+                    { id: 3, title: 'Venture Builder In-Residence', org: 'Kenya Innovation Hub', location: 'Remote', tags: ['Startups', 'Finance'], description: 'Mentor early-stage startups and help build viable financial models.' },
+                    { id: 4, title: 'Public Health Data Analyst', org: 'Ministry of Health Alliance', location: 'Mombasa', tags: ['Healthcare', 'Data Analysis'], description: 'Analyze returning public health data to optimize resource allocation.' },
+                  ];
+
+                  // Smart Matching Algorithm: Compare Opp tags/desc against User skills
+                  const matches = opportunities.map(opp => {
+                    let score = 0;
+                    const oppText = (opp.tags.join(' ') + ' ' + opp.description + ' ' + opp.title).toLowerCase();
+                    
+                    profile.skills.forEach(skill => {
+                      if (oppText.includes(skill.toLowerCase())) score += 2;
+                      opp.tags.forEach(tag => {
+                        if (tag.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(tag.toLowerCase())) score += 3;
+                      });
+                    });
+
+                    return { ...opp, score };
+                  })
+                  .filter(opp => opp.score > 0)
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 2);
+
+                  // Fallback if no exact skills match
+                  const displayOpps = matches.length > 0 ? matches : opportunities.slice(0, 2);
+
+                  return displayOpps.map(opp => (
+                    <div key={opp.id} className="glass-light rounded-xl p-4 hover:bg-[var(--sp-accent)]/5 transition-colors cursor-pointer border border-transparent hover:border-[var(--sp-accent)]/20" onClick={() => navigate('/opportunities')}>
+                      <h4 className="text-[var(--text-primary)] font-medium text-sm mb-1">{opp.title}</h4>
+                      <p className="text-[var(--text-secondary)] text-xs mb-3">{opp.org}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {opp.tags.map(tag => (
+                          <span key={tag} className="px-2 py-0.5 rounded text-[10px] bg-[var(--text-inverse)]/5 text-[var(--text-secondary)]">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+              <button onClick={() => navigate('/opportunities')} className="mt-4 w-full text-center text-sm text-[var(--sp-accent)] hover:text-[var(--text-primary)] transition-colors font-medium">
+                View all matches →
+              </button>
+            </div>
+
             {/* Skills */}
             <div className="glass-card p-6">
               <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
