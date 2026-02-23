@@ -26,7 +26,14 @@ const Footer = () => {
     }
   };
 
-  const footerLinks = {
+  interface FooterLink {
+    label: string;
+    id?: string;
+    path?: string;
+    action?: () => void;
+  }
+
+  const footerLinks: { platform: FooterLink[], community: FooterLink[], support: FooterLink[] } = {
     platform: [
       { label: 'About', id: 'value' },
       { label: 'How it Works', id: 'how-it-works' },
@@ -40,8 +47,9 @@ const Footer = () => {
     support: [
       { label: 'Sitemap', path: '/sitemap' },
       { label: 'Contact', id: 'contact' },
-      { label: 'Privacy Policy', action: () => alert('Privacy Policy coming soon!') },
-      { label: 'Terms of Service', action: () => alert('Terms of Service coming soon!') },
+      { label: 'Privacy Policy', path: '/privacy' },
+      { label: 'Terms of Service', path: '/terms' },
+      { label: 'Cookie Policy', path: '/cookies' },
     ]
   };
 
@@ -98,7 +106,7 @@ const Footer = () => {
                 {footerLinks.platform.map((link) => (
                   <li key={link.id}>
                     <button 
-                      onClick={() => scrollToSection(link.id)}
+                      onClick={() => scrollToSection(link.id!)}
                       className="text-[var(--text-secondary)] text-sm hover:text-[var(--sp-accent)] transition-colors"
                     >
                       {link.label}
@@ -115,7 +123,7 @@ const Footer = () => {
                 {footerLinks.community.map((link) => (
                   <li key={link.id}>
                     <button 
-                      onClick={() => scrollToSection(link.id)}
+                      onClick={() => scrollToSection(link.id!)}
                       className="text-[var(--text-secondary)] text-sm hover:text-[var(--sp-accent)] transition-colors"
                     >
                       {link.label}
@@ -131,23 +139,16 @@ const Footer = () => {
               <ul className="space-y-2">
                 {footerLinks.support.map((link, index) => (
                   <li key={index}>
-                    {'id' in link ? (
+                    {link.id ? (
                       <button 
                         onClick={() => scrollToSection(link.id!)}
                         className="text-[var(--text-secondary)] text-sm hover:text-[var(--sp-accent)] transition-colors"
                       >
                         {link.label}
                       </button>
-                    ) : 'path' in link ? (
-                      <button 
-                        onClick={() => { navigate(link.path!); window.scrollTo(0, 0); }}
-                        className="text-[var(--text-secondary)] text-sm hover:text-[var(--sp-accent)] transition-colors"
-                      >
-                        {link.label}
-                      </button>
                     ) : (
                       <button 
-                        onClick={link.action}
+                        onClick={() => { navigate(link.path!); window.scrollTo(0, 0); }}
                         className="text-[var(--text-secondary)] text-sm hover:text-[var(--sp-accent)] transition-colors"
                       >
                         {link.label}

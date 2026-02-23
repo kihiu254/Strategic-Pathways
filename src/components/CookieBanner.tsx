@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 declare global {
   interface Window {
@@ -52,7 +53,7 @@ export const CookieBanner = () => {
       <div className="flex-1 max-w-4xl text-sm sm:text-base text-[var(--text-primary)]">
         <p className="mb-2 font-semibold">We value your privacy</p>
         <p className="text-[var(--text-secondary)]">
-          We use cookies to enhance your browsing experience, serve personalized ads or content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies.
+          We use cookies to enhance your browsing experience, serve personalized ads or content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. <Link to="/cookies" onClick={() => window.scrollTo(0, 0)} className="text-[var(--sp-accent)] hover:underline">Read our Cookie Policy</Link>.
         </p>
       </div>
       <div className="flex shrink-0 items-center justify-end gap-3 w-full sm:w-auto">

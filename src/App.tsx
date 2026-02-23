@@ -29,6 +29,9 @@ const LoginPage = lazy(() => import('./sections/auth/LoginPage'));
 const AdminRoute = lazy(() => import('./sections/auth/AdminRoute'));
 const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPage'));
 const SitemapPage = lazy(() => import('./sections/SitemapPage'));
+const PrivacyPolicyPage = lazy(() => import('./sections/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('./sections/TermsOfServicePage'));
+const CookiePolicyPage = lazy(() => import('./sections/CookiePolicyPage'));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -173,6 +176,9 @@ function MainLayout() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/sitemap" element={<SitemapPage />} />
+                <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                <Route path="/terms" element={<TermsOfServicePage />} />
+                <Route path="/cookies" element={<CookiePolicyPage />} />
                 
                 {/* Protected Admin Route */}
                 <Route element={<AdminRoute />}>
