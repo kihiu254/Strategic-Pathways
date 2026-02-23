@@ -12,8 +12,12 @@ const LoginPage = () => {
   
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  
+  // State to track if we're technically "signing up" or just "signing in"
+  // so we can collect their name if they are new.
+  const [isSignUp, setIsSignUp] = useState(false);
+
   const [formData, setFormData] = useState({
+    name: '', // Added name back
     email: '',
     token: '' // For OTP verification
   });
@@ -44,14 +48,19 @@ const LoginPage = () => {
         email: formData.email,
         options: {
           // This must match your Site URL in Supabase Auth Settings!
-          emailRedirectTo: `${window.location.origin}/profile`
+          emailRedirectTo: `${window.location.origin}/profile`,
+          // IMPORTANT: If they don't exist, Supabase will create them automatically
+          shouldCreateUser: true,
+          data: isSignUp ? {
+            full_name: formData.name, // Save their name during auto-signup
+          } : undefined
         }
       });
 
       if (error) throw error;
       
       setOtpSent(true);
-      toast.success('Secure login code sent to your email!');
+      toast.success(isSignUp ? 'Account created! Sending verification code...' : 'Secure login code sent to your email!');
     } catch (error: any) {
       toast.error(error.message || 'Failed to send login code.');
     } finally {
@@ -106,12 +115,12 @@ const LoginPage = () => {
           </button>
           
           <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-            {otpSent ? 'Check Your Email' : 'Passwordless Sign In'}
+            {otpSent ? 'Check Your Email' : (isSignUp ? 'Create Account' : 'Passwordless Sign In')}
           </h1>
           <p className="text-[var(--text-secondary)]">
             {otpSent 
               ? `We sent a secure code to ${formData.email}` 
-              : 'Enter your email to receive a secure login link or code.'}
+              : (isSignUp ? 'Join Strategic Pathways network today with a secure OTP.' : 'Enter your email to receive a secure login link or code.')}
           </p>
         </div>
 
@@ -153,6 +162,25 @@ const LoginPage = () => {
               </div>
 
               <form onSubmit={handleSendToken} className="space-y-5">
+                {isSignUp && (
+                  <div>
+                    <label className="text-[var(--text-secondary)] text-sm block mb-2">Full Name</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="input-glass w-full pl-10 pr-4 py-3 text-[var(--text-primary)]"
+                        placeholder="John Doe"
+                      />
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]">
+                        <div className="w-4 h-4 rounded-full border border-current" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div>
                   <label className="text-[var(--text-secondary)] text-sm block mb-2">Email Address</label>
                   <div className="relative">
@@ -235,6 +263,19 @@ const LoginPage = () => {
                   Try a different email
                 </button>
               </div>
+            </div>
+          )}
+          
+          {/* Toggle between Login and Signup when OTP has NOT been sent */}
+          {!otpSent && (
+            <div className="mt-6 text-center text-[var(--text-secondary)] text-sm">
+              {isSignUp ? "Already have an account? " : "Don't have an account? "}
+              <button
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-[var(--sp-accent)] font-medium hover:text-[var(--text-primary)] transition-colors"
+              >
+                {isSignUp ? 'Sign in' : 'Sign up'}
+              </button>
             </div>
           )}
         </div>
