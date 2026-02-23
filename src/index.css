@@ -1,0 +1,335 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 200 55% 14%;
+    --foreground: 40 23% 95%;
+    --card: 200 55% 14%;
+    --card-foreground: 40 23% 95%;
+    --popover: 200 55% 14%;
+    --popover-foreground: 40 23% 95%;
+    --primary: 40 45% 58%;
+    --primary-foreground: 200 55% 14%;
+    --secondary: 200 20% 25%;
+    --secondary-foreground: 40 23% 95%;
+    --muted: 200 20% 25%;
+    --muted-foreground: 205 15% 71%;
+    --accent: 40 45% 58%;
+    --accent-foreground: 200 55% 14%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 200 20% 25%;
+    --input: 200 20% 25%;
+    --ring: 40 45% 58%;
+    --radius: 0.625rem;
+
+    --sp-bg-primary: #0b2a3c;
+    --sp-bg-secondary: #f3efe7;
+    --sp-accent: #c89f5e;
+    --sp-text-primary: #f6f4ef;
+    --sp-text-secondary: #a9b6c1;
+    --sp-gold: #c89f5e;
+    --sp-gold-light: #d4b76e;
+
+    /* Theme Variables (Dark Mode Default) */
+    --bg-primary: #0b2a3c;
+    --bg-alt: #f3efe7;
+    --bg-card: #f6f4ef;
+    --text-primary: #f6f4ef;
+    --text-secondary: #a9b6c1;
+    --text-inverse: #0b2a3c;
+  }
+
+  /* Light Theme Overrides */
+  html.light-theme {
+    --bg-primary: #f3efe7;
+    --bg-alt: #0b2a3c;
+    --bg-card: #ffffff;
+
+    --text-primary: #0b2a3c;
+    --text-secondary: #4a5568;
+    --text-inverse: #f6f4ef;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: "Inter", sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Space Grotesk", sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  .sp-label {
+    font-family: "IBM Plex Sans Condensed", sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.75rem;
+    color: var(--sp-accent);
+  }
+
+  /* Glassmorphism Effects */
+  .glass {
+    background: rgba(11, 42, 60, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(200, 159, 94, 0.15);
+  }
+
+  .glass-light {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-gold {
+    background: linear-gradient(
+      135deg,
+      rgba(200, 159, 94, 0.15) 0%,
+      rgba(11, 42, 60, 0.7) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(200, 159, 94, 0.25);
+  }
+
+  .glass-card {
+    background: rgba(11, 42, 60, 0.5);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(200, 159, 94, 0.2);
+    border-radius: 24px;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(200, 159, 94, 0.15);
+    border-radius: 28px;
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .sp-card {
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
+  }
+
+  .sp-panel {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 28px;
+  }
+
+  .sp-btn-primary {
+    background: linear-gradient(135deg, #c89f5e 0%, #b8945a 100%);
+    color: #0b2a3c;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(200, 159, 94, 0.3);
+  }
+
+  .sp-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(200, 159, 94, 0.45);
+    background: linear-gradient(135deg, #d4b76e 0%, #c89f5e 100%);
+  }
+
+  .sp-btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    color: var(--sp-text-primary);
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: 1px solid rgba(200, 159, 94, 0.3);
+    transition: all 0.25s ease;
+  }
+
+  .sp-btn-secondary:hover {
+    background: rgba(200, 159, 94, 0.15);
+    border-color: rgba(200, 159, 94, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .sp-btn-glass {
+    background: rgba(200, 159, 94, 0.1);
+    backdrop-filter: blur(10px);
+    color: var(--sp-accent);
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(200, 159, 94, 0.3);
+    transition: all 0.25s ease;
+  }
+
+  .sp-btn-glass:hover {
+    background: rgba(200, 159, 94, 0.2);
+    border-color: rgba(200, 159, 94, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .sp-section-pinned {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .grain-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    z-index: 9999;
+  }
+
+
+
+  
+  
+  /* Dashboard Styles */
+  .dashboard-sidebar {
+    background: rgba(11, 42, 60, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(200, 159, 94, 0.15);
+  }
+
+  .dashboard-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(200, 159, 94, 0.12);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .dashboard-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(200, 159, 94, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .stat-card {
+    background: linear-gradient(
+      135deg,
+      rgba(200, 159, 94, 0.1) 0%,
+      rgba(11, 42, 60, 0.5) 100%
+    );
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(200, 159, 94, 0.2);
+    border-radius: 20px;
+  }
+
+  /* Profile Styles */
+  .profile-avatar {
+    background: linear-gradient(
+      135deg,
+      rgba(200, 159, 94, 0.2) 0%,
+      rgba(11, 42, 60, 0.6) 100%
+    );
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(200, 159, 94, 0.3);
+    border-radius: 50%;
+  }
+
+  /* Navigation Glass */
+  .nav-glass {
+    background: rgba(11, 42, 60, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(200, 159, 94, 0.1);
+  }
+
+  /* Input Glass */
+  .input-glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(200, 159, 94, 0.2);
+    border-radius: 12px;
+    color: var(--sp-text-primary);
+    transition: all 0.25s ease;
+  }
+
+  .input-glass:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(200, 159, 94, 0.4);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(200, 159, 94, 0.1);
+  }
+
+  .input-glass::placeholder {
+    color: rgba(169, 182, 193, 0.6);
+  }
+
+  /* Gold Glow Effect */
+  .gold-glow {
+    box-shadow: 0 0 30px rgba(200, 159, 94, 0.3);
+  }
+
+  /* Shimmer Effect */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(200, 159, 94, 0) 0%,
+      rgba(200, 159, 94, 0.2) 50%,
+      rgba(200, 159, 94, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
