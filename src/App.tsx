@@ -19,6 +19,7 @@ import AuthLayout from './sections/auth/AuthLayout';
 import AnimatedCursor from './components/ui/AnimatedCursor';
 import SEO from './components/SEO';
 import { Analytics } from '@vercel/analytics/react';
+import { CookieBanner } from './components/CookieBanner';
 
 // Lazy-loaded Pages
 const AdminDashboard = lazy(() => import('./sections/AdminDashboard'));
@@ -194,6 +195,7 @@ function App() {
         <MainLayout />
       </Router>
       <Analytics />
+      <CookieBanner />
     </HelmetProvider>
   );
 }
