@@ -1,240 +1,120 @@
-import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { useRef, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
-import { SkipForward, Volume2, VolumeX } from 'lucide-react';
 
 interface OnboardingProps {
   onComplete: () => void;
 }
 
 const Onboarding = ({ onComplete }: OnboardingProps) => {
-  const [hasStarted, setHasStarted] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [showSkip, setShowSkip] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const introRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLHeadingElement>(null);
+  const logoWrapperRef = useRef<HTMLDivElement>(null);
+  const sweepRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    if (!hasStarted && introRef.current && logoRef.current) {
-      gsap.fromTo(introRef.current, 
-        { opacity: 0, scale: 1.05 }, 
-        { opacity: 1, scale: 1, duration: 1.2, ease: 'power3.out' }
-      );
-      gsap.fromTo(logoRef.current, 
-        { y: 40, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 1, delay: 0.3, ease: 'power3.out' }
-      );
-    }
-  }, [hasStarted]);
-
-  useEffect(() => {
-    // Check if user has already seen onboarding
-    const hasSeenOnboarding = sessionStorage.getItem('sp_onboarding_seen');
-    if (hasSeenOnboarding) {
+    // Check if user has already seen onboarding in this session
+    if (sessionStorage.getItem('sp_onboarding_seen')) {
       onComplete();
+      return;
     }
-  }, [onComplete]);
 
-  useEffect(() => {
-    if (hasStarted && videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Auto-play blocked, user will need to interact
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          sessionStorage.setItem('sp_onboarding_seen', 'true');
+          onComplete();
+        }
       });
+
+      // 1. Initial State
+      gsap.set(logoWrapperRef.current, { scale: 0.8, opacity: 0, y: 20 });
+      gsap.set(textRef.current, { opacity: 0, letterSpacing: '0em', scale: 1.2 });
+      gsap.set(sweepRef.current, { left: '-100%' });
+
+      // 2. The Build-Up: Text fades in and spaces out
+      tl.to(textRef.current, {
+        opacity: 1,
+        letterSpacing: '0.2em',
+        duration: 1.2,
+        ease: 'power2.out',
+      })
       
-      // Show skip button after 3 seconds
-      const skipTimer = setTimeout(() => {
-        setShowSkip(true);
-      }, 3000);
+      // 3. The Reveal: Text shrinks down and moves to subtitle position, Logo scales up
+      .to(textRef.current, {
+        scale: 0.6,
+        y: 80,
+        opacity: 0.7,
+        duration: 1,
+        ease: 'power3.inOut',
+      }, '+=0.2')
+      .to(logoWrapperRef.current, {
+        scale: 1,
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        ease: 'power3.out',
+      }, '<0.2')
 
-      return () => clearTimeout(skipTimer);
-    }
-  }, [hasStarted]);
+      // 4. The Sweep: A glassmorphic light sweep passes over the logo
+      .to(sweepRef.current, {
+        left: '200%',
+        duration: 1.5,
+        ease: 'power1.inOut',
+      }, '-=0.4')
 
-  // Update progress bar
-  useEffect(() => {
-    if (!hasStarted || !videoRef.current) return;
-    
-    const interval = setInterval(() => {
-      if (videoRef.current) {
-        const currentProgress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
-        setProgress(currentProgress || 0);
-      }
-    }, 100);
+      // 5. Short pause to admire the logo
+      .to({}, { duration: 0.5 })
 
-    return () => clearInterval(interval);
-  }, [hasStarted]);
+      // 6. The Transition: Fade out container to reveal the app
+      .to(containerRef.current, {
+        opacity: 0,
+        y: '-10%',
+        duration: 0.8,
+        ease: 'power2.inOut',
+      });
 
-  const handleStart = () => {
-    // Animate logo out
-    gsap.to(logoRef.current, {
-      scale: 0.8,
-      opacity: 0,
-      duration: 0.4,
-      ease: 'power2.in'
-    });
+    }, containerRef);
 
-    // Fade out intro screen
-    gsap.to(introRef.current, {
-      opacity: 0,
-      duration: 0.6,
-      delay: 0.2,
-      onComplete: () => {
-        setHasStarted(true);
-      }
-    });
-  };
-
-  const handleVideoEnd = () => {
-    // Fade out video container
-    gsap.to(containerRef.current, {
-      opacity: 0,
-      duration: 0.8,
-      onComplete: () => {
-        sessionStorage.setItem('sp_onboarding_seen', 'true');
-        onComplete();
-      }
-    });
-  };
-
-  const handleSkip = () => {
-    if (videoRef.current) {
-      videoRef.current.pause();
-    }
-    gsap.to(containerRef.current, {
-      opacity: 0,
-      duration: 0.5,
-      onComplete: () => {
-        sessionStorage.setItem('sp_onboarding_seen', 'true');
-        onComplete();
-      }
-    });
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
+    return () => ctx.revert();
+  }, [onComplete]);
 
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 z-[200] bg-[var(--bg-primary)]"
+      className="fixed inset-0 z-[200] bg-[var(--bg-primary)] flex flex-col items-center justify-center overflow-hidden"
     >
-      {/* Intro Screen - Click to Enter */}
-      {!hasStarted && (
+      <div className="relative flex flex-col items-center justify-center w-full max-w-lg">
+        
+        {/* Animated Logo Wrapper */}
         <div 
-          ref={introRef}
-          className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--bg-primary)] cursor-pointer"
-          onClick={handleStart}
+          ref={logoWrapperRef}
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
-          {/* Animated Logo with Glassmorphism */}
-          <div ref={logoRef} className="mb-8 text-center">
-            <div className="glass-gold p-8 rounded-3xl mb-6 inline-block gold-glow">
-              <img 
-                src="/logo.png" 
-                alt="Strategic Pathways" 
-                className="h-32 lg:h-40 w-auto object-contain"
-              />
-            </div>
-            <div className="flex items-center justify-center gap-3 mb-8">
-              <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-[#C89F5E]" />
-              <span className="sp-label text-sm tracking-widest">Kenya Talent Network</span>
-              <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-[#C89F5E]" />
-            </div>
-          </div>
-
-          {/* Click to Enter Button */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-[var(--sp-accent)] rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
-            <div className="absolute inset-0 bg-[var(--sp-accent)] rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 animate-pulse" />
-            <button className="relative sp-btn-primary text-lg px-10 py-4 rounded-full flex items-center gap-3 shimmer">
-              <span>Click to Enter</span>
-              <svg 
-                className="w-5 h-5 animate-bounce" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M19 14l-7 7m0 0l-7-7m7 7V3" 
-                />
-              </svg>
-            </button>
-          </div>
-
-          <p className="text-[var(--text-secondary)] text-sm mt-8">
-            Experience our story
-          </p>
-        </div>
-      )}
-
-      {/* Video Player */}
-      {hasStarted && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <video
-            ref={videoRef}
-            src="/onboarding.mp4"
-            className="w-full h-full object-cover"
-            muted={isMuted}
-            playsInline
-            onEnded={handleVideoEnd}
-            onError={() => {
-              // If video fails, skip to main content
-              handleSkip();
-            }}
-          />
-
-          {/* Video Controls Overlay */}
-          <div className="absolute inset-0 pointer-events-none">
-            {/* Top Bar */}
-            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start">
-              <div className="glass-gold px-4 py-2 rounded-xl">
-                <img 
-                  src="/logo.png" 
-                  alt="Strategic Pathways" 
-                  className="h-8 w-auto"
-                />
-              </div>
-
-              {/* Mute Toggle */}
-              <button
-                onClick={toggleMute}
-                className="pointer-events-auto w-12 h-12 rounded-full glass-gold flex items-center justify-center text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/30 transition-colors"
-              >
-                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-              </button>
-            </div>
-
-            {/* Skip Button */}
-            {showSkip && (
-              <div className="absolute bottom-8 right-8">
-                <button
-                  onClick={handleSkip}
-                  className="pointer-events-auto flex items-center gap-2 px-5 py-3 glass-gold rounded-full text-[var(--text-primary)] hover:bg-[var(--sp-accent)]/20 transition-colors"
-                >
-                  <span className="text-sm font-medium">Skip Intro</span>
-                  <SkipForward size={18} />
-                </button>
-              </div>
-            )}
-
-            {/* Progress Bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
-              <div 
-                className="h-full bg-gradient-to-r from-[#C89F5E] to-[#D4B76E] transition-all duration-100"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+          <div className="relative glass-gold p-8 lg:p-12 rounded-[2rem] shadow-2xl overflow-hidden gold-glow">
+            <img 
+              src="/logo.png" 
+              alt="Strategic Pathways" 
+              className="h-24 lg:h-32 w-auto object-contain relative z-10"
+            />
+            
+            {/* Light Sweep Element */}
+            <div 
+              ref={sweepRef}
+              className="absolute top-0 bottom-0 w-[150%] bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 z-20"
+            />
           </div>
         </div>
-      )}
+
+        {/* Brand Text */}
+        <h1 
+          ref={textRef}
+          className="text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--sp-accent)] uppercase text-center relative z-30"
+          style={{ fontFamily: '"IBM Plex Sans Condensed", sans-serif' }}
+        >
+          Kenya Talent Network
+        </h1>
+
+      </div>
     </div>
   );
 };
