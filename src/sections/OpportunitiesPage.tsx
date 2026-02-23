@@ -1,5 +1,4 @@
 import { useRef, useLayoutEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Search, MapPin, Briefcase, Clock, Filter, ArrowRight, Building2 } from 'lucide-react';
@@ -7,7 +6,6 @@ import { Search, MapPin, Briefcase, Clock, Filter, ArrowRight, Building2 } from 
 gsap.registerPlugin(ScrollTrigger);
 
 const OpportunitiesPage = () => {
-  const navigate = useNavigate();
   const pageRef = useRef<HTMLDivElement>(null);
   
   const [activeFilter, setActiveFilter] = useState('All');
