@@ -128,39 +128,47 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
             </button>
 
             {/* Notifications Widget */}
-            <div className="relative">
-              <button
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-white/5 relative"
-              >
-                <Bell size={20} />
-                <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full border border-[var(--bg-primary)]"></span>
-              </button>
-              
-              {isNotificationsOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 glass-card p-4 z-50 shadow-2xl">
-                  <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Notifications</h3>
-                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                    <div className="p-3 glass-light hover:bg-white/5 transition-colors cursor-pointer rounded-xl border border-[var(--sp-accent)]/20">
-                      <p className="text-[var(--text-primary)] text-sm font-medium">New Partnership Match</p>
-                      <p className="text-[var(--text-secondary)] text-xs mt-1">Nairobi County government is looking for your specific skill set.</p>
-                      <span className="text-xs text-[var(--sp-accent)] mt-2 block">10 mins ago</span>
+            {isLoggedIn && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-white/5 relative"
+                >
+                  <Bell size={20} />
+                  {/* Show red dot if there are unread notifications */}
+                  {isLoggedIn && user && new Date().getTime() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000 && (
+                    <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full border border-[var(--bg-primary)]"></span>
+                  )}
+                </button>
+                
+                {isNotificationsOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-80 glass-card p-4 z-50 shadow-2xl">
+                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Notifications</h3>
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                      {user && new Date().getTime() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000 ? (
+                        <div className="p-3 glass-light hover:bg-white/5 transition-colors cursor-pointer rounded-xl border border-[var(--sp-accent)]/20">
+                          <p className="text-[var(--text-primary)] text-sm font-medium">Welcome to Strategic Pathways!</p>
+                          <p className="text-[var(--text-secondary)] text-xs mt-1">Your account has been successfully created. We're thrilled to have you here.</p>
+                          <span className="text-xs text-[var(--sp-accent)] mt-2 block">Just now</span>
+                        </div>
+                      ) : (
+                        <div className="p-3 glass-light hover:bg-white/5 transition-colors cursor-pointer rounded-xl border border-[var(--sp-accent)]/20">
+                          <p className="text-[var(--text-primary)] text-sm font-medium">New Opportunities Available</p>
+                          <p className="text-[var(--text-secondary)] text-xs mt-1">Check out the latest projects matching your profile skills.</p>
+                          <span className="text-xs text-[var(--sp-accent)] mt-2 block">1 hour ago</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="p-3 glass-light hover:bg-white/5 transition-colors cursor-pointer rounded-xl border border-[var(--sp-accent)]/20">
-                      <p className="text-[var(--text-primary)] text-sm font-medium">Application Approved</p>
-                      <p className="text-[var(--text-secondary)] text-xs mt-1">Your background check has been verified. Welcome aboard!</p>
-                      <span className="text-xs text-[var(--sp-accent)] mt-2 block">2 hours ago</span>
-                    </div>
+                    <button 
+                      onClick={() => setIsNotificationsOpen(false)}
+                      className="w-full mt-4 text-center text-sm text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors py-2"
+                    >
+                      Mark all as read
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => setIsNotificationsOpen(false)}
-                    className="w-full mt-4 text-center text-sm text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors py-2"
-                  >
-                    Mark all as read
-                  </button>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Profile Dropdown */}
             {isLoggedIn ? (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, Mail, Phone, MapPin, Briefcase, GraduationCap, 
@@ -7,19 +7,23 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/authStore';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const [profile, setProfile] = useState({
-    name: 'John Kamau',
-    title: 'Policy Analyst & Development Consultant',
-    email: 'john.kamau@email.com',
-    phone: '+254 712 345 678',
-    location: 'Nairobi, Kenya',
-    bio: 'Study-abroad returnee with expertise in public policy and international development. Passionate about driving sustainable change in Kenya through evidence-based policy recommendations.',
+    name: 'Loading...',
+    title: 'Professional Member',
+    email: '',
+    phone: '',
+    location: '',
+    bio: '',
     education: [
       { degree: 'MSc in Public Policy', school: 'London School of Economics', year: '2019-2021' },
       { degree: 'BA in Economics', school: 'University of Nairobi', year: '2015-2019' }
@@ -30,12 +34,58 @@ const ProfilePage = () => {
     ],
     skills: ['Policy Analysis', 'Research', 'Stakeholder Engagement', 'Project Management', 'Data Analysis'],
     certifications: ['Project Management Professional (PMP)', 'Data Analytics Certificate'],
-    projects: 12,
-    connections: 248,
-    rating: 4.9,
-    memberSince: 'March 2024',
-    tier: 'Professional'
+    projects: 0,
+    connections: 0,
+    rating: 0.0,
+    memberSince: '',
+    tier: 'Community'
   });
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          const date = new Date(data.created_at);
+          const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+          setProfile(prev => ({
+            ...prev,
+            name: data.full_name || 'Strategic Member',
+            email: data.email || user.email || '',
+            bio: data.bio || '',
+            location: data.location || '',
+            tier: data.tier || 'Community',
+            title: data.role === 'admin' ? 'Administrator' : 'Professional Member',
+            memberSince: monthYear
+          }));
+        }
+      } catch (err: any) {
+        console.error('Error fetching profile:', err);
+        // Only show error if they are truly logged in but profile failed to load
+        // Avoid flashing error on initial redirect
+        if (user.role === 'authenticated') {
+          toast.error('Failed to load profile data.');
+        }
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user, navigate]);
 
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
@@ -55,11 +105,11 @@ const ProfilePage = () => {
 
     setIsUploadingFile(true);
     try {
-      // Note: In production, we would use the authenticated user's ID
-      // const { data: { user } } = await supabase.auth.getUser();
-      // const filePath = `${user.id}/${Date.now()}_${file.name}`;
+      if (!user) {
+        throw new Error("You must be logged in to upload documents.");
+      }
       
-      const filePath = `demo_user/${Date.now()}_${file.name}`;
+      const filePath = `${user.id}/${Date.now()}_${file.name}`;
       const { error } = await supabase.storage
         .from('resumes')
         .upload(filePath, file);
@@ -82,6 +132,15 @@ const ProfilePage = () => {
     { id: 'documents', label: 'Documents', icon: FileText },
     { id: 'activity', label: 'Activity', icon: Clock },
   ];
+
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 gap-4">
+        <Loader2 className="w-10 h-10 text-[var(--sp-accent)] animate-spin" />
+        <p className="text-[var(--text-secondary)]">Loading your profile...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pt-24 pb-12">
