@@ -12,8 +12,8 @@ const AdminRoute = () => {
 
   // Basic role check. 
   // For production, this should ideally be checked against a secure 'role' column
-  // in the 'profiles' table, but for this demo, we can just authorize admin-branded emails.
-  const isAdmin = user?.email?.includes('admin') || user?.email?.includes('hello@joinstrategicpathways');
+  // in the 'profiles' table, but for this demo, we can authorize demo admins.
+  const isAdmin = user?.email?.includes('admin') || user?.email?.includes('joinstrategicpathways');
 
   if (!isAdmin) {
     // If they aren't an admin, redirect them to the normal profile

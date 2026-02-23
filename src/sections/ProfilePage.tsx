@@ -16,6 +16,14 @@ const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [documents, setDocuments] = useState<any[]>([]);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   const [profile, setProfile] = useState({
     name: user?.user_metadata?.full_name || 'Loading...',
@@ -93,7 +101,24 @@ const ProfilePage = () => {
       }
     };
 
+    const fetchDocuments = async () => {
+      try {
+        const { data, error } = await supabase.storage
+          .from('resumes')
+          .list(user.id);
+
+        if (error) throw error;
+        if (data) {
+          // Filter out the hidden placeholder folder if Supabase created it
+          setDocuments(data.filter(file => file.name !== '.emptyFolderPlaceholder'));
+        }
+      } catch (err: any) {
+        console.error('Error fetching documents:', err);
+      }
+    };
+
     fetchProfile();
+    fetchDocuments();
   }, [user, navigate]);
 
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -144,12 +169,50 @@ const ProfilePage = () => {
       if (error) throw error;
       
       toast.success('Document uploaded successfully!');
+      
+      // Refresh documents list
+      const { data } = await supabase.storage.from('resumes').list(user.id);
+      if (data) setDocuments(data.filter(file => file.name !== '.emptyFolderPlaceholder'));
     } catch (error: any) {
       toast.error('Failed to upload document: ' + error.message);
     } finally {
       setIsUploadingFile(false);
       // Reset input
       e.target.value = '';
+    }
+  };
+
+  const handleDownloadFile = async (fileName: string) => {
+    try {
+      if (!user) return;
+      
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .createSignedUrl(`${user.id}/${fileName}`, 60);
+
+      if (error) throw error;
+      if (data) {
+        window.open(data.signedUrl, '_blank');
+      }
+    } catch (err: any) {
+      toast.error('Failed to download: ' + err.message);
+    }
+  };
+
+  const handleDeleteFile = async (fileName: string) => {
+    try {
+      if (!user) return;
+      
+      const { error } = await supabase.storage
+        .from('resumes')
+        .remove([`${user.id}/${fileName}`]);
+
+      if (error) throw error;
+      
+      toast.success('File deleted successfully');
+      setDocuments(prev => prev.filter(doc => doc.name !== fileName));
+    } catch (err: any) {
+      toast.error('Failed to delete file: ' + err.message);
     }
   };
 
@@ -263,7 +326,9 @@ const ProfilePage = () => {
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">{profile.name}</h1>
+                    <h1 className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">
+                      {getGreeting()}, {profile.name.split(' ')[0]} 👋
+                    </h1>
                     <span className="px-3 py-1 rounded-full bg-[var(--sp-accent)]/20 text-[var(--sp-accent)] text-xs font-medium flex items-center gap-1">
                       <CheckCircle size={12} />
                       Verified
@@ -485,26 +550,40 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  {['CV_2024.pdf', 'Certification_PMP.pdf', 'Portfolio_Summary.pdf'].map((doc, i) => (
-                    <div key={i} className="glass-light rounded-xl p-4 flex items-center justify-between group">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
-                          <FileText size={18} className="text-red-400" />
+                  <div className="space-y-3">
+                  {documents.length === 0 ? (
+                    <div className="text-center py-6 text-[var(--text-secondary)]">No documents uploaded yet.</div>
+                  ) : (
+                    documents.map((doc, i) => (
+                      <div key={i} className="glass-light rounded-xl p-4 flex items-center justify-between group">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
+                            <FileText size={18} className="text-red-400" />
+                          </div>
+                          <div>
+                            <p className="text-[var(--text-primary)] font-medium truncate max-w-[150px] sm:max-w-[250px] md:max-w-xs">{doc.name.replace(/^\d+_/, '')}</p>
+                            <p className="text-[var(--text-secondary)] text-xs">
+                              {(doc.metadata?.size / (1024 * 1024)).toFixed(2)} MB • {new Date(doc.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[var(--text-primary)] font-medium">{doc}</p>
-                          <p className="text-[var(--text-secondary)] text-xs">2.4 MB • Uploaded Jan 2024</p>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleDownloadFile(doc.name)}
+                            className="sp-btn-glass text-sm"
+                          >
+                            Download
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteFile(doc.name)}
+                            className="p-2 text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-white/5 rounded-lg hover:bg-red-500/10"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button className="sp-btn-glass text-sm">Download</button>
-                        <button className="p-2 text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-white/5 rounded-lg hover:bg-red-500/10">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                   
                   <div className="mt-6 p-4 bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/20 rounded-xl">
                     <p className="text-sm text-[var(--text-secondary)] text-center">
