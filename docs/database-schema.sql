@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   bio text,
   location text,
   phone text,
+  country_code text,
+  language text,
   avatar_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null

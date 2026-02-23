@@ -333,3 +333,39 @@
     text-wrap: balance;
   }
 }
+
+/* Light Theme Overrides for Components */
+html.light-theme .nav-glass {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+html.light-theme .glass {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+html.light-theme .glass-light {
+  background: rgba(11, 42, 60, 0.05);
+  border-color: rgba(11, 42, 60, 0.1);
+}
+
+html.light-theme .glass-card {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+html.light-theme .input-glass {
+  background: rgba(11, 42, 60, 0.05);
+  color: var(--text-primary);
+}
+
+html.light-theme .input-glass:focus {
+  background: rgba(11, 42, 60, 0.08);
+}
+
+html.light-theme .sp-btn-secondary {
+  color: var(--text-primary);
+}
+
+/* Make the logo dark in light mode */
+html.light-theme img[alt="Strategic Pathways"] {
+  filter: invert(1) hue-rotate(180deg) brightness(0.3);
+}

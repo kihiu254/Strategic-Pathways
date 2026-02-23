@@ -30,7 +30,9 @@ const ProfilePage = () => {
     title: 'Professional Member',
     email: '',
     phone: '',
+    countryCode: '+254',
     location: '',
+    language: 'English',
     bio: '',
     education: [
       { degree: 'MSc in Public Policy', school: 'London School of Economics', year: '2019-2021' },
@@ -75,6 +77,8 @@ const ProfilePage = () => {
             name: data.full_name || user.user_metadata?.full_name || 'Strategic Member',
             email: data.email || user.email || '',
             phone: data.phone || '',
+            countryCode: data.country_code || '+254',
+            language: data.language || 'English',
             bio: data.bio || '',
             location: data.location || '',
             tier: data.tier || 'Community',
@@ -129,12 +133,15 @@ const ProfilePage = () => {
 
       const { error } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user.id,
           location: profile.location,
           phone: profile.phone,
-          email: profile.email
-        })
-        .eq('id', user.id);
+          country_code: profile.countryCode,
+          email: profile.email,
+          language: profile.language,
+          updated_at: new Date().toISOString()
+        });
 
       if (error) throw error;
 
@@ -248,8 +255,11 @@ const ProfilePage = () => {
 
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
+        .upsert({ 
+          id: user.id,
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        });
 
       if (updateError) throw updateError;
       
@@ -347,8 +357,33 @@ const ProfilePage = () => {
                            <input value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="input-glass py-1 px-2 text-sm w-full lg:w-48" />
                         </div>
                         <div className="flex items-center gap-2 w-full lg:w-auto">
+                           <Globe size={14} className="shrink-0" />
+                           <select 
+                             value={profile.language} 
+                             onChange={e => setProfile({...profile, language: e.target.value})} 
+                             className="input-glass py-1 px-2 text-sm w-full lg:w-48 appearance-none"
+                           >
+                             <option className="text-black" value="English">English</option>
+                             <option className="text-black" value="Swahili">Swahili</option>
+                             <option className="text-black" value="French">French</option>
+                           </select>
+                        </div>
+                        <div className="flex items-center gap-2 w-full lg:w-auto">
                            <Phone size={14} className="shrink-0" />
-                           <input value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} className="input-glass py-1 px-2 text-sm w-full lg:w-48" />
+                           <div className="flex bg-white/5 border border-[var(--sp-accent)]/20 rounded-xl overflow-hidden w-full lg:w-64">
+                             <select 
+                               value={profile.countryCode} 
+                               onChange={e => setProfile({...profile, countryCode: e.target.value})} 
+                               className="bg-transparent text-[var(--text-primary)] px-2 py-1 outline-none text-sm border-r border-[var(--sp-accent)]/20 appearance-none min-w-[70px]"
+                             >
+                               <option className="text-black" value="+254">+254</option>
+                               <option className="text-black" value="+1">+1</option>
+                               <option className="text-black" value="+44">+44</option>
+                               <option className="text-black" value="+256">+256</option>
+                               <option className="text-black" value="+255">+255</option>
+                             </select>
+                             <input value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} className="bg-transparent border-none outline-none py-1 px-2 text-sm w-full text-[var(--text-primary)]" placeholder="Phone Number" />
+                           </div>
                         </div>
                       </>
                     ) : (
@@ -362,8 +397,12 @@ const ProfilePage = () => {
                           {profile.email}
                         </span>
                         <span className="flex items-center gap-1">
+                          <Globe size={14} />
+                          {profile.language}
+                        </span>
+                        <span className="flex items-center gap-1">
                           <Phone size={14} />
-                          {profile.phone}
+                          {profile.countryCode} {profile.phone}
                         </span>
                       </>
                     )}
