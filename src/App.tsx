@@ -201,9 +201,9 @@ function App() {
     <HelmetProvider>
       <Router>
         <MainLayout />
+        <Analytics />
+        <CookieBanner />
       </Router>
-      <Analytics />
-      <CookieBanner />
     </HelmetProvider>
   );
 }
