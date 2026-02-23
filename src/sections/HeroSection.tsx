@@ -121,7 +121,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
               ref={subheadRef}
               className="text-base lg:text-lg text-[var(--text-secondary)] max-w-xl mb-6 lg:mb-8"
             >
-              Mobilising study-abroad returnees and diaspora professionals into collaborative projects, consultancy engagements, and venture-building initiatives that strengthen local economies.
+              A <span className="text-[var(--sp-accent)]">talent execution</span> and <span className="text-[var(--sp-accent)]">venture-building</span> platform mobilising study-abroad returnees into impactful local projects that foster sustainable <span className="text-[var(--sp-accent)]">brain circulation</span>.
             </p>
 
             {/* CTAs */}

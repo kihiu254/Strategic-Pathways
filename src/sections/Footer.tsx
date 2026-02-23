@@ -1,9 +1,25 @@
 import { Linkedin, Twitter, Mail } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const scrollToSection = (id: string) => {
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation and mount before scrolling
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return;
+    }
+    
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -22,6 +38,7 @@ const Footer = () => {
       { label: 'Impact', id: 'impact' },
     ],
     support: [
+      { label: 'Sitemap', path: '/sitemap' },
       { label: 'Contact', id: 'contact' },
       { label: 'Privacy Policy', action: () => alert('Privacy Policy coming soon!') },
       { label: 'Terms of Service', action: () => alert('Terms of Service coming soon!') },
@@ -46,8 +63,8 @@ const Footer = () => {
                   className="h-10 w-auto"
                 />
               </button>
-              <p className="text-[var(--text-secondary)] text-sm mb-4">
-                Globally trained. Locally rooted.
+              <p className="text-[var(--text-secondary)] text-sm mb-4 leading-relaxed">
+                A Kenya-based <span className="text-[var(--sp-accent)]">talent execution platform</span> designed to mobilise diaspora professionals into local <span className="text-[var(--sp-accent)]">venture-building</span> and consultancy engagements. Transforming brain drain into <span className="text-[var(--sp-accent)]">brain circulation</span>.
               </p>
               {/* Social Links */}
               <div className="flex gap-3">
@@ -117,6 +134,13 @@ const Footer = () => {
                     {'id' in link ? (
                       <button 
                         onClick={() => scrollToSection(link.id!)}
+                        className="text-[var(--text-secondary)] text-sm hover:text-[var(--sp-accent)] transition-colors"
+                      >
+                        {link.label}
+                      </button>
+                    ) : 'path' in link ? (
+                      <button 
+                        onClick={() => { navigate(link.path!); window.scrollTo(0, 0); }}
                         className="text-[var(--text-secondary)] text-sm hover:text-[var(--sp-accent)] transition-colors"
                       >
                         {link.label}

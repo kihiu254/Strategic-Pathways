@@ -28,6 +28,7 @@ const ProfilePage = lazy(() => import('./sections/ProfilePage'));
 const LoginPage = lazy(() => import('./sections/auth/LoginPage'));
 const AdminRoute = lazy(() => import('./sections/auth/AdminRoute'));
 const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPage'));
+const SitemapPage = lazy(() => import('./sections/SitemapPage'));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -171,6 +172,7 @@ function MainLayout() {
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/sitemap" element={<SitemapPage />} />
                 
                 {/* Protected Admin Route */}
                 <Route element={<AdminRoute />}>
