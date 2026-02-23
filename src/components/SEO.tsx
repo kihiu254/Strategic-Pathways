@@ -6,14 +6,16 @@ interface SEOProps {
   type?: string;
   name?: string;
   image?: string;
+  canonical?: string;
 }
 
 export default function SEO({ 
   title, 
-  description = 'Mobilising study-abroad returnees and diaspora professionals into collaborative projects, consultancy engagements, and venture-building initiatives that strengthen local economies in Kenya.', 
+  description = 'Connecting Kenyan diaspora and study-abroad returnees with local projects, ventures, and consultancy roles to drive economic growth.', 
   type = 'website', 
   name = 'Strategic Pathways',
-  image = '/logo-og.png'
+  image = '/logo-og.png',
+  canonical = 'https://www.joinstrategicpathways.com/'
 }: SEOProps) {
   const pageTitle = title ? `${title} | ${name}` : name;
 
@@ -22,6 +24,7 @@ export default function SEO({
       {/* Standard metadata tags */}
       <title>{pageTitle}</title>
       <meta name='description' content={description} />
+      <link rel="canonical" href={canonical} />
       
       {/* OpenGraph tags for LinkedIn/Facebook */}
       <meta property="og:type" content={type} />
