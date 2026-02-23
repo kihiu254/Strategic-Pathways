@@ -92,6 +92,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
     setIsSubmitting(true);
     
     try {
+      // 1. Save to Database
       const { error } = await supabase
         .from('partner_inquiries')
         .insert([
@@ -105,6 +106,18 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
 
       if (error) throw error;
       
+      // 2. Trigger Email Notification via Vercel Serverless Function
+      try {
+        await fetch('/api/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+      } catch (emailError) {
+        console.error('Failed to dispatch email:', emailError);
+        // We don't throw here because the DB save was successful
+      }
+
       toast.success('Thank you for reaching out! We will respond within 2 business days.');
       setFormData({ name: '', email: '', organization: '', message: '' });
     } catch (error: any) {
