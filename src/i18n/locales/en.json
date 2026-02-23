@@ -1,0 +1,251 @@
+{
+  "nav": {
+    "about": "About",
+    "howItWorks": "How it Works",
+    "pricing": "Pricing",
+    "audience": "For Professionals",
+    "opportunities": "For Partners",
+    "impact": "Impact",
+    "login": "Login",
+    "register": "Register"
+  },
+  "hero": {
+    "title": "Where Global Skills Come Full Circle",
+    "subtitle": "A talent execution and venture-building platform mobilising study-abroad returnees into impactful local projects that foster sustainable brain circulation.",
+    "cta": "Explore Opportunities",
+    "secondary": "Learn More"
+  },
+  "value": {
+    "title": "Why Strategic Pathways?",
+    "outcomeLabel": "Member Outcomes",
+    "headline": "Real work. Real growth. Real impact.",
+    "benefits": {
+      "projects": "Access to vetted consulting projects and research partnerships.",
+      "mentorship": "Mentorship, peer learning, and leadership development.",
+      "profile": "A credible profile that counties, NGOs, and donors trust."
+    },
+    "cta": "See how it works"
+  },
+  "audience": {
+    "headline": "Built for returnees. Open to institutions.",
+    "caption": "If you're working on Kenya's development, you belong here.",
+    "returnees": "Study-abroad returnees & diaspora experts",
+    "institutions": "Counties · Universities · NGOs · Donors"
+  },
+  "howItWorks": {
+    "headline": "How membership works",
+    "subheadline": "A simple, credible path from application to opportunity.",
+    "steps": [
+      {
+        "title": "Apply & verify",
+        "description": "Share your background. We review for fit and credibility."
+      },
+      {
+        "title": "Connect & collaborate",
+        "description": "Join circles, attend briefings, and meet partners."
+      },
+      {
+        "title": "Win work & grow",
+        "description": "Bid on projects, join teams, and track your impact."
+      }
+    ]
+  },
+  "impact": {
+    "headline": "Impact that scales.",
+    "label": "Pilot Targets (Year 1)",
+    "stats": {
+      "professionals": "Professionals onboarded",
+      "partners": "Institutional partners",
+      "projects": "Pilot projects delivered",
+      "opportunities": "Income opportunities created"
+    },
+    "cta": "Download the brief (PDF)"
+  },
+  "opportunities": {
+    "headline": "Projects worth building.",
+    "chips": {
+      "consultancies": "Consultancies",
+      "research": "Research partnerships"
+    },
+    "body": "From county strategy to program design—members get early access to vetted opportunities.",
+    "viewCTA": "View open opportunities",
+    "partnerCTA": "Become a partner"
+  },
+  "contact": {
+    "headline": "Ready to build with us?",
+    "body": "Tell us what you're working on. We'll map the right pathway—whether you're a professional or a partner.",
+    "labels": {
+      "email": "Email",
+      "location": "Location",
+      "locationVal": "Nairobi, Kenya · Remote across counties",
+      "responseTime": "Response Time",
+      "responseTimeVal": "We respond within 2 business days.",
+      "name": "Name",
+      "emailField": "Email",
+      "organization": "Organization",
+      "message": "Message",
+      "submit": "Request a call",
+      "submitting": "Sending..."
+    },
+    "placeholders": {
+      "name": "Your full name",
+      "email": "your@email.com",
+      "organization": "Your organization (optional)",
+      "message": "Tell us what you're working on..."
+    },
+    "success": "Thank you for reaching out! We will respond within 2 business days."
+  },
+  "pricing": {
+    "headline": "Membership that fits.",
+    "subheadline": "Start free. Upgrade when you're ready to bid on projects.",
+    "recommended": "Recommended",
+    "tiers": {
+      "community": {
+        "name": "Community",
+        "price": "Free",
+        "description": "Start your journey",
+        "features": ["Profile listing", "Monthly newsletter", "Event invites"],
+        "cta": "Join free"
+      },
+      "professional": {
+        "name": "Professional",
+        "price": "KSh 1,200",
+        "period": "/ year",
+        "description": "Most popular",
+        "features": ["Everything in Community", "Project alerts + early access", "Partner introductions", "Credibility badge"],
+        "cta": "Choose Professional"
+      },
+      "firm": {
+        "name": "Firm",
+        "price": "Custom",
+        "description": "For organizations",
+        "features": ["Team onboarding", "Dedicated account support", "Co-branded opportunities"],
+        "cta": "Contact us"
+      }
+    },
+    "dialog": {
+      "title": "Join Strategic Pathways",
+      "description": "Apply for the {{tier}} tier. We'll review your application and get back to you within 2 business days.",
+      "nameLabel": "Full Name",
+      "emailLabel": "Email",
+      "orgLabel": "Organization (Optional)",
+      "submit": "Submit Application",
+      "success": "Thank you for your interest in the {{tier}} tier! We'll be in touch soon."
+    }
+  },
+  "footer": {
+    "platform": "Platform",
+    "community": "Community",
+    "support": "Support",
+    "about": "About",
+    "howItWorks": "How it Works",
+    "pricing": "Pricing",
+    "professionals": "For Professionals",
+    "partners": "For Partners",
+    "impact": "Impact",
+    "sitemap": "Sitemap",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "brandDesc": "A Kenya-based talent execution platform designed to mobilise diaspora professionals into local venture-building and consultancy engagements. Transforming brain drain into brain circulation.",
+    "rights": "Strategic Pathways. All rights reserved.",
+    "compliance": "Compliant with the Kenya Data Protection Act, 2019"
+  },
+  "about": {
+    "title": "About Us | Strategic Pathways",
+    "back": "Back to Home",
+    "mission": {
+      "label": "Our Mission",
+      "headline": "Where Global Skills Come Full Circle",
+      "body": "Mobilising study-abroad returnees and diaspora professionals into collaborative projects, consultancy engagements, and venture-building initiatives that strengthen local economies."
+    },
+    "problem": {
+      "headline": "The Missing Link in Kenyan Talent.",
+      "body1": "Each year, thousands of Kenyans study and work abroad, gaining advanced education and global exposure. However, returning home often means encountering fragmented networks and underutilisation of skills.",
+      "quote": "This disconnect reinforces patterns of brain drain rather than enabling sustainable brain circulation.",
+      "expertise": {
+        "title": "Global Expertise",
+        "desc": "Remains disconnected from local economic opportunities upon return."
+      },
+      "gaps": {
+        "title": "Local Gaps",
+        "desc": "SMEs, NGOs, and counties face challenges accessing reliable execution-ready talent."
+      }
+    },
+    "solution": {
+      "headline": "The Proposed Solution",
+      "subheadline": "A digital-enabled platform operating as a talent execution and venture-building ecosystem.",
+      "items": [
+        { "title": "Digital Onboarding", "desc": "Seamless profile management and verified credential tracking." },
+        { "title": "Team Assembly", "desc": "Structured cross-functional team formation for specific projects." },
+        { "title": "Project Coordination", "desc": "Managing consultancy engagements and local economic initiatives." },
+        { "title": "Venture Incubation", "desc": "Supporting new enterprise development and scaling innovations." },
+        { "title": "Institutional Partnering", "desc": "Bridging talent direct to counties, universities, NGOs, and donors." },
+        { "title": "Execution Focus", "desc": "Not a job board—a platform for executing high-impact, coordinated work." }
+      ]
+    },
+    "objectives": {
+      "headline": "Initial 12-Month Objectives",
+      "list": [
+        "Develop and launch a functional MVP digital platform.",
+        "Onboard at least 500 globally trained and locally skilled professionals.",
+        "Establish partnerships with 5–7 institutions (universities, counties, NGOs).",
+        "Deliver 5–8 pilot projects or consultancy engagements.",
+        "Create at least 50 short-term or project-based income opportunities."
+      ]
+    },
+    "beneficiaries": {
+      "headline": "Who We Serve",
+      "primary": {
+        "title": "Primary",
+        "returnees": "Study-abroad returnees",
+        "diaspora": "Diaspora professionals seeking structured engagement"
+      },
+      "secondary": {
+        "title": "Secondary",
+        "counties": "County governments",
+        "universities": "Universities and alumni networks",
+        "ngos": "NGOs and development agencies",
+        "smes": "SMEs and emerging ventures"
+      }
+    },
+    "impactAbout": {
+      "headline": "Expected Impact",
+      "short": {
+        "title": "Short-Term",
+        "desc": "Increased engagement of globally trained professionals. Structured collaboration pathways established."
+      },
+      "medium": {
+        "title": "Medium-Term",
+        "desc": "Job/income creation through project-based work. Launch of new ventures supported by cross-functional teams."
+      },
+      "long": {
+        "title": "Long-Term Vision",
+        "desc1": "Transitioning from Brain Drain to Brain Circulation.",
+        "desc2": "Sustainable local economic growth driven by globally informed expertise."
+      }
+    },
+    "conclusion": "Strategic Pathways ensures that global skills do not remain abroad or unused."
+  },
+  "oppsPage": {
+    "title": "Opportunities | Strategic Pathways",
+    "headline": "Discover Local Opportunities",
+    "subheadline": "Connect your global expertise with verified projects, consultancies, and ventures driving impact in Kenya.",
+    "filters": {
+      "title": "Filters",
+      "sectors": "Sectors",
+      "all": "All",
+      "tech": "Tech",
+      "agri": "Agriculture",
+      "health": "Healthcare",
+      "finance": "Finance",
+      "public": "Public Sector",
+      "ngo": "NGO"
+    },
+    "search": "Search by role, organization, or keyword...",
+    "apply": "Apply Now",
+    "noResults": "No opportunities found for the selected filters.",
+    "clearFilters": "Clear Filters"
+  }
+}

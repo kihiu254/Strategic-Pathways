@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -9,6 +10,7 @@ interface HowItWorksSectionProps {
 }
 
 const HowItWorksSection = ({ className = '' }: HowItWorksSectionProps) => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -90,26 +92,11 @@ const HowItWorksSection = ({ className = '' }: HowItWorksSectionProps) => {
     return () => ctx.revert();
   }, []);
 
-  const steps = [
-    {
-      number: 1,
-      image: '/images/step1_apply.png',
-      title: 'Apply & verify',
-      description: 'Share your background. We review for fit and credibility.'
-    },
-    {
-      number: 2,
-      image: '/images/step2_connect.png',
-      title: 'Connect & collaborate',
-      description: 'Join circles, attend briefings, and meet partners.'
-    },
-    {
-      number: 3,
-      image: '/images/step3_grow.png',
-      title: 'Win work & grow',
-      description: 'Bid on projects, join teams, and track your impact.'
-    }
-  ];
+  const steps = (t('howItWorks.steps', { returnObjects: true }) as any[]).map((step, index) => ({
+    ...step,
+    number: index + 1,
+    image: [`/images/step1_apply.png`, `/images/step2_connect.png`, `/images/step3_grow.png`][index]
+  }));
 
   return (
     <section 
@@ -121,10 +108,10 @@ const HowItWorksSection = ({ className = '' }: HowItWorksSectionProps) => {
         {/* Heading */}
         <div ref={headingRef} className="text-center mb-12 lg:mb-16">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] mb-4">
-            How membership works
+            {t('howItWorks.headline')}
           </h2>
           <p className="text-[var(--text-secondary)] max-w-xl mx-auto text-lg">
-            A simple, credible path from application to opportunity.
+            {t('howItWorks.subheadline')}
           </p>
         </div>
 

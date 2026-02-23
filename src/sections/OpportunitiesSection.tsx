@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Building2, Briefcase } from 'lucide-react';
@@ -10,6 +11,7 @@ interface OpportunitiesSectionProps {
 }
 
 const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
@@ -90,18 +92,18 @@ const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => 
               ref={headlineRef}
               className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] mb-4 lg:mb-6"
             >
-              Projects worth building.
+              {t('opportunities.headline')}
             </h2>
 
             {/* Chips */}
             <div ref={chipsRef} className="flex flex-wrap gap-2 mb-4 lg:mb-6">
               <span className="px-4 py-2 rounded-full border border-[var(--sp-accent)] text-[var(--sp-accent)] text-sm font-medium flex items-center gap-2">
                 <Briefcase size={16} />
-                Consultancies
+                {t('opportunities.chips.consultancies')}
               </span>
               <span className="px-4 py-2 rounded-full border border-[var(--sp-accent)] text-[var(--sp-accent)] text-sm font-medium flex items-center gap-2">
                 <Building2 size={16} />
-                Research partnerships
+                {t('opportunities.chips.research')}
               </span>
             </div>
 
@@ -110,7 +112,7 @@ const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => 
               ref={bodyRef}
               className="text-[var(--text-secondary)] text-sm lg:text-base mb-6 lg:mb-8"
             >
-              From county strategy to program design—members get early access to vetted opportunities.
+              {t('opportunities.body')}
             </p>
 
             {/* CTAs */}
@@ -119,14 +121,14 @@ const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => 
                 onClick={() => alert('Opportunities list coming soon!')}
                 className="sp-btn-primary flex items-center justify-center gap-2"
               >
-                View open opportunities
+                {t('opportunities.viewCTA')}
                 <ArrowRight size={18} />
               </button>
               <button 
                 onClick={() => scrollToSection('contact')}
                 className="sp-btn-secondary flex items-center justify-center gap-2"
               >
-                Become a partner
+                {t('opportunities.partnerCTA')}
               </button>
             </div>
           </div>

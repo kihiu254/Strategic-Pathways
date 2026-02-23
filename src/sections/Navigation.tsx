@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, User, LayoutDashboard, LogOut, ChevronDown, LogIn, Bell, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -11,6 +13,7 @@ interface NavigationProps {
 }
 
 const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { session, user } = useAuthStore();
   const isLoggedIn = !!session;
@@ -77,9 +80,9 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
   };
 
   const navLinks = [
-    { label: 'About', path: '/concept-note' },
-    { label: 'For You', id: 'audience' },
-    { label: 'Opportunities', path: '/opportunities' },
+    { label: t('nav.about'), path: '/concept-note' },
+    { label: t('nav.audience'), id: 'audience' },
+    { label: t('nav.opportunities'), path: '/opportunities' },
   ];
 
   return (
@@ -119,6 +122,9 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
             
           {/* Desktop Auth & Actions (Right) */}
           <div className="hidden lg:flex items-center gap-4">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -231,7 +237,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 className="sp-btn-primary text-sm flex items-center gap-2"
               >
                 <LogIn size={16} />
-                Sign In
+                {t('nav.login')}
               </button>
             )}
 
@@ -240,7 +246,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 onClick={() => scrollToSection('pricing')}
                 className="sp-btn-glass text-sm"
               >
-                Join the Network
+                {t('nav.register')}
               </button>
             )}
           </div>
@@ -262,8 +268,12 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
           <img 
             src="/logo.png" 
             alt="Strategic Pathways" 
-            className="h-24 w-auto object-contain mb-8"
+            className="h-24 w-auto object-contain mb-4"
           />
+          
+          <div className="mb-8">
+            <LanguageSwitcher />
+          </div>
           
           {navLinks.map((link) => (
             <button

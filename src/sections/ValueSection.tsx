@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Briefcase, Users, Award } from 'lucide-react';
@@ -10,6 +11,7 @@ interface ValueSectionProps {
 }
 
 const ValueSection = ({ className = '' }: ValueSectionProps) => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
@@ -74,15 +76,15 @@ const ValueSection = ({ className = '' }: ValueSectionProps) => {
   const benefits = [
     {
       icon: Briefcase,
-      text: 'Access to vetted consulting projects and research partnerships.'
+      text: t('value.benefits.projects')
     },
     {
       icon: Users,
-      text: 'Mentorship, peer learning, and leadership development.'
+      text: t('value.benefits.mentorship')
     },
     {
       icon: Award,
-      text: 'A credible profile that counties, NGOs, and donors trust.'
+      text: t('value.benefits.profile')
     }
   ];
 
@@ -104,7 +106,7 @@ const ValueSection = ({ className = '' }: ValueSectionProps) => {
             <div ref={labelRef} className="mb-4 lg:mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-0.5 bg-[var(--sp-accent)]" />
-                <span className="sp-label">Member Outcomes</span>
+                <span className="sp-label">{t('value.outcomeLabel')}</span>
               </div>
             </div>
 
@@ -113,14 +115,9 @@ const ValueSection = ({ className = '' }: ValueSectionProps) => {
               ref={headlineRef}
               className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] leading-tight mb-6 lg:mb-8"
             >
-              <span className="word inline-block">Real</span>{' '}
-              <span className="word inline-block">work.</span>
-              <br />
-              <span className="word inline-block">Real</span>{' '}
-              <span className="word inline-block">growth.</span>
-              <br />
-              <span className="word inline-block">Real</span>{' '}
-              <span className="word inline-block">impact.</span>
+              {t('value.headline').split(' ').map((word, i) => (
+                <span key={i} className="word inline-block mr-[0.2em]">{word}</span>
+              ))}
             </h2>
 
             {/* Benefits List */}
@@ -141,7 +138,7 @@ const ValueSection = ({ className = '' }: ValueSectionProps) => {
               onClick={() => scrollToSection('how-it-works')}
               className="sp-btn-secondary w-fit flex items-center gap-2"
             >
-              See how it works
+              {t('value.cta')}
               <ArrowRight size={18} />
             </button>
           </div>

@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -9,6 +10,7 @@ interface AudienceSectionProps {
 }
 
 const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const captionRef = useRef<HTMLParagraphElement>(null);
@@ -83,7 +85,7 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
           ref={headlineRef}
           className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] text-center mb-3"
         >
-          Built for returnees. Open to institutions.
+          {t('audience.headline')}
         </h2>
 
         {/* Caption */}
@@ -91,7 +93,7 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
           ref={captionRef}
           className="text-[var(--text-secondary)] text-center mb-8 lg:mb-12 max-w-xl"
         >
-          If you're working on Kenya's development, you belong here.
+          {t('audience.caption')}
         </p>
 
         {/* Cards Container */}
@@ -110,7 +112,7 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
             {/* Label Bar */}
             <div className="absolute bottom-0 left-0 right-0 h-16 lg:h-20 bg-[var(--bg-primary)]/80 backdrop-blur-sm flex items-center px-6">
               <span className="text-[var(--text-primary)] font-semibold text-sm lg:text-base">
-                Study-abroad returnees & diaspora experts
+                {t('audience.returnees')}
               </span>
             </div>
           </div>
@@ -128,7 +130,7 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
             {/* Label Bar */}
             <div className="absolute bottom-0 left-0 right-0 h-16 lg:h-20 bg-[var(--bg-primary)]/80 backdrop-blur-sm flex items-center px-6">
               <span className="text-[var(--text-primary)] font-semibold text-sm lg:text-base">
-                Counties · Universities · NGOs · Donors
+                {t('audience.institutions')}
               </span>
             </div>
           </div>

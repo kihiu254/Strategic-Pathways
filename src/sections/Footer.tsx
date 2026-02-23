@@ -1,7 +1,9 @@
-import { Linkedin, Twitter, Mail } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Linkedin, Twitter, Mail } from 'lucide-react';
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   const navigate = useNavigate();
@@ -35,21 +37,21 @@ const Footer = () => {
 
   const footerLinks: { platform: FooterLink[], community: FooterLink[], support: FooterLink[] } = {
     platform: [
-      { label: 'About', id: 'value' },
-      { label: 'How it Works', id: 'how-it-works' },
-      { label: 'Pricing', id: 'pricing' },
+      { label: t('footer.about'), id: 'value' },
+      { label: t('footer.howItWorks'), id: 'how-it-works' },
+      { label: t('footer.pricing'), id: 'pricing' },
     ],
     community: [
-      { label: 'For Professionals', id: 'audience' },
-      { label: 'For Partners', id: 'opportunities' },
-      { label: 'Impact', id: 'impact' },
+      { label: t('footer.professionals'), id: 'audience' },
+      { label: t('footer.partners'), id: 'opportunities' },
+      { label: t('footer.impact'), id: 'impact' },
     ],
     support: [
-      { label: 'Sitemap', path: '/sitemap' },
-      { label: 'Contact', id: 'contact' },
-      { label: 'Privacy Policy', path: '/privacy' },
-      { label: 'Terms of Service', path: '/terms' },
-      { label: 'Cookie Policy', path: '/cookies' },
+      { label: t('footer.sitemap'), path: '/sitemap' },
+      { label: t('footer.contact'), id: 'contact' },
+      { label: t('footer.privacy'), path: '/privacy' },
+      { label: t('footer.terms'), path: '/terms' },
+      { label: t('footer.cookies'), path: '/cookies' },
     ]
   };
 
@@ -72,7 +74,7 @@ const Footer = () => {
                 />
               </button>
               <p className="text-[var(--text-secondary)] text-sm mb-4 leading-relaxed">
-                A Kenya-based <span className="text-[var(--sp-accent)]">talent execution platform</span> designed to mobilise diaspora professionals into local <span className="text-[var(--sp-accent)]">venture-building</span> and consultancy engagements. Transforming brain drain into <span className="text-[var(--sp-accent)]">brain circulation</span>.
+                {t('footer.brandDesc')}
               </p>
               {/* Social Links */}
               <div className="flex gap-3">
@@ -101,7 +103,7 @@ const Footer = () => {
 
             {/* Platform Links */}
             <div>
-              <h4 className="text-[var(--text-primary)] font-semibold mb-4">Platform</h4>
+              <h4 className="text-[var(--text-primary)] font-semibold mb-4">{t('footer.platform')}</h4>
               <ul className="space-y-2">
                 {footerLinks.platform.map((link) => (
                   <li key={link.id}>
@@ -118,7 +120,7 @@ const Footer = () => {
 
             {/* Community Links */}
             <div>
-              <h4 className="text-[var(--text-primary)] font-semibold mb-4">Community</h4>
+              <h4 className="text-[var(--text-primary)] font-semibold mb-4">{t('footer.community')}</h4>
               <ul className="space-y-2">
                 {footerLinks.community.map((link) => (
                   <li key={link.id}>
@@ -135,7 +137,7 @@ const Footer = () => {
 
             {/* Support Links */}
             <div>
-              <h4 className="text-[var(--text-primary)] font-semibold mb-4">Support</h4>
+              <h4 className="text-[var(--text-primary)] font-semibold mb-4">{t('footer.support')}</h4>
               <ul className="space-y-2">
                 {footerLinks.support.map((link, index) => (
                   <li key={index}>
@@ -163,10 +165,10 @@ const Footer = () => {
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-[var(--sp-accent)]/10 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-[var(--text-secondary)] text-sm">
-              {currentYear} Strategic Pathways. All rights reserved.
+              {currentYear} {t('footer.rights')}
             </p>
             <p className="text-[var(--text-secondary)]/70 text-xs">
-              Compliant with the Kenya Data Protection Act, 2019
+              {t('footer.compliance')}
             </p>
           </div>
         </div>

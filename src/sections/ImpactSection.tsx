@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Download } from 'lucide-react';
@@ -10,6 +11,7 @@ interface ImpactSectionProps {
 }
 
 const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -65,10 +67,10 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
   }, []);
 
   const stats = [
-    { value: '500+', label: 'Professionals onboarded' },
-    { value: '5–7', label: 'Institutional partners' },
-    { value: '5–8', label: 'Pilot projects delivered' },
-    { value: '50+', label: 'Income opportunities created' }
+    { value: '500+', label: t('impact.stats.professionals') },
+    { value: '5–7', label: t('impact.stats.partners') },
+    { value: '5–8', label: t('impact.stats.projects') },
+    { value: '50+', label: t('impact.stats.opportunities') }
   ];
 
   return (
@@ -101,7 +103,7 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
             <div ref={labelRef} className="mb-4 lg:mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-0.5 bg-[var(--sp-accent)]" />
-                <span className="sp-label">Pilot Targets (Year 1)</span>
+                <span className="sp-label">{t('impact.label')}</span>
               </div>
             </div>
 
@@ -110,7 +112,7 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
               ref={headlineRef}
               className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] mb-6 lg:mb-8"
             >
-              Impact that scales.
+              {t('impact.headline')}
             </h2>
 
             {/* Stats Grid */}
@@ -137,7 +139,7 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
               onClick={() => alert('Download brief coming soon!')}
             >
               <Download size={18} />
-              Download the brief (PDF)
+              {t('impact.cta')}
             </button>
           </div>
         </div>

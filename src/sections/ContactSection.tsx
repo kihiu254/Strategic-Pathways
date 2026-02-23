@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Mail, MapPin, Clock, Send } from 'lucide-react';
@@ -15,6 +16,7 @@ interface ContactSectionProps {
 }
 
 const ContactSection = ({ className = '' }: ContactSectionProps) => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
@@ -118,7 +120,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
         // We don't throw here because the DB save was successful
       }
 
-      toast.success('Thank you for reaching out! We will respond within 2 business days.');
+      toast.success(t('contact.success'));
       setFormData({ name: '', email: '', organization: '', message: '' });
     } catch (error: any) {
       toast.error(error.message || 'Failed to submit inquiry. Please try again.');
@@ -139,10 +141,10 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
           {/* Left Column - Info */}
           <div ref={leftRef} className="flex flex-col justify-center">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] mb-4">
-              Ready to build with us?
+              {t('contact.headline')}
             </h2>
             <p className="text-[var(--text-secondary)] mb-8 lg:mb-10">
-              Tell us what you're working on. We'll map the right pathway—whether you're a professional or a partner.
+              {t('contact.body')}
             </p>
 
             {/* Contact Details */}
@@ -152,7 +154,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                   <Mail className="w-5 h-5 text-[var(--sp-accent)]" />
                 </div>
                 <div>
-                  <p className="text-[var(--text-secondary)] text-sm">Email</p>
+                  <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.email')}</p>
                   <p className="text-[var(--text-primary)]">hello@joinstrategicpathways.com</p>
                 </div>
               </div>
@@ -162,8 +164,8 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                   <MapPin className="w-5 h-5 text-[var(--sp-accent)]" />
                 </div>
                 <div>
-                  <p className="text-[var(--text-secondary)] text-sm">Location</p>
-                  <p className="text-[var(--text-primary)]">Nairobi, Kenya · Remote across counties</p>
+                  <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.location')}</p>
+                  <p className="text-[var(--text-primary)]">{t('contact.labels.locationVal')}</p>
                 </div>
               </div>
 
@@ -172,8 +174,8 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                   <Clock className="w-5 h-5 text-[var(--sp-accent)]" />
                 </div>
                 <div>
-                  <p className="text-[var(--text-secondary)] text-sm">Response Time</p>
-                  <p className="text-[var(--text-primary)]">We respond within 2 business days.</p>
+                  <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.responseTime')}</p>
+                  <p className="text-[var(--text-primary)]">{t('contact.labels.responseTimeVal')}</p>
                 </div>
               </div>
             </div>
@@ -186,49 +188,49 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
           >
             <form ref={inputsRef} onSubmit={handleSubmit} className="space-y-5">
               <div className="form-field">
-                <Label htmlFor="contact-name" className="text-[var(--text-primary)] mb-2 block">Name</Label>
+                <Label htmlFor="contact-name" className="text-[var(--text-primary)] mb-2 block">{t('contact.labels.name')}</Label>
                 <Input 
                   id="contact-name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                  placeholder="Your full name"
+                  placeholder={t('contact.placeholders.name')}
                   required
                 />
               </div>
 
               <div className="form-field">
-                <Label htmlFor="contact-email" className="text-[var(--text-primary)] mb-2 block">Email</Label>
+                <Label htmlFor="contact-email" className="text-[var(--text-primary)] mb-2 block">{t('contact.labels.emailField')}</Label>
                 <Input 
                   id="contact-email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                  placeholder="your@email.com"
+                  placeholder={t('contact.placeholders.email')}
                   required
                 />
               </div>
 
               <div className="form-field">
-                <Label htmlFor="contact-organization" className="text-[var(--text-primary)] mb-2 block">Organization</Label>
+                <Label htmlFor="contact-organization" className="text-[var(--text-primary)] mb-2 block">{t('contact.labels.organization')}</Label>
                 <Input 
                   id="contact-organization"
                   value={formData.organization}
                   onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
                   className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                  placeholder="Your organization (optional)"
+                  placeholder={t('contact.placeholders.organization')}
                 />
               </div>
 
               <div className="form-field">
-                <Label htmlFor="contact-message" className="text-[var(--text-primary)] mb-2 block">Message</Label>
+                <Label htmlFor="contact-message" className="text-[var(--text-primary)] mb-2 block">{t('contact.labels.message')}</Label>
                 <Textarea 
                   id="contact-message"
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 min-h-[120px]"
-                  placeholder="Tell us what you're working on..."
+                  placeholder={t('contact.placeholders.message')}
                   required
                 />
               </div>
@@ -239,7 +241,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                 className="form-field sp-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send size={18} />
-                {isSubmitting ? 'Sending...' : 'Request a call'}
+                {isSubmitting ? t('contact.labels.submitting') : t('contact.labels.submit')}
               </button>
             </form>
           </div>

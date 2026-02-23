@@ -1,0 +1,251 @@
+{
+  "nav": {
+    "about": "Kuhusu Sisi",
+    "howItWorks": "Jinsi Inavyofanya Kazi",
+    "pricing": "Bei",
+    "audience": "Kwa Wataalamu",
+    "opportunities": "Kwa Washirika",
+    "impact": "Athari",
+    "login": "Ingia",
+    "register": "Jisajili"
+  },
+  "hero": {
+    "title": "Mahali Ambapo Ujuzi wa Kimataifa Unarudi Nyumbani",
+    "subtitle": "Jukwaa la utekelezaji wa vipaji na ujenzi wa biashara linalowahamasisha wanaorejea kutoka masomoni nje ya nchi kushiriki katika miradi ya ndani yenye athari.",
+    "cta": "Gundua Nafasi",
+    "secondary": "Jifunze Zaidi"
+  },
+  "value": {
+    "title": "Kwa Nini Strategic Pathways?",
+    "outcomeLabel": "Matokeo ya Wanachama",
+    "headline": "Kazi halisi. Ukuaji halisi. Athari halisi.",
+    "benefits": {
+      "projects": "Upatikanaji wa miradi ya ushauri iliyokaguliwa na ushirikiano wa utafiti.",
+      "mentorship": "Ushauri, kujifunza kwa pamoja, na maendeleo ya uongozi.",
+      "profile": "Wasifu wa kuaminika ambao kaunti, NGOs, na wafadhili wanauamini."
+    },
+    "cta": "Angalia jinsi inavyofanya kazi"
+  },
+  "audience": {
+    "headline": "Imeundwa kwa ajili ya wanaorejea. Wazi kwa taasisi.",
+    "caption": "Ikiwa unafanya kazi katika maendeleo ya Kenya, unastahili kuwa hapa.",
+    "returnees": "Wanaorejea kutoka masomoni nje ya nchi & wataalamu wa diaspora",
+    "institutions": "Kaunti · Vyuo Vikuu · NGOs · Wafadhili"
+  },
+  "howItWorks": {
+    "headline": "Jinsi uanachama unavyofanya kazi",
+    "subheadline": "Njia rahisi na ya kuaminika kutoka kwa ombi hadi fursa.",
+    "steps": [
+      {
+        "title": "Tuma ombi & thibitisha",
+        "description": "Shiriki maelezo yako. Tunakagua kulingana na kufaa na uaminifu."
+      },
+      {
+        "title": "Ungana & ushirikiane",
+        "description": "Jiunge na miduara, hudhuria vikao, na kutana na washirika."
+      },
+      {
+        "title": "Shinda kazi & kua",
+        "description": "Toa zabuni kwenye miradi, jiunge na timu, na ufuatilie athari yako."
+      }
+    ]
+  },
+  "impact": {
+    "headline": "Athari inayopanuka.",
+    "label": "Malengo ya Majaribio (Mwaka wa 1)",
+    "stats": {
+      "professionals": "Wataalamu waliojiunga",
+      "partners": "Washirika wa kitaasisi",
+      "projects": "Miradi ya majaribio iliyowasilishwa",
+      "opportunities": "Fursa za mapato zilizoundwa"
+    },
+    "cta": "Pakua muhtasari (PDF)"
+  },
+  "opportunities": {
+    "headline": "Miradi inayostahili kujengwa.",
+    "chips": {
+      "consultancies": "Ushauri",
+      "research": "Ushirikiano wa utafiti"
+    },
+    "body": "Kutoka kwa mkakati wa kaunti hadi muundo wa programu—wanachama hupata ufikiaji wa mapema wa fursa zilizokaguliwa.",
+    "viewCTA": "Angalia fursa zilizopo",
+    "partnerCTA": "Kuwa mshirika"
+  },
+  "contact": {
+    "headline": "Uko tayari kujenga nasi?",
+    "body": "Tuambie unachofanya. Tutaainisha njia sahihi—iwe wewe ni mtaalamu au mshirika.",
+    "labels": {
+      "email": "Barua Pepe",
+      "location": "Mahali",
+      "locationVal": "Nairobi, Kenya · Kazi za mbali katika kaunti zote",
+      "responseTime": "Muda wa Kujibu",
+      "responseTimeVal": "Tunajibu ndani ya siku 2 za kazi.",
+      "name": "Jina",
+      "emailField": "Barua Pepe",
+      "organization": "Shirika",
+      "message": "Ujumbe",
+      "submit": "Omba simu",
+      "submitting": "Inatuma..."
+    },
+    "placeholders": {
+      "name": "Majina yako kamili",
+      "email": "barua@pepe.com",
+      "organization": "Shirika lako (hiari)",
+      "message": "Tuambie unachofanya..."
+    },
+    "success": "Asante kwa kuwasiliana nasi! Tutajibu ndani ya siku 2 za kazi."
+  },
+  "pricing": {
+    "headline": "Uanachama unaofaa.",
+    "subheadline": "Anza bila malipo. Boresha ukiwa tayari kutoa zabuni za miradi.",
+    "recommended": "Inapendekezwa",
+    "tiers": {
+      "community": {
+        "name": "Jumuiya",
+        "price": "Bure",
+        "description": "Anza safari yako",
+        "features": ["Kuorodheshwa kwa wasifu", "Jarida la kila mwezi", "Mialiko ya hafla"],
+        "cta": "Jiunge bure"
+      },
+      "professional": {
+        "name": "Kitalu",
+        "price": "KSh 1,200",
+        "period": "/ mwaka",
+        "description": "Maarufu zaidi",
+        "features": ["Kila kitu kwenye Jumuiya", "Arifa za mradi + ufikiaji wa mapema", "Utangulizi wa washirika", "Beji ya uaminifu"],
+        "cta": "Chagua Kitalu"
+      },
+      "firm": {
+        "name": "Kampuni",
+        "price": "Maalum",
+        "description": "Kwa mashirika",
+        "features": ["Kuingizwa kwa timu", "Msaada maalum wa akaunti", "Fursa zenye chapa mbili"],
+        "cta": "Wasiliana nasi"
+      }
+    },
+    "dialog": {
+      "title": "Jiunge na Strategic Pathways",
+      "description": "Ombi la uanachama wa {{tier}}. Tutakagua ombi lako na kukujibu ndani ya siku 2 za kazi.",
+      "nameLabel": "Majina Kamili",
+      "emailLabel": "Barua Pepe",
+      "orgLabel": "Shirika (Hiari)",
+      "submit": "Tuma Ombi",
+      "success": "Asante kwa maslahi yako katika uanachama wa {{tier}}! Tutawasiliana hivi karibuni."
+    }
+  },
+  "footer": {
+    "platform": "Jukwaa",
+    "community": "Jumuiya",
+    "support": "Msaada",
+    "about": "Kuhusu Sisi",
+    "howItWorks": "Jinsi Inavyofanya Kazi",
+    "pricing": "Bei",
+    "professionals": "Kwa Wataalamu",
+    "partners": "Kwa Washirika",
+    "impact": "Athari",
+    "sitemap": "Sitemap",
+    "contact": "Wasiliana nasi",
+    "privacy": "Sera ya Faragha",
+    "terms": "Masharti ya Huduma",
+    "cookies": "Sera ya Vidakuzi",
+    "brandDesc": "Jukwaa la utekelezaji wa vipaji lenye makao yake nchini Kenya lililoundwa kuwahamasisha wataalamu wa diaspora katika ujenzi wa biashara za ndani na ushauri. Kubadilisha upotevu wa ubongo kuwa mzunguko wa ubongo.",
+    "rights": "Strategic Pathways. Haki zote zimehifadhiwa.",
+    "compliance": "Inazingatia Sheria ya Kulinda Data ya Kenya, 2019"
+  },
+  "about": {
+    "title": "Kuhusu Sisi | Strategic Pathways",
+    "back": "Rudi Nyumbani",
+    "mission": {
+      "label": "Dhamira Yetu",
+      "headline": "Mahali Ambapo Ujuzi wa Kimataifa Unakamilika",
+      "body": "Kuhamasisha wanaorejea kutoka masomoni nje ya nchi na wataalamu wa diaspora katika miradi ya ushirikiano, ushauri, na mipango ya ujenzi wa biashara inayimarisha uchumi wa ndani."
+    },
+    "problem": {
+      "headline": "Kiungo Kinachokosekana katika Vipaji vya Kenya.",
+      "body1": "Kila mwaka, maelfu ya Wakenya husoma na kufanya kazi nje ya nchi, wakipata elimu ya juu na uzoefu wa kimataifa. Hata hivyo, kurejea nyumbani mara nyingi humaanisha kukutana na mitandao iliyovunjika na kutotumia ujuzi kikamilifu.",
+      "quote": "Kutokuunganishwa huku kunaimarisha mifumo ya upotevu wa ubongo badala ya kuwezesha mzunguko endelevu wa ubongo.",
+      "expertise": {
+        "title": "Utaalamu wa Kimataifa",
+        "desc": "Inabaki kutounganishwa na fursa za kiuchumi za ndani wakati wa kurejea."
+      },
+      "gaps": {
+        "title": "Mapungufu ya Ndani",
+        "desc": "SME, mashirika yasiyo ya kiserikali, na kaunti zinakabiliwa na changamoto za kupata vipaji vya kuaminika vilivyo tayari kutekeleza."
+      }
+    },
+    "solution": {
+      "headline": "Suluhisho Inayopendekezwa",
+      "subheadline": "Jukwaa linalowezeshwa kidijitali linalofanya kazi kama mfumo wa utekelezaji wa vipaji na ujenzi wa biashara.",
+      "items": [
+        { "title": "Usajili wa Kidijitali", "desc": "Usimamizi rahisi wa wasifu na ufuatiliaji wa sifa zilizothibitishwa." },
+        { "title": "Uundaji wa Timu", "desc": "Uundaji wa timu zenye kazi mbalimbali kwa miradi maalum." },
+        { "title": "Uratibu wa Miradi", "desc": "Usimamizi wa ushauri na mipango ya kiuchumi ya ndani." },
+        { "title": "Ukuzaji wa Biashara", "desc": "Kusaidia maendeleo ya kibiashara mapya na uvumbuzi." },
+        { "title": "Ushirikiano wa Kitaasisi", "desc": "Kuunganisha vipaji moja kwa moja na kaunti, vyuo vikuu, NGOs, na wafadhili." },
+        { "title": "Lengo la Utekelezaji", "desc": "Sio ubao wa ajira—jukwaa la kutekeleza kazi yenye athari kubwa na iliyoratibiwa." }
+      ]
+    },
+    "objectives": {
+      "headline": "Malengo ya Awali ya Miezi 12",
+      "list": [
+        "Kuunda na kuzindua mfumo wa kidijitali wa MVP unaofanya kazi.",
+        "Kusajili angalau wataalamu 500 waliopata mafunzo ya kimataifa na ujuzi wa ndani.",
+        "Kuanzisha ushirikiano na taasisi 5–7 (vyuo vikuu, kaunti, NGOs).",
+        "Kutoa miradi ya majaribio 5–8 au ushauri.",
+        "Kuunda angalau fursa 50 za mapato za muda mfupi au za kiprojekti."
+      ]
+    },
+    "beneficiaries": {
+      "headline": "Nani Tunayemtumikia",
+      "primary": {
+        "title": "Msingi",
+        "returnees": "Wanaorejea kutoka masomoni nje ya nchi",
+        "diaspora": "Wataalamu wa diaspora wanaotafuta ushirikiano uliopangwa"
+      },
+      "secondary": {
+        "title": "Sekondari",
+        "counties": "Serikali za Kaunti",
+        "universities": "Vyuo Vikuu na mitandao ya wahitimu",
+        "ngos": "NGOs na mashirika ya maendeleo",
+        "smes": "SME na biashara zinazoibuka"
+      }
+    },
+    "impactAbout": {
+      "headline": "Athari Inayotarajiwa",
+      "short": {
+        "title": "Muda Mfupi",
+        "desc": "Kuongezeka kwa ushirikiano wa wataalamu waliofunzwa kimataifa. Njia za ushirikiano zilizopangwa kuanzishwa."
+      },
+      "medium": {
+        "title": "Muda wa Kati",
+        "desc": "Uundaji wa ajira/mapato kupitia kazi za kiprojekti. Uzinduzi wa biashara mpya zinazoungwa mkono na timu za kazi mbalimbali."
+      },
+      "long": {
+        "title": "Dira ya Muda Mrefu",
+        "desc1": "Kubadilisha kutoka Upotevu wa Ubongo kwenda Mzunguko wa Ubongo.",
+        "desc2": "Ukuaji endelevu wa kiuchumi wa ndani unaoendeshwa na utaalamu wa kimataifa."
+      }
+    },
+    "conclusion": "Strategic Pathways inahakikisha kuwa ujuzi wa kimataifa haubaki nje ya nchi au kutotumika."
+  },
+  "oppsPage": {
+    "title": "Fursa | Strategic Pathways",
+    "headline": "Gundua Fursa za <span class=\"text-[var(--sp-accent)]\">Ndani</span>",
+    "subheadline": "Unganisha utaalamu wako wa kimataifa na miradi iliyothibitishwa, ushauri, na biashara zinazoleta athari nchini Kenya.",
+    "filters": {
+      "title": "Vichujio",
+      "sectors": "Sekta",
+      "all": "Zote",
+      "tech": "Teknolojia",
+      "agri": "Kilimo",
+      "health": "Afya",
+      "finance": "Fedha",
+      "public": "Sekta ya Umma",
+      "ngo": "NGO"
+    },
+    "search": "Tafuta kwa jukumu, shirika, au neno kuu...",
+    "apply": "Tuma Ombi Sasa",
+    "noResults": "Hakuna fursa zilizopatikana kwa vichujio vilivyochaguliwa.",
+    "clearFilters": "Futa Vichujio"
+  }
+}

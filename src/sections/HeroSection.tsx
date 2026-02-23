@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Building2 } from 'lucide-react';
@@ -12,6 +13,7 @@ interface HeroSectionProps {
 }
 
 const HeroSection = ({ className = '' }: HeroSectionProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const session = useAuthStore((state) => state.session);
   const sectionRef = useRef<HTMLElement>(null);
@@ -106,14 +108,10 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
               ref={headlineRef}
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-[var(--text-primary)] leading-tight mb-4 lg:mb-6"
             >
-              <span className="text-[var(--sp-accent)] block mb-2 lg:mb-4 text-2xl lg:text-4xl">Strategic Pathways</span>
-              <span className="word inline-block">Where</span>{' '}
-              <span className="word inline-block">Global</span>{' '}
-              <span className="word inline-block">Skills</span>
-              <br className="hidden lg:block"/>
-              <span className="word inline-block">Come</span>{' '}
-              <span className="word inline-block">Full</span>{' '}
-              <span className="word inline-block">Circle.</span>
+              <span className="text-[var(--sp-accent)] block mb-2 lg:mb-4 text-2xl lg:text-4xl font-normal">Strategic Pathways</span>
+              {t('hero.title').split(' ').map((word, i) => (
+                <span key={i} className="word inline-block mr-[0.25em]">{word}</span>
+              ))}
             </h1>
 
             {/* Subheadline */}
@@ -121,7 +119,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
               ref={subheadRef}
               className="text-base lg:text-lg text-[var(--text-secondary)] max-w-xl mb-6 lg:mb-8"
             >
-              A <span className="text-[var(--sp-accent)]">talent execution</span> and <span className="text-[var(--sp-accent)]">venture-building</span> platform mobilising study-abroad returnees into impactful local projects that foster sustainable <span className="text-[var(--sp-accent)]">brain circulation</span>.
+              {t('hero.subtitle')}
             </p>
 
             {/* CTAs */}
@@ -131,7 +129,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
                   onClick={() => navigate('/profile')}
                   className="sp-btn-primary flex items-center justify-center gap-2"
                 >
-                  Go to Dashboard
+                  Dashboard
                   <ArrowRight size={18} />
                 </button>
               ) : (
@@ -139,7 +137,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
                   onClick={() => scrollToSection('pricing')}
                   className="sp-btn-primary flex items-center justify-center gap-2"
                 >
-                  Join the Network
+                  {t('hero.cta')}
                   <ArrowRight size={18} />
                 </button>
               )}
@@ -148,7 +146,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
                 className="sp-btn-secondary flex items-center justify-center gap-2"
               >
                 <Building2 size={18} />
-                Partner with us
+                {t('hero.secondary')}
               </button>
             </div>
 

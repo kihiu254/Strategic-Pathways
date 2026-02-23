@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Check, Star, ArrowRight, Building2 } from 'lucide-react';
@@ -14,6 +15,7 @@ interface PricingSectionProps {
 }
 
 const PricingSection = ({ className = '' }: PricingSectionProps) => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const headlineRef = useRef<HTMLDivElement>(null);
   const card1Ref = useRef<HTMLDivElement>(null);
@@ -109,52 +111,39 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(`Thank you for your interest in the ${selectedTier} tier! We'll be in touch soon.`);
+    toast.success(t('pricing.dialog.success', { tier: selectedTier }));
     setJoinDialogOpen(false);
     setFormData({ name: '', email: '', organization: '' });
   };
 
   const tiers = [
     {
-      name: 'Community',
-      price: 'Free',
+      name: t('pricing.tiers.community.name'),
+      price: t('pricing.tiers.community.price'),
       period: '',
-      description: 'Start your journey',
-      features: [
-        'Profile listing',
-        'Monthly newsletter',
-        'Event invites'
-      ],
-      cta: 'Join free',
+      description: t('pricing.tiers.community.description'),
+      features: t('pricing.tiers.community.features', { returnObjects: true }) as string[],
+      cta: t('pricing.tiers.community.cta'),
       featured: false,
       ref: card1Ref
     },
     {
-      name: 'Professional',
-      price: 'KSh 1,200',
-      period: '/ year',
-      description: 'Most popular',
-      features: [
-        'Everything in Community',
-        'Project alerts + early access',
-        'Partner introductions',
-        'Credibility badge'
-      ],
-      cta: 'Choose Professional',
+      name: t('pricing.tiers.professional.name'),
+      price: t('pricing.tiers.professional.price'),
+      period: t('pricing.tiers.professional.period'),
+      description: t('pricing.tiers.professional.description'),
+      features: t('pricing.tiers.professional.features', { returnObjects: true }) as string[],
+      cta: t('pricing.tiers.professional.cta'),
       featured: true,
       ref: card2Ref
     },
     {
-      name: 'Firm',
-      price: 'Custom',
+      name: t('pricing.tiers.firm.name'),
+      price: t('pricing.tiers.firm.price'),
       period: '',
-      description: 'For organizations',
-      features: [
-        'Team onboarding',
-        'Dedicated account support',
-        'Co-branded opportunities'
-      ],
-      cta: 'Contact us',
+      description: t('pricing.tiers.firm.description'),
+      features: t('pricing.tiers.firm.features', { returnObjects: true }) as string[],
+      cta: t('pricing.tiers.firm.cta'),
       featured: false,
       ref: card3Ref
     }
@@ -170,10 +159,10 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
         {/* Headline */}
         <div ref={headlineRef} className="text-center mb-8 lg:mb-12">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] mb-3">
-            Membership that fits.
+            {t('pricing.headline')}
           </h2>
           <p className="text-[var(--text-secondary)] max-w-xl mx-auto">
-            Start free. Upgrade when you're ready to bid on projects.
+            {t('pricing.subheadline')}
           </p>
         </div>
 
@@ -194,7 +183,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="bg-[var(--sp-accent)] text-[var(--text-inverse)] text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
                     <Star size={12} />
-                    Recommended
+                    {t('pricing.recommended')}
                   </span>
                 </div>
               )}
@@ -246,49 +235,49 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Building2 className="text-[var(--sp-accent)]" />
-              Join Strategic Pathways
+              {t('pricing.dialog.title')}
             </DialogTitle>
             <DialogDescription className="text-[var(--text-secondary)]">
-              Apply for the {selectedTier} tier. We'll review your application and get back to you within 2 business days.
+              {t('pricing.dialog.description', { tier: selectedTier })}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div>
-              <Label htmlFor="name" className="text-[var(--text-primary)]">Full Name</Label>
+              <Label htmlFor="name" className="text-[var(--text-primary)]">{t('pricing.dialog.nameLabel')}</Label>
               <Input 
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                placeholder="Enter your full name"
+                placeholder={t('pricing.dialog.nameLabel')}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="email" className="text-[var(--text-primary)]">Email</Label>
+              <Label htmlFor="email" className="text-[var(--text-primary)]">{t('pricing.dialog.emailLabel')}</Label>
               <Input 
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                placeholder="Enter your email"
+                placeholder={t('pricing.dialog.emailLabel')}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="organization" className="text-[var(--text-primary)]">Organization (Optional)</Label>
+              <Label htmlFor="organization" className="text-[var(--text-primary)]">{t('pricing.dialog.orgLabel')}</Label>
               <Input 
                 id="organization"
                 value={formData.organization}
                 onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
                 className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                placeholder="Enter your organization"
+                placeholder={t('pricing.dialog.orgLabel')}
               />
             </div>
             <button type="submit" className="sp-btn-primary w-full">
-              Submit Application
+              {t('pricing.dialog.submit')}
             </button>
           </form>
         </DialogContent>
