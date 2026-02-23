@@ -12,6 +12,7 @@ import { useAuthStore } from '../store/authStore';
 const ProfilePage = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const isLoading = useAuthStore((state) => state.isLoading);
   
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -53,6 +54,8 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
+    if (isLoading) return;
+
     if (!user) {
       navigate('/login');
       return;

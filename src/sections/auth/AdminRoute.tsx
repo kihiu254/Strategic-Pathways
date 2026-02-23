@@ -4,6 +4,15 @@ import { useAuthStore } from '../../store/authStore';
 const AdminRoute = () => {
   const session = useAuthStore((state) => state.session);
   const user = useAuthStore((state) => state.user);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center text-[var(--sp-accent)]">
+        Loading...
+      </div>
+    );
+  }
 
   // If there's no session, immediately redirect to login
   if (!session) {
