@@ -91,9 +91,27 @@ const ProfilePage = () => {
 
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
-  const handleSave = () => {
-    setIsEditing(false);
-    toast.success('Profile updated successfully!');
+  const handleSave = async () => {
+    try {
+      if (!user) throw new Error("Not logged in");
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          location: profile.location,
+          phone: profile.phone,
+          email: profile.email
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setIsEditing(false);
+      toast.success('Profile updated successfully!');
+    } catch (err: any) {
+      console.error('Save error:', err);
+      toast.error('Failed to update profile: ' + err.message);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

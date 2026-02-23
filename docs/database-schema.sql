@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   tier text default 'Community' check (tier in ('Community', 'Professional', 'Firm')),
   bio text,
   location text,
+  phone text,
+  avatar_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
