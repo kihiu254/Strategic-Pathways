@@ -18,7 +18,7 @@ const ProfilePage = () => {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const [profile, setProfile] = useState({
-    name: 'Loading...',
+    name: user?.user_metadata?.full_name || 'Loading...',
     title: 'Professional Member',
     email: '',
     phone: '',
@@ -64,14 +64,21 @@ const ProfilePage = () => {
 
           setProfile(prev => ({
             ...prev,
-            name: data.full_name || 'Strategic Member',
+            name: data.full_name || user.user_metadata?.full_name || 'Strategic Member',
             email: data.email || user.email || '',
+            phone: data.phone || '',
             bio: data.bio || '',
             location: data.location || '',
             tier: data.tier || 'Community',
             title: data.role === 'admin' ? 'Administrator' : 'Professional Member',
             memberSince: monthYear,
             avatar_url: data.avatar_url || ''
+          }));
+        } else {
+          setProfile(prev => ({
+            ...prev,
+            name: user.user_metadata?.full_name || 'Strategic Member',
+            email: user.email || ''
           }));
         }
       } catch (err: any) {
