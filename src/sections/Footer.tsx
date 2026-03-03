@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Linkedin, Instagram, Youtube, Facebook, Twitter } from 'lucide-react';
+import { Linkedin, Instagram, Youtube, Facebook, Twitter, Globe } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 

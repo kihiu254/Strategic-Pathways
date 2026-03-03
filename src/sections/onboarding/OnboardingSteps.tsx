@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { UseFormRegister, FieldErrors, Control } from 'react-hook-form';
 import { useWatch, useFieldArray } from 'react-hook-form';
 import type { OnboardingData } from './schema';
@@ -356,7 +355,7 @@ export const AreasOfInterest = ({ register, errors }: StepProps) => (
   </div>
 );
 
-export const PremiumDetails = ({ register, errors, control }: StepProps) => {
+export const PremiumDetails = ({ register, control }: StepProps) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "languagesSpoken" as any

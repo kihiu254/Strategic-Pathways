@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Upload, CheckCircle, Clock, AlertCircle, FileText, Award, Building2, Loader2 } from 'lucide-react';
+import { Shield, Upload, CheckCircle, Clock, FileText, Award, Building2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
