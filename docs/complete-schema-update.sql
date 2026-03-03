@@ -247,7 +247,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION update_profile_completion()
 RETURNS trigger AS $$
 BEGIN
-  NEW.profile_completion_percentage := calculate_profile_completion(NEW.id);
+  -- Only calculate if profile has been created (not during initial user creation)
+  IF NEW.full_name IS NOT NULL THEN
+    NEW.profile_completion_percentage := calculate_profile_completion(NEW.id);
+  ELSE
+    NEW.profile_completion_percentage := 0;
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
