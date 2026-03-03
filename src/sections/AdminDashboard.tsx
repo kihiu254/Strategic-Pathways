@@ -292,21 +292,21 @@ const AdminDashboard = () => {
                       className="input-glass pl-10 pr-4 py-2 w-64"
                     />
                   </div>
-                  <button className="sp-btn-glass  flex items-center gap-2">
-                    < Filter size={16} />
-                     Filter
+                  <button className="sp-btn-glass flex items-center gap-2">
+                    <Filter size={16} />
+                    Filter
                   </button>
                 </div>
-                <button className="sp-btn-primary  flex items-center gap-2">
+                <button className="sp-btn-primary flex items-center gap-2">
                   <Plus size={16} />
                   Add Member
                 </button>
               </div>
 
               <div className="glass-card overflow-hidden">
-                <table className="w- full">
+                <table className="w-full">
                   <thead className="bg-white/5">
-                    <tr className="text-le t text-[var(--text-secondary)] text-sm">
+                    <tr className="text-left text-[var(--text-secondary)] text-sm">
                       <th className="p-4">Member</th>
                       <th className="p-4">Tier</th>
                       <th className="p-4">Projects</th>
@@ -382,12 +382,12 @@ const AdminDashboard = () => {
                       className="input-glass pl-10 pr-4 py-2 w-64"
                     />
                   </div>
-                  <button className="sp-btn-glass  flex items-center gap-2">
-                    < Filter size={16} />
-                     Filter
+                  <button className="sp-btn-glass flex items-center gap-2">
+                    <Filter size={16} />
+                    Filter
                   </button>
                 </div>
-                <button className="sp-btn-primary  flex items-center gap-2">
+                <button className="sp-btn-primary flex items-center gap-2">
                   <Plus size={16} />
                   New Project
                 </button>
