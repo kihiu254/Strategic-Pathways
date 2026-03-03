@@ -26,6 +26,7 @@ const AdminDashboard = lazy(() => import('./sections/AdminDashboard'));
 const ConceptNotePage = lazy(() => import('./sections/ConceptNotePage'));
 const ProfilePage = lazy(() => import('./sections/ProfilePage'));
 const LoginPage = lazy(() => import('./sections/auth/LoginPage'));
+const SignupPage = lazy(() => import('./sections/auth/SignupPage'));
 const AdminRoute = lazy(() => import('./sections/auth/AdminRoute'));
 const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPage'));
 const OnboardingFlow = lazy(() => import('./sections/onboarding/ProfileOnboarding'));
@@ -176,6 +177,7 @@ function MainLayout() {
                 <Route path="/concept-note" element={<ConceptNotePage />} />
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/onboarding" element={<OnboardingFlow />} />
                 <Route path="/verification" element={<VerificationPage />} />

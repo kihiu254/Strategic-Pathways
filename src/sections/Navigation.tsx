@@ -243,7 +243,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
 
             {!isLoggedIn && (
               <button 
-                onClick={() => scrollToSection('pricing')}
+                onClick={() => navigate('/signup')}
                 className="sp-btn-glass text-sm"
               >
                 {t('nav.register')}
@@ -337,7 +337,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
               </button>
               <button 
                 onClick={() => {
-                  scrollToSection('pricing');
+                  navigate('/signup');
                   setIsMobileMenuOpen(false);
                 }}
                 className="sp-btn-glass mt-2 w-48 text-center"

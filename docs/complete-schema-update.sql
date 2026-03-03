@@ -31,7 +31,7 @@ ADD COLUMN IF NOT EXISTS cross_sector boolean DEFAULT true,
 ADD COLUMN IF NOT EXISTS seeking_income text,
 ADD COLUMN IF NOT EXISTS venture_interest text,
 ADD COLUMN IF NOT EXISTS investor_interest text,
-ADD COLUMN IF NOT EXISTS references text,
+ADD COLUMN IF NOT EXISTS professional_references text,
 ADD COLUMN IF NOT EXISTS visibility_settings jsonb DEFAULT '{}'::jsonb,
 ADD COLUMN IF NOT EXISTS industry_sub_spec text,
 ADD COLUMN IF NOT EXISTS key_achievements text,
@@ -58,15 +58,19 @@ CREATE TABLE IF NOT EXISTS public.verification_documents (
 
 ALTER TABLE public.verification_documents ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own documents" ON public.verification_documents;
 CREATE POLICY "Users can view own documents" ON public.verification_documents 
   FOR SELECT USING (auth.uid() = user_id);
-  
+
+DROP POLICY IF EXISTS "Users can insert own documents" ON public.verification_documents;
 CREATE POLICY "Users can insert own documents" ON public.verification_documents 
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-  
+
+DROP POLICY IF EXISTS "Admins can view all documents" ON public.verification_documents;
 CREATE POLICY "Admins can view all documents" ON public.verification_documents 
   FOR SELECT USING (public.is_admin());
-  
+
+DROP POLICY IF EXISTS "Admins can update all documents" ON public.verification_documents;
 CREATE POLICY "Admins can update all documents" ON public.verification_documents 
   FOR UPDATE USING (public.is_admin());
 
@@ -86,9 +90,11 @@ CREATE TABLE IF NOT EXISTS public.professional_references (
 
 ALTER TABLE public.professional_references ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own references" ON public.professional_references;
 CREATE POLICY "Users can manage own references" ON public.professional_references 
   FOR ALL USING (auth.uid() = user_id);
-  
+
+DROP POLICY IF EXISTS "Admins can view all references" ON public.professional_references;
 CREATE POLICY "Admins can view all references" ON public.professional_references 
   FOR SELECT USING (public.is_admin());
 
@@ -106,9 +112,11 @@ CREATE TABLE IF NOT EXISTS public.user_skills (
 
 ALTER TABLE public.user_skills ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own skills" ON public.user_skills;
 CREATE POLICY "Users can manage own skills" ON public.user_skills 
   FOR ALL USING (auth.uid() = user_id);
-  
+
+DROP POLICY IF EXISTS "Anyone can view skills" ON public.user_skills;
 CREATE POLICY "Anyone can view skills" ON public.user_skills 
   FOR SELECT USING (true);
 
@@ -131,9 +139,11 @@ CREATE TABLE IF NOT EXISTS public.user_projects (
 
 ALTER TABLE public.user_projects ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own projects" ON public.user_projects;
 CREATE POLICY "Users can manage own projects" ON public.user_projects 
   FOR ALL USING (auth.uid() = user_id);
-  
+
+DROP POLICY IF EXISTS "Anyone can view projects" ON public.user_projects;
 CREATE POLICY "Anyone can view projects" ON public.user_projects 
   FOR SELECT USING (true);
 
@@ -142,7 +152,6 @@ CREATE TABLE IF NOT EXISTS public.platform_social_links (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   platform text NOT NULL UNIQUE,
   url text NOT NULL,
-  icon_name text,
   display_order integer DEFAULT 0,
   is_active boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -151,21 +160,23 @@ CREATE TABLE IF NOT EXISTS public.platform_social_links (
 
 ALTER TABLE public.platform_social_links ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can view social links" ON public.platform_social_links;
 CREATE POLICY "Anyone can view social links" ON public.platform_social_links 
   FOR SELECT USING (is_active = true);
-  
+
+DROP POLICY IF EXISTS "Admins can manage social links" ON public.platform_social_links;
 CREATE POLICY "Admins can manage social links" ON public.platform_social_links 
   FOR ALL USING (public.is_admin());
 
 -- Insert default social media links
-INSERT INTO public.platform_social_links (platform, url, icon_name, display_order) VALUES
-  ('LinkedIn', 'https://www.linkedin.com/company/join-strategicpathways', 'Linkedin', 1),
-  ('Instagram', 'https://www.instagram.com/joinstrategicpathways', 'Instagram', 2),
-  ('TikTok', 'https://www.tiktok.com/@joinstrategicpathways', 'TikTok', 3),
-  ('X (Twitter)', 'https://x.com/SPathways_', 'Twitter', 4),
-  ('Facebook', 'https://www.facebook.com/profile.php?id=61588643401308', 'Facebook', 5),
-  ('Threads', 'https://www.threads.com/@joinstrategicpathways', 'Threads', 6),
-  ('YouTube', 'https://www.youtube.com/@joinstrategicpathways', 'Youtube', 7)
+INSERT INTO public.platform_social_links (platform, url, display_order) VALUES
+  ('LinkedIn', 'https://www.linkedin.com/company/join-strategicpathways', 1),
+  ('Instagram', 'https://www.instagram.com/joinstrategicpathways', 2),
+  ('TikTok', 'https://www.tiktok.com/@joinstrategicpathways', 3),
+  ('X (Twitter)', 'https://x.com/SPathways_', 4),
+  ('Facebook', 'https://www.facebook.com/profile.php?id=61588643401308', 5),
+  ('Threads', 'https://www.threads.com/@joinstrategicpathways', 6),
+  ('YouTube', 'https://www.youtube.com/@joinstrategicpathways', 7)
 ON CONFLICT (platform) DO NOTHING;
 
 -- Create verification-documents storage bucket
@@ -174,18 +185,21 @@ VALUES ('verification-documents', 'verification-documents', false)
 ON CONFLICT DO NOTHING;
 
 -- Storage policies for verification documents
+DROP POLICY IF EXISTS "Users can upload verification docs" ON storage.objects;
 CREATE POLICY "Users can upload verification docs" ON storage.objects 
   FOR INSERT TO authenticated WITH CHECK (
     bucket_id = 'verification-documents' AND 
     (auth.uid()::text = (string_to_array(name, '/'))[1])
   );
 
+DROP POLICY IF EXISTS "Users can view own verification docs" ON storage.objects;
 CREATE POLICY "Users can view own verification docs" ON storage.objects 
   FOR SELECT TO authenticated USING (
     bucket_id = 'verification-documents' AND 
     (auth.uid()::text = (string_to_array(name, '/'))[1])
   );
 
+DROP POLICY IF EXISTS "Admins can view all verification docs" ON storage.objects;
 CREATE POLICY "Admins can view all verification docs" ON storage.objects 
   FOR SELECT TO authenticated USING (
     bucket_id = 'verification-documents' AND 
@@ -193,6 +207,7 @@ CREATE POLICY "Admins can view all verification docs" ON storage.objects
   );
 
 -- Function to calculate profile completion percentage
+DROP FUNCTION IF EXISTS calculate_profile_completion(uuid);
 CREATE OR REPLACE FUNCTION calculate_profile_completion(profile_id uuid)
 RETURNS integer AS $$
 DECLARE

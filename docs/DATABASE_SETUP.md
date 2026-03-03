@@ -133,7 +133,7 @@ WHERE email = 'your.admin@email.com';
 - `sdg_alignment` - Array of SDG goals
 
 #### Metadata
-- `references` - Professional references text
+- `professional_references` - Professional references text
 - `visibility_settings` - JSONB with spotlight, mentor, ambassador preferences
 - `onboarding_completed` - Boolean
 - `profile_completion_percentage` - Auto-calculated 0-100

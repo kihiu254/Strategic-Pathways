@@ -162,7 +162,7 @@ const ProfileOnboarding = () => {
           seeking_income: data.seekingIncome,
           venture_interest: data.ventureInterest,
           investor_interest: data.investorInterest,
-          references: data.references,
+          professional_references: data.references,
           visibility_settings: {
             spotlight: data.openToSpotlight,
             mentor: data.wouldLikeToMentor,
