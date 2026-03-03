@@ -1,11 +1,11 @@
 import { useState }  from 'react';
 import { useNavigate }  from 'react-router-dom';
 import { 
-  LayoutDashboard, Users, Briefcase,  FileText, Settings, 
+  LayoutDashboard, Users, Briefcase, FileText, Settings, 
   TrendingUp, DollarSign, UserCheck, CheckCircle,
-  X, Plus, Search,  Filter,
+  X, Plus, Search, Filter,
   BarChart3, PieChart, Star, Edit2, Trash2, Eye
-}  from 'lucide-react';
+} from 'lucide-react';
 import { toast }  from 'sonner';
 
 const AdminDashboard = () => {

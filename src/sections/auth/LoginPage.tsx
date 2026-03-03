@@ -20,14 +20,13 @@ const LoginPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  // State to track if we're technically "signing up" or just "signing in"
-  // so we can collect their name if they are new.
   const [isSignUp, setIsSignUp] = useState(false);
+  const [accountExists, setAccountExists] = useState<boolean | null>(null);
 
   const [formData, setFormData] = useState({
-    name: '', // Added name back
+    name: '',
     email: '',
-    token: '' // For OTP verification
+    token: ''
   });
 
   const handleOAuth = async (provider: 'google' | 'linkedin_oidc') => {
@@ -46,31 +45,50 @@ const LoginPage = () => {
     }
   };
 
-  // Step 1: Send Magic Link / OTP
+  const checkAccountExists = async () => {
+    if (!formData.email) return;
+    setLoading(true);
+    try {
+      const { data } = await supabase.rpc('check_user_exists', { user_email: formData.email });
+      const exists = data || false;
+      setAccountExists(exists);
+      setIsSignUp(!exists);
+      if (!exists && !formData.name) {
+        toast.info('New user detected. Please enter your name to continue.');
+      }
+    } catch (error) {
+      setAccountExists(false);
+      setIsSignUp(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSendToken = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    setLoading(true);
+    
+    if (isSignUp && !formData.name) {
+      toast.error('Please enter your full name');
+      return;
+    }
 
+    setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: formData.email,
         options: {
-          // This must match your Site URL in Supabase Auth Settings!
           emailRedirectTo: `${window.location.origin}/profile`,
-          // IMPORTANT: If they don't exist, Supabase will create them automatically
-          shouldCreateUser: true,
-          data: isSignUp ? {
-            full_name: formData.name, // Save their name during auto-signup
-          } : undefined
+          shouldCreateUser: isSignUp,
+          data: isSignUp ? { full_name: formData.name } : undefined
         }
       });
 
       if (error) throw error;
       
       setOtpSent(true);
-      toast.success(isSignUp ? 'Account created! Sending verification code...' : 'Secure login code sent to your email!');
+      toast.success(isSignUp ? 'Verification code sent! Check your email.' : 'Login code sent to your email!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send login code.');
+      toast.error(error.message || 'Failed to send code.');
     } finally {
       setLoading(false);
     }
@@ -107,16 +125,24 @@ const LoginPage = () => {
         type: 'email' // Specifying we are verifying an email OTP
       });
 
-      if (error) throw error;
+      if (error || !data.user) throw error || new Error('Verification failed');
       
       setSession(data.session);
       setUser(data.user);
       toast.success('Successfully logged in!');
 
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', data.user.id)
+        .single();
+
       if (formData.email.includes('admin') || formData.email.includes('joinstrategicpathways')) {
         navigate('/admin');
-      } else {
+      } else if (profile?.onboarding_completed) {
         navigate('/profile');
+      } else {
+        navigate('/onboarding');
       }
     } catch (error: any) {
       toast.error(error.message || 'Invalid or expired code.');
@@ -189,7 +215,29 @@ const LoginPage = () => {
               </div>
 
               <form onSubmit={handleSendToken} className="space-y-5">
-                {isSignUp && (
+                <div>
+                  <label className="text-[var(--text-secondary)] text-sm block mb-2">Email Address</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onBlur={checkAccountExists}
+                      className="input-glass w-full pl-10 pr-4 py-3 text-[var(--text-primary)]"
+                      placeholder="you@example.com"
+                    />
+                    <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+                  </div>
+                  {accountExists === false && (
+                    <p className="text-[var(--sp-accent)] text-xs mt-2">New account will be created</p>
+                  )}
+                  {accountExists === true && (
+                    <p className="text-green-400 text-xs mt-2">Account found</p>
+                  )}
+                </div>
+
+                {isSignUp && accountExists === false && (
                   <div>
                     <label className="text-[var(--text-secondary)] text-sm block mb-2">Full Name</label>
                     <div className="relative">
@@ -207,33 +255,19 @@ const LoginPage = () => {
                     </div>
                   </div>
                 )}
-                
-                <div>
-                  <label className="text-[var(--text-secondary)] text-sm block mb-2">Email Address</label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="input-glass w-full pl-10 pr-4 py-3 text-[var(--text-primary)]"
-                      placeholder="you@example.com"
-                    />
-                    <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+
+                {!isSignUp && (
+                  <div className="flex justify-end mt-2">
+                    <button 
+                      type="button" 
+                      onClick={handleForgotPassword}
+                      disabled={loading}
+                      className="text-sm text-[var(--sp-accent)] hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      Forgot Password?
+                    </button>
                   </div>
-                  {!isSignUp && (
-                    <div className="flex justify-end mt-2">
-                      <button 
-                        type="button" 
-                        onClick={handleForgotPassword}
-                        disabled={loading}
-                        className="text-sm text-[var(--sp-accent)] hover:text-[var(--text-primary)] transition-colors"
-                      >
-                        Forgot Password?
-                      </button>
-                    </div>
-                  )}
-                </div>
+                )}
 
                 <button
                   type="submit"
@@ -312,15 +346,18 @@ const LoginPage = () => {
             </div>
           )}
           
-          {/* Toggle between Login and Signup when OTP has NOT been sent */}
-          {!otpSent && (
+          {!otpSent && accountExists !== null && (
             <div className="mt-6 text-center text-[var(--text-secondary)] text-sm">
               {isSignUp ? "Already have an account? " : "Don't have an account? "}
               <button
-                onClick={() => setIsSignUp(!isSignUp)}
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setAccountExists(null);
+                  setFormData({ ...formData, name: '' });
+                }}
                 className="text-[var(--sp-accent)] font-medium hover:text-[var(--text-primary)] transition-colors"
               >
-                {isSignUp ? 'Sign in' : 'Sign up'}
+                {isSignUp ? 'Sign in instead' : 'Create account'}
               </button>
             </div>
           )}

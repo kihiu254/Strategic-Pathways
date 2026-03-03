@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   User, Mail, Phone, MapPin, Briefcase, GraduationCap, 
   Edit2, Camera, Linkedin, Twitter, Globe, Award, FileText,
-  CheckCircle, Clock, Star, Upload, Trash2, Loader2
+  CheckCircle, Clock, Star, Upload, Trash2, Loader2, Shield, Zap, Search
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
@@ -50,7 +50,11 @@ const ProfilePage = () => {
     rating: 0.0,
     memberSince: '',
     tier: 'Community',
-    avatar_url: ''
+    avatar_url: '',
+    profileType: 'Standard (MVP)',
+    userCategory: '',
+    verificationTier: 'Tier 1 – Self-Declared',
+    matchScore: 85 // Mock initial score
   });
 
   useEffect(() => {
@@ -87,7 +91,11 @@ const ProfilePage = () => {
             tier: data.tier || 'Community',
             title: data.role === 'admin' ? 'Administrator' : 'Professional Member',
             memberSince: monthYear,
-            avatar_url: data.avatar_url || ''
+            avatar_url: data.avatar_url || '',
+            profileType: data.profile_type || 'Standard (MVP)',
+            userCategory: data.user_category || '',
+            verificationTier: data.verification_tier || 'Tier 1 – Self-Declared',
+            matchScore: 85
           }));
         } else {
           setProfile(prev => ({
@@ -342,12 +350,38 @@ const ProfilePage = () => {
                     <h1 className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">
                       {getGreeting()}, {profile.name.split(' ')[0]} 👋
                     </h1>
-                    <span className="px-3 py-1 rounded-full bg-[var(--sp-accent)]/20 text-[var(--sp-accent)] text-xs font-medium flex items-center gap-1">
-                      <CheckCircle size={12} />
-                      Verified
-                    </span>
                   </div>
-                  <p className="text-[var(--sp-accent)] text-lg mb-2">{profile.title}</p>
+                  
+                  <p className="text-[var(--sp-accent)] text-lg mb-1">{profile.title}</p>
+                  
+                  {profile.userCategory && (
+                    <p className="text-[var(--text-secondary)] text-sm mb-2 italic">
+                      {profile.userCategory}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center gap-3 mb-2">
+                    {profile.verificationTier === 'Tier 1 – Self-Declared' ? (
+                      <span className="px-3 py-1 rounded-full bg-white/5 text-[var(--text-secondary)] text-[10px] font-medium flex items-center gap-1 border border-white/10">
+                        <Clock size={10} />
+                        Self-Declared
+                      </span>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-3 py-1 rounded-full bg-[var(--sp-accent)]/20 text-[var(--sp-accent)] text-xs font-bold flex items-center gap-1 border border-[var(--sp-accent)]/30">
+                          <Shield size={12} className="fill-[var(--sp-accent)]/20" />
+                          {profile.verificationTier === 'Tier 3 – Institutional Ready' ? 'Institutional Ready' : 'Verified Professional'}
+                        </span>
+                        {profile.profileType === 'Premium (Verified)' && (
+                          <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center gap-1 border border-blue-500/30">
+                            <Zap size={12} />
+                            Venture Builder
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex flex-wrap items-center gap-4 text-[var(--text-secondary)] text-sm mt-3">
                     {isEditing ? (
                       <>
@@ -772,6 +806,52 @@ const ProfilePage = () => {
               </div>
             </div>
 
+            {/* Match Intelligence - NEW */}
+            <div className="glass-card p-6 border-t-4 border-[var(--sp-accent)]">
+              <div className="flex justify-between items-start mb-6">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                  <Search size={18} className="text-[var(--sp-accent)]" />
+                  Match Score
+                </h3>
+                <div className="text-2xl font-bold text-[var(--sp-accent)]">{profile.matchScore}%</div>
+              </div>
+              
+              <div className="space-y-4">
+                {[
+                  { label: 'Sector Match', weight: 25, score: 95 },
+                  { label: 'Functional Skill', weight: 25, score: 85 },
+                  { label: 'Geo Relevance', weight: 15, score: 90 },
+                  { label: 'Experience Prep', weight: 15, score: 70 },
+                  { label: 'Intent Overlay', weight: 20, score: 80 }
+                ].map((m, i) => (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
+                      <span>{m.label} ({m.weight}%)</span>
+                      <span className="text-[var(--sp-accent)]">{m.score}%</span>
+                    </div>
+                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[var(--sp-accent)] transition-all duration-1000" 
+                        style={{ width: `${m.score}%`, opacity: m.weight / 25 }} 
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {profile.profileType === 'Standard (MVP)' && (
+                <div className="mt-8 p-4 rounded-xl bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/20">
+                  <p className="text-[10px] text-[var(--sp-accent)] font-bold mb-2 uppercase flex items-center gap-1">
+                    <Star size={10} /> Premium Unlock
+                  </p>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
+                    Complete your Premium profile to unlock institutional matching and detailed skill indexing.
+                  </p>
+                  <button className="w-full sp-btn-primary py-2 text-xs">Upgrade to Premium</button>
+                </div>
+              )}
+            </div>
+
             {/* Member Info */}
             <div className="glass-card p-6">
               <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Membership</h3>
@@ -783,6 +863,12 @@ const ProfilePage = () => {
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">Tier</span>
                   <span className="text-[var(--sp-accent)]">{profile.tier}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">Verification</span>
+                  <span className={`text-xs font-bold ${profile.verificationTier === 'Tier 1 – Self-Declared' ? 'text-[var(--text-secondary)]' : 'text-[var(--sp-accent)]'}`}>
+                    {profile.verificationTier.split(' – ')[1] || profile.verificationTier}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">Status</span>

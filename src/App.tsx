@@ -28,6 +28,8 @@ const ProfilePage = lazy(() => import('./sections/ProfilePage'));
 const LoginPage = lazy(() => import('./sections/auth/LoginPage'));
 const AdminRoute = lazy(() => import('./sections/auth/AdminRoute'));
 const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPage'));
+const OnboardingFlow = lazy(() => import('./sections/onboarding/ProfileOnboarding'));
+const VerificationPage = lazy(() => import('./sections/VerificationPage'));
 const SitemapPage = lazy(() => import('./sections/SitemapPage'));
 const PrivacyPolicyPage = lazy(() => import('./sections/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('./sections/TermsOfServicePage'));
@@ -175,6 +177,8 @@ function MainLayout() {
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/onboarding" element={<OnboardingFlow />} />
+                <Route path="/verification" element={<VerificationPage />} />
                 <Route path="/sitemap" element={<SitemapPage />} />
                 <Route path="/privacy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms" element={<TermsOfServicePage />} />

@@ -2,7 +2,7 @@ import { useRef, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Mail, MapPin, Clock, Send } from 'lucide-react';
+import { Mail, MapPin, Clock, Send, Linkedin, Twitter, Instagram, Facebook, Youtube, MessageCircle, Share2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -177,6 +177,76 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                   <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.responseTime')}</p>
                   <p className="text-[var(--text-primary)]">{t('contact.labels.responseTimeVal')}</p>
                 </div>
+              </div>
+            </div>
+
+            {/* Follow Us */}
+            <div className="mt-4 pt-6 border-t border-[var(--sp-accent)]/10">
+              <p className="text-[var(--text-secondary)] text-sm mb-4 font-medium uppercase tracking-wider">Follow Our Journey</p>
+              <div className="flex flex-wrap gap-3">
+                <a 
+                  href="https://www.linkedin.com/company/join-strategicpathways/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                  title="LinkedIn"
+                >
+                  <Linkedin size={18} />
+                </a>
+                <a 
+                  href="https://x.com/SPathways_" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                  title="X (Twitter)"
+                >
+                  <Twitter size={18} />
+                </a>
+                <a 
+                  href="https://www.instagram.com/joinstrategicpathways/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                  title="Instagram"
+                >
+                  <Instagram size={18} />
+                </a>
+                <a 
+                  href="https://www.tiktok.com/@joinstrategicpathways" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                  title="TikTok"
+                >
+                  <Share2 size={18} />
+                </a>
+                <a 
+                  href="https://www.facebook.com/profile.php?id=61588643401308" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                  title="Facebook"
+                >
+                  <Facebook size={18} />
+                </a>
+                <a 
+                  href="https://www.threads.com/@joinstrategicpathways" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                  title="Threads"
+                >
+                  <MessageCircle size={18} />
+                </a>
+                <a 
+                  href="https://www.youtube.com/@joinstrategicpathways" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                  title="YouTube"
+                >
+                  <Youtube size={18} />
+                </a>
               </div>
             </div>
           </div>
