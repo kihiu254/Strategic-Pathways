@@ -146,11 +146,14 @@ const ProfilePage = () => {
         .from('profiles')
         .upsert({
           id: user.id,
+          full_name: profile.name,
+          professional_title: profile.title,
           location: profile.location,
           phone: profile.phone,
           country_code: profile.countryCode,
           email: profile.email,
           language: profile.language,
+          bio: profile.bio,
           updated_at: new Date().toISOString()
         });
 
@@ -347,12 +350,30 @@ const ProfilePage = () => {
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">
-                      {getGreeting()}, {profile.name.split(' ')[0]} 👋
-                    </h1>
+                    {isEditing ? (
+                      <input 
+                        value={profile.name} 
+                        onChange={e => setProfile({...profile, name: e.target.value})} 
+                        className="input-glass py-2 px-3 text-2xl lg:text-3xl font-bold w-full"
+                        placeholder="Your full name"
+                      />
+                    ) : (
+                      <h1 className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">
+                        {getGreeting()}, {profile.name.split(' ')[0]} 👋
+                      </h1>
+                    )}
                   </div>
                   
-                  <p className="text-[var(--sp-accent)] text-lg mb-1">{profile.title}</p>
+                  {isEditing ? (
+                    <input 
+                      value={profile.title} 
+                      onChange={e => setProfile({...profile, title: e.target.value})} 
+                      className="input-glass py-1 px-2 text-lg mb-1 w-full"
+                      placeholder="Professional title"
+                    />
+                  ) : (
+                    <p className="text-[var(--sp-accent)] text-lg mb-1">{profile.title}</p>
+                  )}
                   
                   {profile.userCategory && (
                     <p className="text-[var(--text-secondary)] text-sm mb-2 italic">
