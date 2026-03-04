@@ -602,7 +602,7 @@ const AdminDashboard = () => {
                 <div className="space-y-4">
                   {[
                     { name: 'Community', price: 'Free', features: 3 },
-                    { name: 'Professional', price: 'KSh 1,200/year', features: 6 },
+                    { name: 'Professional', price: 'only $100/year (or $10/month)', features: 6 },
                     { name: 'Firm', price: 'Custom', features: 8 },
                   ].map((tier, i) => (
                     <div key={i} className="glass-light rounded-xl p-4  flex items-center justify-between">

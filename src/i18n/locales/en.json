@@ -109,8 +109,8 @@
       },
       "professional": {
         "name": "Professional",
-        "price": "KSh 1,200",
-        "period": "/ year",
+        "price": "only $100",
+        "period": "/year (or $10/month)",
         "description": "Most popular",
         "features": ["Everything in Community", "Project alerts + early access", "Partner introductions", "Credibility badge"],
         "cta": "Choose Professional"
