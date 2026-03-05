@@ -28,12 +28,12 @@ const AuthLayout = () => {
 
     // 2. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // If user is logged out while on a protected route, boot them
-        if (!session && (location.pathname.startsWith('/admin') || location.pathname.startsWith('/profile'))) {
+        // Only redirect to login on explicit SIGN_OUT, not during loading states
+        if (event === 'SIGNED_OUT' && (location.pathname.startsWith('/admin') || location.pathname.startsWith('/profile'))) {
              navigate('/login');
         }
       }

@@ -1,9 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Upload, CheckCircle, Clock, FileText, Award, Building2, Loader2 } from 'lucide-react';
+import { Shield, Upload, CheckCircle, Clock, FileText, Award, Building2, Loader2, X, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
+import { EmailAutomationService } from '../lib/emailAutomation';
+
+interface UploadedDocument {
+  id: string;
+  document_type: string;
+  document_category: string;
+  file_url: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+}
 
 const VerificationPage = () => {
   const navigate = useNavigate();
@@ -12,6 +22,7 @@ const VerificationPage = () => {
   const [uploading, setUploading] = useState(false);
   const [currentTier, setCurrentTier] = useState('Tier 1 – Self-Declared');
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -34,6 +45,16 @@ const VerificationPage = () => {
         setCurrentTier(data.verification_tier || 'Tier 1 – Self-Declared');
         setVerificationStatus(data.verification_status);
       }
+
+      // Fetch uploaded documents
+      const { data: documents, error: docsError } = await supabase
+        .from('verification_documents')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (docsError) throw docsError;
+      setUploadedDocuments(documents || []);
     } catch (err) {
       console.error('Error fetching verification:', err);
     } finally {
@@ -41,7 +62,7 @@ const VerificationPage = () => {
     }
   };
 
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string, tierName: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -53,12 +74,31 @@ const VerificationPage = () => {
     setUploading(true);
     try {
       const filePath = `${user?.id}/verification/${docType}_${Date.now()}_${file.name}`;
-      const { error } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('verification-documents')
         .upload(filePath, file);
 
-      if (error) throw error;
+      if (uploadError) throw uploadError;
 
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('verification-documents')
+        .getPublicUrl(filePath);
+
+      // Create document record
+      const { error: docError } = await supabase
+        .from('verification_documents')
+        .insert({
+          user_id: user?.id,
+          document_type: docType,
+          document_category: tierName,
+          file_url: urlData.publicUrl,
+          status: 'pending'
+        });
+
+      if (docError) throw docError;
+
+      // Update profile verification status
       await supabase
         .from('profiles')
         .update({ 
@@ -67,13 +107,111 @@ const VerificationPage = () => {
         })
         .eq('id', user?.id);
 
-      toast.success('Document uploaded! Verification pending.');
+      toast.success('Document uploaded successfully! Verification pending.');
       setVerificationStatus('pending');
+      
+      // Trigger email notification
+      if (user?.email && user?.full_name) {
+        EmailAutomationService.onVerificationDocumentUploaded(
+          user.email,
+          user.full_name,
+          docType,
+          tierName
+        );
+      }
+      
+      // Refresh documents list
+      fetchVerificationStatus();
     } catch (error: any) {
       toast.error('Upload failed: ' + error.message);
     } finally {
       setUploading(false);
       e.target.value = '';
+    }
+  };
+
+  const handleDeleteDocument = async (documentId: string, filePath: string) => {
+    try {
+      // Extract file path from URL
+      const pathParts = filePath.split('/');
+      const fileName = pathParts[pathParts.length - 1];
+      const fullPath = `${user?.id}/verification/${fileName}`;
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('verification-documents')
+        .remove([fullPath]);
+
+      if (storageError) console.warn('Storage deletion failed:', storageError);
+
+      // Delete document record
+      const { error: dbError } = await supabase
+        .from('verification_documents')
+        .delete()
+        .eq('id', documentId);
+
+      if (dbError) throw dbError;
+
+      toast.success('Document deleted successfully');
+      fetchVerificationStatus();
+    } catch (error: any) {
+      toast.error('Failed to delete document: ' + error.message);
+    }
+  };
+
+  const getDocumentsByTier = (tierName: string) => {
+    return uploadedDocuments.filter(doc => doc.document_category === tierName);
+  };
+
+  const hasDocumentsForTier = (tierName: string) => {
+    return getDocumentsByTier(tierName).length > 0;
+  };
+
+  const canProceedToNextTier = () => {
+    if (currentTier === 'Tier 1 – Self-Declared') {
+      return hasDocumentsForTier('Tier 2 – Verified Professional');
+    }
+    if (currentTier === 'Tier 2 – Verified Professional') {
+      return hasDocumentsForTier('Tier 3 – Institutional Ready');
+    }
+    return false;
+  };
+
+  const handleProceedToNextTier = async () => {
+    try {
+      let nextTier = '';
+      if (currentTier === 'Tier 1 – Self-Declared') {
+        nextTier = 'Tier 2 – Verified Professional';
+      } else if (currentTier === 'Tier 2 – Verified Professional') {
+        nextTier = 'Tier 3 – Institutional Ready';
+      }
+
+      if (nextTier) {
+        await supabase
+          .from('profiles')
+          .update({ 
+            verification_tier: nextTier,
+            verification_status: 'pending',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user?.id);
+
+        setCurrentTier(nextTier);
+        setVerificationStatus('pending');
+        toast.success(`Upgraded to ${nextTier}! Your documents are under review.`);
+        
+        // Trigger email notification
+        if (user?.email && user?.full_name) {
+          EmailAutomationService.onVerificationStatusUpdate(
+            user.email,
+            user.full_name,
+            'tier_upgraded',
+            nextTier
+          );
+        }
+      }
+    } catch (error: any) {
+      toast.error('Failed to upgrade tier: ' + error.message);
     }
   };
 
@@ -189,6 +327,33 @@ const VerificationPage = () => {
           </div>
         )}
 
+        {/* Success message when documents are uploaded */}
+        {uploadedDocuments.length > 0 && (
+          <div className="glass-card p-6 mb-8 border-l-4 border-green-500">
+            <div className="flex items-start gap-4">
+              <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
+                  Documents Uploaded Successfully!
+                </h3>
+                <p className="text-[var(--text-secondary)] mb-3">
+                  You have uploaded {uploadedDocuments.length} document{uploadedDocuments.length !== 1 ? 's' : ''}. 
+                  {verificationStatus === 'pending' ? 'Your verification is under review.' : 'You can now proceed to the next tier or wait for approval.'}
+                </p>
+                {canProceedToNextTier() && (
+                  <button
+                    onClick={handleProceedToNextTier}
+                    className="sp-btn-primary flex items-center gap-2 mt-2"
+                  >
+                    <Award className="w-4 h-4" />
+                    Upgrade to Next Tier
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-6">
           {tiers.map((tier, index) => {
             const Icon = tier.icon;
@@ -258,6 +423,55 @@ const VerificationPage = () => {
                       </div>
                     )}
 
+                    {/* Show uploaded documents */}
+                    {getDocumentsByTier(tier.tier).length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-3 flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-[var(--sp-accent)]" />
+                          Uploaded Documents
+                        </h4>
+                        <div className="space-y-2">
+                          {getDocumentsByTier(tier.tier).map((doc) => (
+                            <div key={doc.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                              <div className="flex items-center gap-3">
+                                <FileText className="w-4 h-4 text-[var(--sp-accent)]" />
+                                <div>
+                                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                                    {doc.document_type}
+                                  </p>
+                                  <p className="text-xs text-[var(--text-secondary)]">
+                                    Status: <span className={`capitalize ${
+                                      doc.status === 'approved' ? 'text-green-400' :
+                                      doc.status === 'rejected' ? 'text-red-400' :
+                                      'text-yellow-400'
+                                    }`}>{doc.status}</span>
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => window.open(doc.file_url, '_blank')}
+                                  className="p-1 text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors"
+                                  title="View document"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                {doc.status === 'pending' && (
+                                  <button
+                                    onClick={() => handleDeleteDocument(doc.id, doc.file_url)}
+                                    className="p-1 text-[var(--text-secondary)] hover:text-red-400 transition-colors"
+                                    title="Delete document"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {!isLocked && tier.status !== 'completed' && (
                       <div className="flex flex-wrap gap-3">
                         <input 
@@ -265,7 +479,7 @@ const VerificationPage = () => {
                           id={`upload-${index}`}
                           className="hidden"
                           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                          onChange={(e) => handleDocumentUpload(e, tier.tier)}
+                          onChange={(e) => handleDocumentUpload(e, `${tier.title} Document`, tier.tier)}
                           disabled={uploading}
                         />
                         <label 

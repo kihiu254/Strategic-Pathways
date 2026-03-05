@@ -105,7 +105,7 @@
       "community": {
         "name": "Community",
         "price": "Free",
-        "description": "Start your journey",
+        "description": "3 features",
         "features": ["Profile listing", "Monthly newsletter", "Event invites"],
         "cta": "Join free"
       },
@@ -113,14 +113,14 @@
         "name": "Professional",
         "price": "only $100",
         "period": "/year (or $10/month)",
-        "description": "Most popular",
+        "description": "6 features",
         "features": ["Everything in Community", "Project alerts + early access", "Partner introductions", "Credibility badge"],
         "cta": "Choose Professional"
       },
       "firm": {
         "name": "Firm",
         "price": "Custom",
-        "description": "For organizations",
+        "description": "8 features",
         "features": ["Team onboarding", "Dedicated account support", "Co-branded opportunities"],
         "cta": "Contact us"
       }

@@ -23,14 +23,18 @@ import { CookieBanner } from './components/CookieBanner';
 
 // Lazy-loaded Pages
 const AdminDashboard = lazy(() => import('./sections/AdminDashboard'));
+const UserDashboard = lazy(() => import('./sections/UserDashboard'));
+const AdminUserDetailPage = lazy(() => import('./sections/AdminUserDetailPage'));
 const ConceptNotePage = lazy(() => import('./sections/ConceptNotePage'));
 const ProfilePage = lazy(() => import('./sections/ProfilePage'));
+const EditOnboardingPage = lazy(() => import('./sections/EditOnboardingPage'));
 const LoginPage = lazy(() => import('./sections/auth/LoginPage'));
 const SignupPage = lazy(() => import('./sections/auth/SignupPage'));
 const AdminRoute = lazy(() => import('./sections/auth/AdminRoute'));
-const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPage'));
+const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPageRedesigned'));
 const OnboardingFlow = lazy(() => import('./sections/onboarding/ProfileOnboarding'));
 const VerificationPage = lazy(() => import('./sections/VerificationPage'));
+const ReferralsPage = lazy(() => import('./sections/ReferralsPage'));
 const SitemapPage = lazy(() => import('./sections/SitemapPage'));
 const TermsOfServicePage = lazy(() => import('./sections/TermsOfServicePage'));
 const CookiePolicyPage = lazy(() => import('./sections/CookiePolicyPage'));
@@ -176,9 +180,12 @@ function MainLayout() {
                 <Route path="/opportunities" element={<OpportunitiesPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
+                <Route path="/dashboard" element={<UserDashboard />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/profile/edit" element={<EditOnboardingPage />} />
                 <Route path="/onboarding" element={<OnboardingFlow />} />
                 <Route path="/verification" element={<VerificationPage />} />
+                <Route path="/referrals" element={<ReferralsPage />} />
                 <Route path="/sitemap" element={<SitemapPage />} />
                 <Route path="/privacy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms" element={<TermsOfServicePage />} />
@@ -193,6 +200,7 @@ function MainLayout() {
                 {/* Protected Admin Route */}
                 <Route element={<AdminRoute />}>
                   <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/user/:userId" element={<AdminUserDetailPage />} />
                 </Route>
               </Route>
             </Routes>
@@ -200,8 +208,8 @@ function MainLayout() {
         </>
       )}
 
-      {/* Hide footer on admin page and opportunities page, but show everywhere else (home, profile, etc) */}
-      {location.pathname !== '/admin' && location.pathname !== '/opportunities' && <Footer />}
+      {/* Hide footer on admin page, dashboard, and opportunities page */}
+      {location.pathname !== '/admin' && location.pathname !== '/dashboard' && location.pathname !== '/opportunities' && <Footer />}
     </div>
   );
 }

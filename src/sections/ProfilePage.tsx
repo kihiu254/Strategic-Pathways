@@ -4,11 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { 
   User, Mail, Phone, MapPin, Briefcase, GraduationCap, 
   Edit2, Camera, Linkedin, Twitter, Globe, Award, FileText,
-  CheckCircle, Clock, Star, Upload, Trash2, Loader2, Shield, Zap, Search
+  CheckCircle, Clock, Star, Upload, Trash2, Loader2, Shield, Zap, Search, Plus, Share2, Eye, X,
+  Activity, Settings, Heart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
+import { calculateDynamicMatchScore } from '../utils/matchScoring';
+import type { MatchScores } from '../utils/matchScoring';
+import { rankOpportunities, MOCK_OPPORTUNITIES } from '../utils/opportunities';
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -20,6 +24,17 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [userProjects, setUserProjects] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [showAddProject, setShowAddProject] = useState(false);
+  const [newProject, setNewProject] = useState({
+    project_title: '',
+    project_description: '',
+    organization: '',
+    role: '',
+    is_current: false,
+    tags: [] as string[]
+  });
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -51,6 +66,9 @@ const ProfilePage = () => {
     userCategory: string;
     verificationTier: string;
     matchScore: number;
+    matchScoresDetails: MatchScores | null;
+    sector?: string;
+    primarySector?: string;
   }>({
     name: user?.user_metadata?.full_name || t('common.loading'),
     title: t('profilePage.status.professional'),
@@ -73,7 +91,8 @@ const ProfilePage = () => {
     profileType: 'Standard (MVP)',
     userCategory: '',
     verificationTier: 'Tier 1 – Self-Declared',
-    matchScore: 0
+    matchScore: 0,
+    matchScoresDetails: null
   });
 
   useEffect(() => {
@@ -161,7 +180,8 @@ const ProfilePage = () => {
         const { data, error, count } = await supabase
           .from('user_projects')
           .select('*', { count: 'exact' })
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
         
         if (error) throw error;
         if (data) {
@@ -169,10 +189,56 @@ const ProfilePage = () => {
             ...prev,
             projects: count || 0
           }));
-          // We could also store project details in a separate state if needed for the projects tab
+          setUserProjects(data);
         }
       } catch (err) {
         console.error('Error fetching projects:', err);
+      }
+    };
+
+    const fetchActivities = async () => {
+      try {
+        // Fetch recent verification documents as activities
+        const { data: verificationData } = await supabase
+          .from('verification_documents')
+          .select('document_type, created_at, status')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        const activities = [];
+        
+        if (verificationData) {
+          activities.push(...verificationData.map(v => ({
+            action: 'Submitted verification',
+            target: v.document_type,
+            time: new Date(v.created_at).toLocaleDateString(),
+            type: 'verification'
+          })));
+        }
+
+        // Fetch recent projects as activities
+        const { data: projectData } = await supabase
+          .from('user_projects')
+          .select('project_title, created_at, is_current')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (projectData) {
+          activities.push(...projectData.map(p => ({
+            action: p.is_current ? 'Started project' : 'Completed project',
+            target: p.project_title,
+            time: new Date(p.created_at).toLocaleDateString(),
+            type: 'project'
+          })));
+        }
+
+        // Sort by date
+        activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+        setActivities(activities.slice(0, 10));
+      } catch (err) {
+        console.error('Error fetching activities:', err);
       }
     };
 
@@ -183,18 +249,38 @@ const ProfilePage = () => {
           .list(user.id);
 
         if (error) throw error;
+        
+        let hasCV = false;
         if (data) {
-          setDocuments(data.filter(file => file.name !== '.emptyFolderPlaceholder'));
+          const actualDocs = data.filter(file => file.name !== '.emptyFolderPlaceholder');
+          setDocuments(actualDocs);
+          hasCV = actualDocs.length > 0;
         }
+        return hasCV;
       } catch (err: any) {
         console.error('Error fetching documents:', err);
+        return false;
       }
     };
 
-    fetchProfile();
-    fetchSkills();
-    fetchProjects();
-    fetchDocuments();
+    const loadAllData = async () => {
+      await fetchProfile();
+      await fetchSkills();
+      await fetchProjects();
+      await fetchActivities();
+      const hasCV = await fetchDocuments();
+
+      setProfile(prev => {
+        const scores = calculateDynamicMatchScore(prev, prev.skills?.length || 0, prev.projects || 0, hasCV);
+        return {
+          ...prev,
+          matchScore: scores.total,
+          matchScoresDetails: scores
+        };
+      });
+    };
+
+    loadAllData();
   }, [user, navigate]);
 
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -215,6 +301,7 @@ const ProfilePage = () => {
           email: profile.email,
           language: profile.language,
           bio: profile.bio,
+          profile_completion_percentage: profile.matchScore,
           updated_at: new Date().toISOString()
         });
 
@@ -225,6 +312,97 @@ const ProfilePage = () => {
     } catch (err: any) {
       console.error('Save error:', err);
       toast.error('Failed to update profile: ' + err.message);
+    }
+  };
+
+  const handleAddProject = async () => {
+    try {
+      if (!user) throw new Error("Not logged in");
+      if (!newProject.project_title) {
+        toast.error('Project title is required');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('user_projects')
+        .insert({
+          user_id: user.id,
+          project_title: newProject.project_title,
+          project_description: newProject.project_description,
+          organization: newProject.organization,
+          role: newProject.role,
+          is_current: newProject.is_current,
+          tags: newProject.tags,
+          created_at: new Date().toISOString()
+        })
+        .select();
+
+      if (error) throw error;
+
+      toast.success('Project added successfully!');
+      setShowAddProject(false);
+      setNewProject({
+        project_title: '',
+        project_description: '',
+        organization: '',
+        role: '',
+        is_current: false,
+        tags: []
+      });
+
+      // Add to local state
+      if (data) {
+        setUserProjects([...data, ...userProjects]);
+        setProfile(prev => ({ ...prev, projects: prev.projects + 1 }));
+      }
+
+      // Trigger email notification
+      const { EmailAutomationService } = await import('../lib/emailAutomation');
+      await EmailAutomationService.onProjectAdded(
+        user.email || '',
+        profile.name,
+        newProject.project_title
+      );
+    } catch (err: any) {
+      console.error('Add project error:', err);
+      toast.error('Failed to add project: ' + err.message);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm('Are you sure you want to delete this project?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('user_projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      toast.success('Project deleted');
+      setUserProjects(prev => prev.filter(p => p.id !== projectId));
+      setProfile(prev => ({ ...prev, projects: Math.max(0, prev.projects - 1) }));
+    } catch (err: any) {
+      toast.error('Failed to delete project: ' + err.message);
+    }
+  };
+
+  const handleShareDocument = async (fileName: string) => {
+    try {
+      if (!user) return;
+      
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .createSignedUrl(`${user.id}/${fileName}`, 3600); // 1 hour expiry
+
+      if (error) throw error;
+      if (data) {
+        await navigator.clipboard.writeText(data.signedUrl);
+        toast.success('Shareable link copied to clipboard!');
+      }
+    } catch (err: any) {
+      toast.error('Failed to generate share link: ' + err.message);
     }
   };
 
@@ -255,6 +433,14 @@ const ProfilePage = () => {
       // Refresh documents list
       const { data } = await supabase.storage.from('resumes').list(user.id);
       if (data) setDocuments(data.filter(file => file.name !== '.emptyFolderPlaceholder'));
+
+      // Trigger email notification
+      const { EmailAutomationService } = await import('../lib/emailAutomation');
+      await EmailAutomationService.onCVUploaded(
+        user.email || '',
+        profile.name,
+        file.name
+      );
     } catch (error: any) {
       toast.error('Failed to upload document: ' + error.message);
     } finally {
@@ -376,25 +562,53 @@ const ProfilePage = () => {
         </button>
 
         {/* Profile Header */}
-        <div className="glass-card p-6 lg:p-8 mb-8">
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="premium-card mb-8 relative overflow-hidden group">
+          {/* Background Decorative Element */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--sp-accent)]/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-[var(--sp-accent)]/10 transition-colors duration-700" />
+          
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 relative z-10">
+
             {/* Avatar Section */}
-            <div className="relative">
-              <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full profile-avatar flex items-center justify-center overflow-hidden bg-white/5 border-2 border-[var(--sp-accent)]/20">
-                {isUploadingAvatar ? (
-                  <Loader2 size={40} className="text-[var(--sp-accent)] animate-spin" />
-                ) : profile.avatar_url ? (
-                  <img 
-                    src={profile.avatar_url} 
-                    alt="Profile" 
-                    width={160}
-                    height={160}
-                    className="w-full h-full object-cover" 
+            <div className="relative shrink-0">
+              <div className="relative w-32 h-32 lg:w-44 lg:h-44">
+                {/* Profile Completion Ring */}
+                <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50" cy="50" r="48"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="text-white/5"
                   />
-                ) : (
-                  <User size={64} className="text-[var(--sp-accent)]" />
-                )}
+                  <circle
+                    cx="50" cy="50" r="48"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeDasharray={2 * Math.PI * 48}
+                    strokeDashoffset={2 * Math.PI * 48 * (1 - (profile.matchScore / 100))}
+                    className="text-[var(--sp-accent)] transition-all duration-1000 ease-out"
+                    strokeLinecap="round"
+                  />
+                </svg>
+
+                <div className="absolute inset-2 rounded-full profile-avatar flex items-center justify-center overflow-hidden bg-white/5 border-2 border-[var(--sp-accent)]/20 group-hover:border-[var(--sp-accent)]/40 transition-colors">
+                  {isUploadingAvatar ? (
+                    <Loader2 size={40} className="text-[var(--sp-accent)] animate-spin" />
+                  ) : profile.avatar_url ? (
+                    <img 
+                      src={profile.avatar_url} 
+                      alt="Profile" 
+                      width={160}
+                      height={160}
+                      className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110" 
+                    />
+                  ) : (
+                    <User size={64} className="text-[var(--sp-accent)]" />
+                  )}
+                </div>
               </div>
+              
               <input 
                 type="file" 
                 id="avatar-upload"
@@ -406,10 +620,15 @@ const ProfilePage = () => {
               <button 
                 onClick={() => document.getElementById('avatar-upload')?.click()}
                 disabled={isUploadingAvatar}
-                className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[var(--sp-accent)] flex items-center justify-center text-[var(--text-inverse)] hover:bg-[#D4B76E] transition-colors shadow-lg disabled:opacity-50"
+                className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[var(--sp-accent)] flex items-center justify-center text-[var(--text-inverse)] hover:bg-[#D4B76E] transition-all shadow-lg hover:scale-110 active:scale-95 disabled:opacity-50 z-20"
               >
                 <Camera size={18} />
               </button>
+              
+              {/* Completion Badge */}
+              <div className="absolute -top-1 -right-1 bg-[var(--bg-primary)] px-2 py-1 rounded-lg border border-[var(--sp-accent)]/30 text-[10px] font-bold text-[var(--sp-accent)] animate-pulse-subtle">
+                {profile.matchScore}%
+              </div>
             </div>
 
             {/* Info Section */}
@@ -450,19 +669,19 @@ const ProfilePage = () => {
                   
                   <div className="flex items-center gap-3 mb-2">
                     {profile.verificationTier === 'Tier 1 – Self-Declared' ? (
-                      <span className="px-3 py-1 rounded-full bg-white/5 text-[var(--text-secondary)] text-[10px] font-medium flex items-center gap-1 border border-white/10">
-                        <Clock size={10} />
+                      <span className="px-3 py-1.5 rounded-xl bg-white/5 text-[var(--text-secondary)] text-[10px] font-medium flex items-center gap-1.5 border border-white/10 hover:border-white/20 transition-colors">
+                        <Clock size={12} />
                         {t('profilePage.status.selfDeclared')}
                       </span>
                     ) : (
                       <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 rounded-full bg-[var(--sp-accent)]/20 text-[var(--sp-accent)] text-xs font-bold flex items-center gap-1 border border-[var(--sp-accent)]/30">
-                          <Shield size={12} className="fill-[var(--sp-accent)]/20" />
+                        <span className="px-3 py-1.5 rounded-xl bg-[var(--sp-accent)]/20 text-[var(--sp-accent)] text-xs font-bold flex items-center gap-1.5 border border-[var(--sp-accent)]/30 shadow-lg shadow-[var(--sp-accent)]/10">
+                          <Shield size={14} className="fill-[var(--sp-accent)]/20" />
                           {profile.verificationTier === 'Tier 3 – Institutional Ready' ? 'Institutional Ready' : 'Verified Professional'}
                         </span>
                         {profile.profileType === 'Premium (Verified)' && (
-                          <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center gap-1 border border-blue-500/30">
-                            <Zap size={12} />
+                          <span className="px-3 py-1.5 rounded-xl bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center gap-1.5 border border-blue-500/30 shadow-lg shadow-blue-500/10">
+                            <Zap size={14} />
                             Venture Builder
                           </span>
                         )}
@@ -488,9 +707,9 @@ const ProfilePage = () => {
                              onChange={e => setProfile({...profile, language: e.target.value})} 
                              className="input-glass py-1 px-2 text-sm w-full lg:w-48 appearance-none"
                            >
-                             <option className="text-black" value="English">English</option>
-                             <option className="text-black" value="Swahili">Swahili</option>
-                             <option className="text-black" value="French">French</option>
+                             <option value="English">English</option>
+                             <option value="Swahili">Swahili</option>
+                             <option value="French">French</option>
                            </select>
                         </div>
                         <div className="flex items-center gap-2 w-full lg:w-auto">
@@ -501,11 +720,11 @@ const ProfilePage = () => {
                                onChange={e => setProfile({...profile, countryCode: e.target.value})} 
                                className="bg-transparent text-[var(--text-primary)] px-2 py-1 outline-none text-sm border-r border-[var(--sp-accent)]/20 appearance-none min-w-[70px]"
                              >
-                               <option className="text-black" value="+254">+254</option>
-                               <option className="text-black" value="+1">+1</option>
-                               <option className="text-black" value="+44">+44</option>
-                               <option className="text-black" value="+256">+256</option>
-                               <option className="text-black" value="+255">+255</option>
+                               <option value="+254">+254</option>
+                               <option value="+1">+1</option>
+                               <option value="+44">+44</option>
+                               <option value="+256">+256</option>
+                               <option value="+255">+255</option>
                              </select>
                              <input value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} className="bg-transparent border-none outline-none py-1 px-2 text-sm w-full text-[var(--text-primary)]" placeholder="Phone Number" />
                            </div>
@@ -536,11 +755,18 @@ const ProfilePage = () => {
 
                 <div className="flex gap-3">
                   <button 
+                    onClick={() => navigate('/profile/edit')}
+                    className="sp-btn-primary flex items-center gap-2"
+                  >
+                    <Edit2 size={16} />
+                    Edit Full Profile
+                  </button>
+                  <button 
                     onClick={() => setIsEditing(!isEditing)}
                     className="sp-btn-glass flex items-center gap-2"
                   >
                     <Edit2 size={16} />
-                    {isEditing ? t('profilePage.actions.cancel') : t('profilePage.actions.edit')}
+                    {isEditing ? t('profilePage.actions.cancel') : 'Quick Edit'}
                   </button>
                   {isEditing && (
                     <button 
@@ -555,25 +781,25 @@ const ProfilePage = () => {
               </div>
 
               {/* Stats Row */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                <div className="glass-light rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-[var(--sp-accent)]">{profile.projects}</div>
-                  <div className="text-[var(--text-secondary)] text-sm">{t('profilePage.labels.projects')}</div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+                <div className="glass-light backdrop-blur-xl rounded-2xl p-4 text-center border border-white/5 hover:border-[var(--sp-accent)]/20 transition-all group/stat">
+                  <div className="text-2xl font-bold text-[var(--sp-accent)] group-hover:scale-110 transition-transform">{profile.projects}</div>
+                  <div className="text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold opacity-70 mt-1">{t('profilePage.labels.projects')}</div>
                 </div>
-                <div className="glass-light rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-[var(--sp-accent)]">{profile.connections}</div>
-                  <div className="text-[var(--text-secondary)] text-sm">{t('profilePage.labels.connections')}</div>
+                <div className="glass-light backdrop-blur-xl rounded-2xl p-4 text-center border border-white/5 hover:border-[var(--sp-accent)]/20 transition-all group/stat">
+                  <div className="text-2xl font-bold text-[var(--sp-accent)] group-hover:scale-110 transition-transform">{profile.connections}</div>
+                  <div className="text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold opacity-70 mt-1">{t('profilePage.labels.connections')}</div>
                 </div>
-                <div className="glass-light rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-[var(--sp-accent)] flex items-center justify-center gap-1">
+                <div className="glass-light backdrop-blur-xl rounded-2xl p-4 text-center border border-white/5 hover:border-[var(--sp-accent)]/20 transition-all group/stat">
+                  <div className="text-2xl font-bold text-[var(--sp-accent)] flex items-center justify-center gap-1.5 group-hover:scale-110 transition-transform">
                     {profile.rating}
-                    <Star size={16} className="fill-[#C89F5E]" />
+                    <Star size={16} className="fill-[var(--sp-accent)] text-[var(--sp-accent)]" />
                   </div>
-                  <div className="text-[var(--text-secondary)] text-sm">{t('profilePage.labels.rating')}</div>
+                  <div className="text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold opacity-70 mt-1">{t('profilePage.labels.rating')}</div>
                 </div>
-                <div className="glass-light rounded-xl p-4 text-center">
-                  <div className="text-lg font-bold text-[var(--sp-accent)]">{profile.tier}</div>
-                  <div className="text-[var(--text-secondary)] text-sm">{t('profilePage.labels.tier')}</div>
+                <div className="glass-light backdrop-blur-xl rounded-2xl p-4 text-center border border-white/5 hover:border-[var(--sp-accent)]/20 transition-all group/stat">
+                  <div className="text-lg font-bold text-[var(--sp-accent)] group-hover:scale-110 transition-transform">{profile.tier}</div>
+                  <div className="text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold opacity-70 mt-1">{t('profilePage.labels.tier')}</div>
                 </div>
               </div>
             </div>
@@ -581,19 +807,19 @@ const ProfilePage = () => {
         </div>
 
         {/* Tabs Navigation */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-3 mb-8 overflow-x-auto pb-2 scrollbar-none">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl transition-all whitespace-nowrap ${
+              className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl transition-all duration-300 whitespace-nowrap border ${
                 activeTab === tab.id
-                  ? 'bg-[var(--sp-accent)]/20 text-[var(--sp-accent)] border border-[var(--sp-accent)]/30'
-                  : 'glass-light text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  ? 'bg-[var(--sp-accent)] text-[var(--text-inverse)] border-[var(--sp-accent)] shadow-lg shadow-[var(--sp-accent)]/20 font-bold scale-105'
+                  : 'glass-light text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-white/5 hover:border-white/20'
               }`}
             >
-              <tab.icon size={18} />
-              <span className="font-medium">{tab.label}</span>
+              <tab.icon size={20} className={activeTab === tab.id ? 'animate-pulse-subtle' : ''} />
+              <span className="tracking-wide">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -601,7 +827,7 @@ const ProfilePage = () => {
         {/* Tab Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {activeTab === 'overview' && (
               <>
                 {/* About */}
@@ -667,27 +893,113 @@ const ProfilePage = () => {
 
             {activeTab === 'projects' && (
               <div className="glass-card p-6">
-                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('profilePage.labels.myProjects')}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="glass-light rounded-xl p-4 hover:bg-white/5 transition-colors cursor-pointer">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-lg bg-[var(--sp-accent)]/20 flex items-center justify-center">
-                          <Briefcase size={18} className="text-[var(--sp-accent)]" />
-                        </div>
-                        <div>
-                          <h4 className="text-[var(--text-primary)] font-medium">County Development Strategy</h4>
-                          <p className="text-[var(--text-secondary)] text-xs">Consultancy • 2024</p>
-                        </div>
-                      </div>
-                      <p className="text-[var(--text-secondary)] text-sm">Led policy analysis for devolution framework implementation...</p>
-                      <div className="flex gap-2 mt-3">
-                        <span className="px-2 py-1 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-xs">Completed</span>
-                        <span className="px-2 py-1 rounded-full bg-white/5 text-[var(--text-secondary)] text-xs">Policy</span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">{t('profilePage.labels.myProjects')}</h3>
+                  <button
+                    onClick={() => setShowAddProject(!showAddProject)}
+                    className="sp-btn-primary flex items-center gap-2 text-sm"
+                  >
+                    <Plus size={16} />
+                    Add Project
+                  </button>
                 </div>
+
+                {showAddProject && (
+                  <div className="glass-light p-6 rounded-xl mb-6 space-y-4">
+                    <h4 className="text-[var(--text-primary)] font-medium mb-4">New Project</h4>
+                    <input
+                      placeholder="Project Title *"
+                      value={newProject.project_title}
+                      onChange={(e) => setNewProject({...newProject, project_title: e.target.value})}
+                      className="input-glass w-full"
+                    />
+                    <textarea
+                      placeholder="Description"
+                      value={newProject.project_description}
+                      onChange={(e) => setNewProject({...newProject, project_description: e.target.value})}
+                      className="input-glass w-full min-h-[100px]"
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input
+                        placeholder="Organization"
+                        value={newProject.organization}
+                        onChange={(e) => setNewProject({...newProject, organization: e.target.value})}
+                        className="input-glass w-full"
+                      />
+                      <input
+                        placeholder="Your Role"
+                        value={newProject.role}
+                        onChange={(e) => setNewProject({...newProject, role: e.target.value})}
+                        className="input-glass w-full"
+                      />
+                    </div>
+                    <label className="flex items-center gap-2 text-[var(--text-secondary)]">
+                      <input
+                        type="checkbox"
+                        checked={newProject.is_current}
+                        onChange={(e) => setNewProject({...newProject, is_current: e.target.checked})}
+                        className="w-4 h-4 rounded"
+                      />
+                      Currently working on this project
+                    </label>
+                    <div className="flex gap-2">
+                      <button onClick={handleAddProject} className="sp-btn-primary">
+                        Save Project
+                      </button>
+                      <button onClick={() => setShowAddProject(false)} className="sp-btn-glass">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {userProjects.length === 0 ? (
+                  <div className="text-center py-8 text-[var(--text-secondary)]">
+                    No projects yet. Start adding your work!
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {userProjects.map((project) => (
+                      <div key={project.id} className="glass-light rounded-xl p-4 hover:bg-white/5 transition-colors group relative">
+                        <button
+                          onClick={() => handleDeleteProject(project.id)}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete project"
+                        >
+                          <X size={14} />
+                        </button>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-lg bg-[var(--sp-accent)]/20 flex items-center justify-center">
+                            <Briefcase size={18} className="text-[var(--sp-accent)]" />
+                          </div>
+                          <div>
+                            <h4 className="text-[var(--text-primary)] font-medium">{project.project_title}</h4>
+                            <p className="text-[var(--text-secondary)] text-xs">
+                              {project.organization || 'Personal'} • {new Date(project.created_at).getFullYear()}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-[var(--text-secondary)] text-sm line-clamp-2">
+                          {project.project_description || 'No description provided'}
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            project.is_current 
+                              ? 'bg-green-500/10 text-green-400' 
+                              : 'bg-[var(--sp-accent)]/10 text-[var(--sp-accent)]'
+                          }`}>
+                            {project.is_current ? 'In Progress' : 'Completed'}
+                          </span>
+                          {project.tags && project.tags.map((tag: string) => (
+                            <span key={tag} className="px-2 py-1 rounded-full bg-white/5 text-[var(--text-secondary)] text-xs">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -734,13 +1046,22 @@ const ProfilePage = () => {
                         <div className="flex items-center gap-2">
                           <button 
                             onClick={() => handleDownloadFile(doc.name)}
-                            className="sp-btn-glass text-sm"
+                            className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                            title="View"
                           >
-                            {t('profilePage.actions.download')}
+                            <Eye size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleShareDocument(doc.name)}
+                            className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                            title="Copy share link"
+                          >
+                            <Share2 size={16} />
                           </button>
                           <button 
                             onClick={() => handleDeleteFile(doc.name)}
                             className="p-2 text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-white/5 rounded-lg hover:bg-red-500/10"
+                            title="Delete"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -759,104 +1080,141 @@ const ProfilePage = () => {
             )}
 
             {activeTab === 'activity' && (
-              <div className="glass-card p-6">
-                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('profilePage.labels.recentActivity')}</h3>
-                <div className="space-y-4">
-                  {[
-                    { action: 'Applied to project', target: 'County Development Strategy', time: '2 days ago' },
-                    { action: 'Connected with', target: 'Sarah Mwangi', time: '5 days ago' },
-                    { action: 'Completed project', target: 'NGO Capacity Assessment', time: '1 week ago' },
-                    { action: 'Updated profile', target: 'Added new certification', time: '2 weeks ago' },
-                  ].map((activity, i) => (
-                    <div key={i} className="flex items-start gap-4">
-                      <div className="w-2 h-2 rounded-full bg-[var(--sp-accent)] mt-2" />
-                      <div className="flex-grow">
-                        <p className="text-[var(--text-primary)]">
-                          <span className="text-[var(--sp-accent)]">{activity.action}</span> {activity.target}
-                        </p>
-                        <p className="text-[var(--text-secondary)] text-sm">{activity.time}</p>
-                      </div>
+              <div className="space-y-6">
+                <div className="premium-glass p-8 rounded-[32px] border border-white/5 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--sp-accent)] to-transparent opacity-30" />
+                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-8 tracking-tight flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-[var(--sp-accent)]/10">
+                      <Zap size={20} className="text-[var(--sp-accent)]" />
                     </div>
-                  ))}
+                    {t('profilePage.labels.recentActivity')}
+                  </h3>
+                  
+                  {activities.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                        <Activity size={24} className="text-[var(--text-secondary)] opacity-30" />
+                      </div>
+                      <p className="text-[var(--text-secondary)] font-medium">No recent activity found</p>
+                    </div>
+                  ) : (
+                    <div className="relative space-y-0">
+                      {/* Vertical line */}
+                      <div className="absolute left-[19px] top-2 bottom-8 w-0.5 bg-gradient-to-b from-[var(--sp-accent)]/20 via-white/5 to-transparent" />
+                      
+                      {activities.map((activity, i) => (
+                        <div key={i} className="relative pl-12 pb-8 group">
+                          {/* Dot */}
+                          <div className="absolute left-0 top-1.5 w-10 h-10 rounded-xl bg-[var(--bg-primary)] border border-white/10 flex items-center justify-center group-hover:border-[var(--sp-accent)]/50 transition-all z-10">
+                            <Activity size={16} className="text-[var(--sp-accent)]" />
+                          </div>
+                          
+                          <div className="premium-glass-gold p-4 rounded-2xl border border-white/5 group-hover:border-[var(--sp-accent)]/20 transition-all">
+                            <p className="text-[var(--text-primary)] text-sm font-medium mb-1">
+                              <span className="text-[var(--sp-accent)] font-bold">{activity.action}</span> {activity.target}
+                            </p>
+                            <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest opacity-60">{activity.time}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right Column */}
-          <div className="space-y-6">
+          {/* Components moved to main content area */}
+          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             {/* Recommended Opportunities Widget */}
-            <div className="glass-card p-6 border border-[var(--sp-accent)]/30 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--sp-accent)]/10 blur-[50px] rounded-full pointer-events-none" />
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2 relative z-10">
-                <Star size={18} className="text-[var(--sp-accent)] fill-[var(--sp-accent)]" />
+            <div className="premium-glass p-8 rounded-[32px] border border-white/5 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--sp-accent)]/10 blur-[50px] rounded-full pointer-events-none group-hover:scale-150 transition-transform duration-1000" />
+              <h3 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-3 relative z-10 tracking-tight">
+                <Star size={20} className="text-[var(--sp-accent)] fill-[var(--sp-accent)] animate-pulse-subtle" />
                 {t('profilePage.labels.recommended')}
               </h3>
               
               <div className="space-y-4 relative z-10">
                 {(() => {
-                  // Mock Opportunities Database
-                  const opportunities = [
-                    { id: 1, title: 'Digital Transformation Consultant', org: 'Nairobi County Government', location: 'Nairobi', tags: ['Tech', 'Public Sector'], description: 'Lead the digital transformation strategy for county service delivery.' },
-                    { id: 2, title: 'AgriTech Value Chain Expert', org: 'Green Innovations NGO', location: 'Nakuru (Hybrid)', tags: ['Agriculture', 'NGO'], description: 'Design and implement supply chain optimizations for local farmers.' },
-                    { id: 3, title: 'Venture Builder In-Residence', org: 'Kenya Innovation Hub', location: 'Remote', tags: ['Startups', 'Finance'], description: 'Mentor early-stage startups and help build viable financial models.' },
-                    { id: 4, title: 'Public Health Data Analyst', org: 'Ministry of Health Alliance', location: 'Mombasa', tags: ['Healthcare', 'Data Analysis'], description: 'Analyze returning public health data to optimize resource allocation.' },
-                  ];
-
-                  // Smart Matching Algorithm: Compare Opp tags/desc against User skills
-                  const matches = opportunities.map(opp => {
-                    let score = 0;
-                    const oppText = (opp.tags.join(' ') + ' ' + opp.description + ' ' + opp.title).toLowerCase();
-                    
-                    profile.skills.forEach(skill => {
-                      if (oppText.includes(skill.toLowerCase())) score += 2;
-                      opp.tags.forEach(tag => {
-                        if (tag.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(tag.toLowerCase())) score += 3;
-                      });
-                    });
-
-                    return { ...opp, score };
-                  })
-                  .filter(opp => opp.score > 0)
-                  .sort((a, b) => b.score - a.score)
-                  .slice(0, 2);
-
-                  // Fallback if no exact skills match
-                  const displayOpps = matches.length > 0 ? matches : opportunities.slice(0, 2);
-
-                  return displayOpps.map(opp => (
-                    <div key={opp.id} className="glass-light rounded-xl p-4 hover:bg-[var(--sp-accent)]/5 transition-colors cursor-pointer border border-transparent hover:border-[var(--sp-accent)]/20" onClick={() => navigate('/opportunities')}>
-                      <h4 className="text-[var(--text-primary)] font-medium text-sm mb-1">{opp.title}</h4>
-                      <p className="text-[var(--text-secondary)] text-xs mb-3">{opp.org}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {opp.tags.map(tag => (
-                          <span key={tag} className="px-2 py-0.5 rounded text-[10px] bg-[var(--text-inverse)]/5 text-[var(--text-secondary)]">
-                            {tag}
-                          </span>
+                  const ranked = rankOpportunities(MOCK_OPPORTUNITIES, profile.skills, profile.primarySector || profile.sector);
+                  return ranked.slice(0, 2).map((opp: any) => (
+                    <div key={opp.id} className="premium-glass-gold p-4 rounded-2xl border border-white/5 hover:border-[var(--sp-accent)]/30 transition-all group/item cursor-pointer" onClick={() => navigate('/opportunities')}>
+                      <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1 group-hover/item:text-[var(--sp-accent)] transition-colors">{opp.title}</h4>
+                      <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider mb-2">{opp.org}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {opp.tags.map((tag: string) => (
+                          <span key={tag} className="text-[8px] font-bold px-2 py-0.5 rounded bg-white/5 border border-white/5 text-[var(--text-secondary)] uppercase tracking-widest">{tag}</span>
                         ))}
                       </div>
                     </div>
                   ));
                 })()}
               </div>
-              <button onClick={() => navigate('/opportunities')} className="mt-4 w-full text-center text-sm text-[var(--sp-accent)] hover:text-[var(--text-primary)] transition-colors font-medium">
+
+              <button onClick={() => navigate('/opportunities')} className="w-full mt-6 py-3 rounded-2xl bg-[var(--sp-accent)] text-[var(--text-inverse)] font-bold text-xs uppercase tracking-widest shadow-lg shadow-[var(--sp-accent)]/20 hover:scale-[1.02] active:scale-95 transition-all">
                 {t('profilePage.labels.viewMatches')}
               </button>
             </div>
 
+            {/* Quick Actions Panel */}
+            <div className="premium-glass p-8 rounded-[32px] border border-white/5 relative overflow-hidden">
+               <h3 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-3 relative z-10 tracking-tight">
+                <Zap size={20} className="text-[var(--sp-accent)]" />
+                Quick Actions
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: FileText, label: 'Update CV', color: 'bg-blue-500/10 text-blue-400', action: () => document.getElementById('cv-upload')?.click() },
+                  { icon: Share2, label: 'Share Profile', color: 'bg-purple-500/10 text-purple-400', action: () => handleShareDocument('profile') },
+                  { icon: Search, label: 'Find Work', color: 'bg-green-500/10 text-green-400', action: () => navigate('/opportunities') },
+                  { icon: Settings, label: 'Settings', color: 'bg-orange-500/10 text-orange-400', action: () => setActiveTab('experience') },
+                ].map((action, i) => (
+                  <button key={i} onClick={action.action} className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[var(--sp-accent)]/20 hover:bg-white/[0.05] transition-all group">
+                    <div className={`p-2 rounded-xl mb-2 ${action.color} group-hover:scale-110 transition-transform`}>
+                      <action.icon size={18} />
+                    </div>
+                    <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{action.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Tips */}
+            <div className="premium-glass p-8 rounded-[32px] border border-white/5 border-l-4 border-l-[var(--sp-accent)]">
+              <div className="flex items-start gap-4">
+                <div className="p-2 rounded-xl bg-[var(--sp-accent)]/10 text-[var(--sp-accent)]">
+                  <Heart size={20} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)] mb-2">Pro Tip</h4>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed opacity-80">
+                    Profiles with verified skills get 3x more visibility from high-value opportunities. Consider taking a skill assessment today!
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Skills */}
             <div className="glass-card p-6">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-                <Award size={18} className="text-[var(--sp-accent)]" />
-                {t('profilePage.labels.skills')}
-              </h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                  <Award size={18} className="text-[var(--sp-accent)]" />
+                  {t('profilePage.labels.skills')}
+                </h3>
+                <button onClick={() => toast.success('Verification request submitted. Our team will review your portfolio.')} className="text-[var(--text-secondary)] hover:text-green-400 transition-colors text-xs font-bold flex items-center gap-1 bg-white/5 py-1 px-2 rounded-lg">
+                  <Shield size={14} /> Verify Skills
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {profile.skills.map((skill, index) => (
                   <span 
                     key={index}
-                    className="px-3 py-1.5 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-sm"
+                    className="px-3 py-1.5 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-sm flex items-center gap-1.5"
                   >
                     {skill}
+                    {index < 2 && (
+                      <CheckCircle size={14} className="text-green-400" />
+                    )}
                   </span>
                 ))}
               </div>
@@ -906,21 +1264,21 @@ const ProfilePage = () => {
               
               <div className="space-y-4">
                 {[
-                  { label: 'Sector Match', weight: 25, score: 95 },
-                  { label: 'Functional Skill', weight: 25, score: 85 },
-                  { label: 'Geo Relevance', weight: 15, score: 90 },
-                  { label: 'Experience Prep', weight: 15, score: 70 },
-                  { label: 'Intent Overlay', weight: 20, score: 80 }
+                  { label: 'Sector Match', weight: 25, score: profile.matchScoresDetails?.sectorMatch || 0 },
+                  { label: 'Functional Skill', weight: 25, score: profile.matchScoresDetails?.functionalSkill || 0 },
+                  { label: 'Geo Relevance', weight: 15, score: profile.matchScoresDetails?.geoRelevance || 0 },
+                  { label: 'Experience Prep', weight: 15, score: profile.matchScoresDetails?.experiencePrep || 0 },
+                  { label: 'Intent Overlay', weight: 20, score: profile.matchScoresDetails?.intentOverlay || 0 }
                 ].map((m, i) => (
                   <div key={i} className="space-y-1">
                     <div className="flex justify-between text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
                       <span>{m.label} ({m.weight}%)</span>
-                      <span className="text-[var(--sp-accent)]">{m.score}%</span>
+                      <span className="text-[var(--sp-accent)]">{Math.round((m.score / m.weight) * 100)}%</span>
                     </div>
                     <div className="h-1 bg-white/5 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-[var(--sp-accent)] transition-all duration-1000" 
-                        style={{ width: `${m.score}%`, opacity: m.weight / 25 }} 
+                        style={{ width: `${(m.score / m.weight) * 100}%`, opacity: m.weight / 25 }} 
                       />
                     </div>
                   </div>
@@ -935,7 +1293,7 @@ const ProfilePage = () => {
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
                     Complete your Premium profile to unlock institutional matching and detailed skill indexing.
                   </p>
-                  <button className="w-full sp-btn-primary py-2 text-xs">Upgrade to Premium</button>
+                  <button onClick={() => navigate('/pricing')} className="w-full sp-btn-primary py-2 text-xs">Upgrade to Premium</button>
                 </div>
               )}
             </div>

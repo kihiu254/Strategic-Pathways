@@ -5,6 +5,7 @@ import { Mail, ArrowRight, Linkedin, KeyRound, CheckCircle2, User } from 'lucide
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
+import { EmailAutomationService } from '../../lib/emailAutomation';
 
 const SignupPage = () => {
   const { t } = useTranslation();
@@ -91,6 +92,13 @@ const SignupPage = () => {
       });
 
       if (error || !data.user) throw error || new Error('Verification failed');
+      
+      // Trigger welcome email
+      await EmailAutomationService.onUserSignup(
+        data.user.id,
+        formData.email,
+        formData.name
+      );
       
       setSession(data.session);
       setUser(data.user);

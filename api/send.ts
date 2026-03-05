@@ -1,66 +1,96 @@
 import { Resend } from 'resend';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
-  // Only allow POST requests
+export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { name, email, organization, message } = req.body;
+    const { type, data } = req.body;
+    
+    const fromEmail = 'Strategic Pathways <noreply@joinstrategicpathways.com>';
+    const productionUrl = process.env.VITE_PRODUCTION_URL;
 
-    // Send an email notification to the Admin
-    const { data, error } = await resend.emails.send({
-      from: 'Strategic Pathways <hello@updates.joinstrategicpathways.com>',
-      to: [email],
-      replyTo: 'joinstrategicpathways@gmail.com',
-      subject: `Welcome to Strategic Pathways`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #0b2a3c;">
-          <h2 style="color: #c89f5e;">Welcome to Strategic Pathways!</h2>
-          <p>Thank you for your interest in joining Strategic Pathways. We're excited to have you as part of our community.</p>
-          <hr style="border: 1px solid #eee; margin: 20px 0;" />
-          
-          <p><strong>Your Details:</strong></p>
-          <p><strong>Name:</strong> ${name || 'Strategic Member'}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          ${organization ? `<p><strong>Organization:</strong> ${organization}</p>` : ''}
-          
-          ${message ? `
-          <h3 style="margin-top: 20px;">Your Message:</h3>
-          <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
-            <p style="white-space: pre-wrap; margin: 0;">${message}</p>
-          </div>
-          ` : ''}
-          
-          <p style="margin-top: 30px;">
-            Our team will review your information and get back to you shortly. In the meantime, feel free to explore our platform.
-          </p>
-          
-          <p style="margin-top: 30px; font-size: 12px; color: #888;">
-            This is an automated confirmation. You can contact us at joinstrategicpathways@gmail.com if you have any questions.
-          </p>
-        </div>
-      `,
-    });
+    let emailData;
 
-    if (error) {
-      console.error('Resend API Error details:', JSON.stringify(error, null, 2));
-      return res.status(400).json({ 
-        error: error.message || 'Failed to send email via Resend',
-        details: error
-      });
+    switch (type) {
+      case 'welcome':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: `Welcome to Strategic Pathways, ${data.name}! 🎉`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #0b2a3c 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Strategic Pathways!</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
+                <p style="color: #4a5568; line-height: 1.6;">Welcome to Strategic Pathways! Complete your profile to start discovering opportunities.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/onboarding" style="background: #c89f5e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Complete Your Profile</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
+      case 'project_added':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: `Project "${data.projectTitle}" added to your profile`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #3b82f6 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Project Added Successfully!</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Great work, ${data.name}!</h2>
+                <p style="color: #4a5568; line-height: 1.6;">You've successfully added "${data.projectTitle}" to your profile.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/profile" style="background: #3b82f6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View Your Profile</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
+      case 'cv_uploaded':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: 'CV/Resume uploaded successfully',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #10b981 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">CV/Resume Uploaded!</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Perfect, ${data.name}!</h2>
+                <p style="color: #4a5568; line-height: 1.6;">Your CV/Resume has been uploaded successfully. You can now apply to opportunities with one click!</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/opportunities" style="background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Browse Opportunities</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
+      default:
+        return res.status(400).json({ error: 'Invalid email type' });
     }
 
-    return res.status(200).json({ success: true, data });
+    const result = await resend.emails.send(emailData);
+    return res.status(200).json({ success: true, id: result.data?.id });
+
   } catch (error) {
-    console.error('Serverless Function Error:', error);
+    console.error('Email send error:', error);
     return res.status(500).json({ error: 'Failed to send email' });
   }
 }

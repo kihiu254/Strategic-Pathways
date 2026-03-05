@@ -67,6 +67,7 @@ const Footer = () => {
         { label: t('footer.opportunities'), href: '/opportunities' },
         { label: t('footer.profile'), href: '/profile' },
         { label: t('footer.verification'), href: '/verification' },
+        { label: 'Referrals', href: '/referrals' },
         { label: t('footer.about'), href: '/concept-note' }
       ]
     },

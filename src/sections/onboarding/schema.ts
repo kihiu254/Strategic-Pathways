@@ -8,6 +8,7 @@ export const onboardingSchema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
   professionalTitle: z.string().min(2, 'Professional title is required'),
   email: z.string().email('Invalid email address'),
+  countryCode: z.string().optional(),
   phone: z.string().optional(),
   linkedinUrl: z.string().url('Invalid LinkedIn URL').or(z.literal('')),
   websiteUrl: z.string().url('Invalid website URL').optional().or(z.literal('')),
@@ -15,11 +16,13 @@ export const onboardingSchema = z.object({
   nationality: z.string().min(2, 'Nationality is required'),
 
   // SECTION 2: Education & Global Exposure
-  highestEducation: z.enum(['Bachelor’s', 'Master’s', 'PhD', 'Professional Certification', 'Other']).optional(),
+  highestEducation: z.string().min(1, 'Education level is required').optional(),
+  educationOther: z.string().optional(),
   studyCountry: z.string().min(2, 'Country of study is required').optional(),
   institutions: z.string().min(2, 'Institution name is required').optional(),
+  institutionOther: z.string().optional(),
   fieldOfStudy: z.string().min(2, 'Field of study is required').optional(),
-  otherCountriesWorked: z.string().optional(),
+  otherCountriesWorked: z.array(z.string()).optional(),
   
   // Premium-only Global Info
   countriesWorkedIn: z.array(z.string()).optional(),
@@ -34,7 +37,7 @@ export const onboardingSchema = z.object({
     'Technology', 'Finance', 'Health', 'Policy & Governance', 'Education', 
     'Development', 'Entrepreneurship', 'Energy', 'Agriculture', 'Creative Industries', 'Other'
   ]),
-  functionalExpertise: z.array(z.string()).min(1, 'Select at least one expertise').max(10, 'Select up to 10'),
+  functionalExpertise: z.array(z.string()).min(1, 'Select at least one expertise').max(5, 'Select up to 5'),
   employmentStatus: z.enum([
     'Employed (Full-time)', 'Employed (Part-time)', 'Entrepreneur', 'Consultant', 'In Transition', 'Other'
   ]),

@@ -115,6 +115,35 @@ const ProfileOnboarding = () => {
     try {
       if (!user) throw new Error('Not authenticated');
 
+      // Calculate completion percentage based on filled fields
+      const calculateCompletion = () => {
+        let filledFields = 0;
+        const totalFields = 20;
+        
+        if (data.fullName) filledFields++;
+        if (data.professionalTitle) filledFields++;
+        if (data.email) filledFields++;
+        if (data.phone) filledFields++;
+        if (data.linkedinUrl) filledFields++;
+        if (data.countryOfResidence) filledFields++;
+        if (data.nationality) filledFields++;
+        if (data.bio) filledFields++;
+        if (data.highestEducation) filledFields++;
+        if (data.yearsOfExperience) filledFields++;
+        if (data.primarySector) filledFields++;
+        if (data.functionalExpertise?.length) filledFields++;
+        if (data.employmentStatus) filledFields++;
+        if (data.engagementTypes?.length) filledFields++;
+        if (data.availability) filledFields++;
+        if (data.specificSkills) filledFields++;
+        if (data.passionateProblems) filledFields++;
+        if (data.seekingIncome) filledFields++;
+        if (data.ventureInterest) filledFields++;
+        if (data.websiteUrl) filledFields++;
+        
+        return Math.round((filledFields / totalFields) * 100);
+      };
+
       const { error } = await supabase
         .from('profiles')
         .upsert({
@@ -123,6 +152,7 @@ const ProfileOnboarding = () => {
           full_name: data.fullName,
           professional_title: data.professionalTitle,
           email: data.email,
+          country_code: data.countryCode,
           phone: data.phone,
           linkedin_url: data.linkedinUrl,
           website_url: data.websiteUrl,
@@ -175,6 +205,7 @@ const ProfileOnboarding = () => {
           compensation_expectation: data.compensationExpectation,
           sdg_alignment: data.sdgAlignment,
           onboarding_completed: true,
+          profile_completion_percentage: calculateCompletion(),
           updated_at: new Date().toISOString(),
         });
 

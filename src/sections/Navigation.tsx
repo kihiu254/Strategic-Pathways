@@ -3,6 +3,7 @@ import { Menu, X, User, LayoutDashboard, LogOut, ChevronDown, LogIn, Bell, Sun, 
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import NotificationCenter from '../components/NotificationCenter';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -22,6 +23,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isLightMode, setIsLightMode] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     // Check initial theme from localStorage
@@ -34,6 +36,20 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
       document.documentElement.classList.remove('light-theme');
     }
   }, []);
+
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (user?.id) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+        setUserAvatar(data?.avatar_url || null);
+      }
+    };
+    fetchUserAvatar();
+  }, [user]);
 
   const toggleTheme = () => {
     setIsLightMode(!isLightMode);
@@ -127,47 +143,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
             </button>
 
             {/* Notifications Widget */}
-            {isLoggedIn && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                  className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-white/5 relative"
-                >
-                  <Bell size={20} />
-                  {/* Show red dot if there are unread notifications */}
-                  {isLoggedIn && user && new Date().getTime() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000 && (
-                    <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full border border-[var(--bg-primary)]"></span>
-                  )}
-                </button>
-                
-                {isNotificationsOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-80 glass-card p-4 z-50 shadow-2xl">
-                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">{t('notifications.title')}</h3>
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                      {user && new Date().getTime() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000 ? (
-                        <div className="p-3 glass-light hover:bg-white/5 transition-colors cursor-pointer rounded-xl border border-[var(--sp-accent)]/20">
-                          <p className="text-[var(--text-primary)] text-sm font-medium">{t('notifications.welcome.title')}</p>
-                          <p className="text-[var(--text-secondary)] text-xs mt-1">{t('notifications.welcome.body')}</p>
-                          <span className="text-xs text-[var(--sp-accent)] mt-2 block">{t('notifications.justNow')}</span>
-                        </div>
-                      ) : (
-                        <div className="p-3 glass-light hover:bg-white/5 transition-colors cursor-pointer rounded-xl border border-[var(--sp-accent)]/20">
-                          <p className="text-[var(--text-primary)] text-sm font-medium">{t('notifications.newOpps.title')}</p>
-                          <p className="text-[var(--text-secondary)] text-xs mt-1">{t('notifications.newOpps.body')}</p>
-                          <span className="text-xs text-[var(--sp-accent)] mt-2 block">{t('notifications.oneHourAgo')}</span>
-                        </div>
-                      )}
-                    </div>
-                    <button 
-                      onClick={() => setIsNotificationsOpen(false)}
-                      className="w-full mt-4 text-center text-sm text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors py-2"
-                    >
-                      {t('notifications.markAsRead')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+            {isLoggedIn && <NotificationCenter />}
 
             {/* Profile Dropdown */}
             {isLoggedIn ? (
@@ -176,8 +152,16 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center gap-2 glass-light px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center">
-                    <User size={16} className="text-[var(--text-inverse)]" />
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center overflow-hidden">
+                    {userAvatar ? (
+                      <img 
+                        src={userAvatar} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User size={16} className="text-[var(--text-inverse)]" />
+                    )}
                   </div>
                   <ChevronDown size={16} className="text-[var(--text-secondary)]" />
                 </button>
@@ -201,7 +185,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                     </button>
                     <button 
                       onClick={() => {
-                        navigate('/admin');
+                        navigate('/dashboard');
                         setIsProfileOpen(false);
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
@@ -298,7 +282,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
               
               <button 
                 onClick={() => {
-                  navigate('/admin');
+                  navigate('/dashboard');
                   setIsMobileMenuOpen(false);
                 }}
                 className="text-[var(--text-primary)] text-2xl font-medium hover:text-[var(--sp-accent)] transition-colors flex items-center gap-2"

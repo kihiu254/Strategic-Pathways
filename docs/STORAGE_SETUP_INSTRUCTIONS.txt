@@ -1,0 +1,62 @@
+-- ==============================================================================
+-- STORAGE BUCKET SETUP - verification-documents
+-- DO NOT RUN THIS IN SQL EDITOR - Use Supabase Dashboard instead
+-- ==============================================================================
+
+INSTRUCTIONS:
+1. Go to Supabase Dashboard → Storage
+2. Click "New Bucket"
+3. Name: verification-documents
+4. Public bucket: YES (checked)
+5. Click "Create bucket"
+
+6. Click on the bucket → Policies tab
+7. Click "New Policy" → "For full customization"
+8. Add these policies:
+
+POLICY 1: Allow uploads
+- Policy name: Users can upload verification documents
+- Allowed operation: INSERT
+- Target roles: authenticated
+- USING expression: true
+- WITH CHECK expression: bucket_id = 'verification-documents'
+
+POLICY 2: Allow public read
+- Policy name: Public can view verification documents  
+- Allowed operation: SELECT
+- Target roles: public
+- USING expression: bucket_id = 'verification-documents'
+
+POLICY 3: Allow user updates
+- Policy name: Users can update own documents
+- Allowed operation: UPDATE
+- Target roles: authenticated
+- USING expression: bucket_id = 'verification-documents'
+
+POLICY 4: Allow user deletes
+- Policy name: Users can delete own documents
+- Allowed operation: DELETE
+- Target roles: authenticated
+- USING expression: bucket_id = 'verification-documents'
+
+==============================================================================
+RECOMMENDATION: Use Supabase Storage for verification documents
+==============================================================================
+
+For verification documents (PDFs, IDs, certificates):
+✅ USE SUPABASE STORAGE
+- Simple setup
+- Integrated with your database
+- RLS policies for security
+- Free tier: 1GB storage
+- Good for documents that don't need optimization
+
+For profile images, logos, and public-facing images:
+✅ USE IMAGEKIT (Optional upgrade)
+- Automatic image optimization
+- CDN delivery
+- Image transformations (resize, crop, format)
+- Better performance for images
+- Free tier: 20GB bandwidth/month
+
+CURRENT SETUP: Use Supabase for everything initially, migrate images to ImageKit later if needed.

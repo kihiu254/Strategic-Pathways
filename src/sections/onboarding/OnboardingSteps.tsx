@@ -1,7 +1,12 @@
 import type { UseFormRegister, FieldErrors, Control } from 'react-hook-form';
 import { useWatch, useFieldArray } from 'react-hook-form';
 import type { OnboardingData } from './schema';
-import { User, Mail, Phone, Linkedin, Globe, Briefcase, Award, Heart, Upload, Zap, Shield, Target, TrendingUp, Check, Plus, Trash2 } from 'lucide-react';
+import { User, Mail, Phone, Linkedin, Globe, Briefcase, Award, Heart, Upload, Zap, Shield, Target, TrendingUp, Check, Plus, Trash2, Camera } from 'lucide-react';
+import { countries } from '../../data/countries';
+import { institutionsByCountry } from '../../data/institutions';
+import { useState } from 'react';
+import { uploadFile } from '../../lib/uploadUtils';
+import { toast } from 'sonner';
 
 interface StepProps {
   register: UseFormRegister<OnboardingData>;
@@ -105,13 +110,25 @@ export const BasicInfo = ({ register, errors }: StepProps) => (
 
       <div className="space-y-2">
         <label className="text-[var(--text-secondary)] text-sm block ml-1">Phone Number (Optional)</label>
-        <div className="relative">
-          <input
-            {...register('phone')}
-            className="input-glass w-full pl-10"
-            placeholder="+254..."
-          />
-          <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sp-accent)]" />
+        <div className="flex gap-2">
+          <select
+            {...register('countryCode')}
+            className="input-glass w-32 appearance-none"
+          >
+            {countries.map(country => (
+              <option key={country.code} value={country.code}>
+                {country.code}
+              </option>
+            ))}
+          </select>
+          <div className="relative flex-1">
+            <input
+              {...register('phone')}
+              className="input-glass w-full pl-10"
+              placeholder="712345678"
+            />
+            <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sp-accent)]" />
+          </div>
         </div>
       </div>
 
@@ -142,21 +159,33 @@ export const BasicInfo = ({ register, errors }: StepProps) => (
 
       <div className="space-y-2">
         <label className="text-[var(--text-secondary)] text-sm block ml-1">Country of Residence</label>
-        <input
+        <select
           {...register('countryOfResidence')}
-          className="input-glass w-full"
-          placeholder="e.g. Kenya"
-        />
+          className="input-glass w-full appearance-none"
+        >
+          <option value="">Select country...</option>
+          {countries.map(country => (
+            <option key={country.name} value={country.name}>
+              {country.name}
+            </option>
+          ))}
+        </select>
         {errors.countryOfResidence && <p className="text-red-400 text-xs mt-1">{errors.countryOfResidence.message}</p>}
       </div>
 
       <div className="space-y-2">
         <label className="text-[var(--text-secondary)] text-sm block ml-1">Nationality</label>
-        <input
+        <select
           {...register('nationality')}
-          className="input-glass w-full"
-          placeholder="e.g. Kenyan"
-        />
+          className="input-glass w-full appearance-none"
+        >
+          <option value="">Select nationality...</option>
+          {countries.map(country => (
+            <option key={country.name} value={country.name}>
+              {country.name}
+            </option>
+          ))}
+        </select>
         {errors.nationality && <p className="text-red-400 text-xs mt-1">{errors.nationality.message}</p>}
       </div>
     </div>
@@ -220,92 +249,105 @@ export const Education = ({ register, errors }: StepProps) => (
   </div>
 );
 
-export const ProfessionalExperience = ({ register, errors }: StepProps) => (
-  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">Years of Experience</label>
-        <select {...register('yearsOfExperience')} className="input-glass w-full appearance-none">
-          <option value="0–3">0–3</option>
-          <option value="3–7">3–7</option>
-          <option value="7–12">7–12</option>
-          <option value="12+">12+</option>
-        </select>
-      </div>
+export const ProfessionalExperience = ({ register, errors, control }: StepProps) => {
+  const selectedExpertise = useWatch({ control, name: 'functionalExpertise' }) || [];
 
-      <div className="space-y-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">Primary Sector</label>
-        <select {...register('primarySector')} className="input-glass w-full appearance-none">
-          <option value="Technology">Technology</option>
-          <option value="Finance">Finance</option>
-          <option value="Health">Health</option>
-          <option value="Policy & Governance">Policy & Governance</option>
-          <option value="Education">Education</option>
-          <option value="Development">Development</option>
-          <option value="Entrepreneurship">Entrepreneurship</option>
-          <option value="Energy">Energy</option>
-          <option value="Agriculture">Agriculture</option>
-          <option value="Creative Industries">Creative Industries</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      <div className="space-y-2 md:col-span-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">Functional Expertise (Select up to 5)</label>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 glass-light p-4 rounded-xl border border-[var(--sp-accent)]/10">
-          {[
-            'Strategy', 'Operations', 'Investment & Finance', 'Policy & Research', 
-            'Data & Analytics', 'Product Development', 'Marketing & Communications', 
-            'Legal & Compliance', 'Programme Management', 'SME Advisory', 
-            'Venture Building', 'Fundraising', 'Technology Development'
-          ].map(expert => (
-            <label key={expert} className="flex items-center gap-2 cursor-pointer group">
-              <input 
-                type="checkbox" 
-                value={expert} 
-                {...register('functionalExpertise')}
-                className="w-4 h-4 rounded border-[var(--sp-accent)]/30 text-[var(--sp-accent)] focus:ring-[var(--sp-accent)]/50 bg-transparent"
-              />
-              <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">{expert}</span>
-            </label>
-          ))}
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <label className="text-[var(--text-secondary)] text-sm block ml-1">Years of Experience</label>
+          <select {...register('yearsOfExperience')} className="input-glass w-full appearance-none">
+            <option value="0–3">0–3</option>
+            <option value="3–7">3–7</option>
+            <option value="7–12">7–12</option>
+            <option value="12+">12+</option>
+          </select>
         </div>
-        {errors.functionalExpertise && <p className="text-red-400 text-xs mt-1">{errors.functionalExpertise.message}</p>}
-      </div>
 
-      <div className="space-y-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">Current Employment Status</label>
-        <select {...register('employmentStatus')} className="input-glass w-full appearance-none">
-          <option value="Employed (Full-time)">Employed (Full-time)</option>
-          <option value="Employed (Part-time)">Employed (Part-time)</option>
-          <option value="Entrepreneur">Entrepreneur</option>
-          <option value="Consultant">Consultant</option>
-          <option value="In Transition">In Transition</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
+        <div className="space-y-2">
+          <label className="text-[var(--text-secondary)] text-sm block ml-1">Primary Sector</label>
+          <select {...register('primarySector')} className="input-glass w-full appearance-none">
+            <option value="Technology">Technology</option>
+            <option value="Finance">Finance</option>
+            <option value="Health">Health</option>
+            <option value="Policy & Governance">Policy & Governance</option>
+            <option value="Education">Education</option>
+            <option value="Development">Development</option>
+            <option value="Entrepreneurship">Entrepreneurship</option>
+            <option value="Energy">Energy</option>
+            <option value="Agriculture">Agriculture</option>
+            <option value="Creative Industries">Creative Industries</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
 
-      <div className="space-y-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">Current Organisation (Optional)</label>
-        <input
-          {...register('currentOrganisation')}
-          className="input-glass w-full"
-          placeholder="Enter organisation name"
-        />
-      </div>
+        <div className="space-y-2 md:col-span-2">
+          <label className="text-[var(--text-secondary)] text-sm block ml-1">
+            Functional Expertise (Select up to 5)
+            <span className="ml-2 text-[var(--sp-accent)] text-xs">({selectedExpertise.length}/5 selected)</span>
+          </label>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 glass-light p-4 rounded-xl border border-[var(--sp-accent)]/10">
+            {[
+              'Strategy', 'Operations', 'Investment & Finance', 'Policy & Research', 
+              'Data & Analytics', 'Product Development', 'Marketing & Communications', 
+              'Legal & Compliance', 'Programme Management', 'SME Advisory', 
+              'Venture Building', 'Fundraising', 'Technology Development'
+            ].map(expert => {
+              const isChecked = selectedExpertise.includes(expert);
+              const isDisabled = !isChecked && selectedExpertise.length >= 5;
+              
+              return (
+                <label key={expert} className={`flex items-center gap-2 cursor-pointer group ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  <input 
+                    type="checkbox" 
+                    value={expert} 
+                    {...register('functionalExpertise')}
+                    disabled={isDisabled}
+                    className="w-4 h-4 rounded border-[var(--sp-accent)]/30 text-[var(--sp-accent)] focus:ring-[var(--sp-accent)]/50 bg-transparent disabled:cursor-not-allowed"
+                  />
+                  <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">{expert}</span>
+                </label>
+              );
+            })}
+          </div>
+          {errors.functionalExpertise && <p className="text-red-400 text-xs mt-1">{errors.functionalExpertise.message}</p>}
+        </div>
 
-      <div className="space-y-2 md:col-span-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">Brief Professional Bio (150–250 words)</label>
-        <textarea
-          {...register('bio')}
-          className="input-glass w-full min-h-[150px] py-4"
-          placeholder="Describe your professional journey, key achievements, and what drives you..."
-        />
-        {errors.bio && <p className="text-red-400 text-xs mt-1">{errors.bio.message}</p>}
+        <div className="space-y-2">
+          <label className="text-[var(--text-secondary)] text-sm block ml-1">Current Employment Status</label>
+          <select {...register('employmentStatus')} className="input-glass w-full appearance-none">
+            <option value="Employed (Full-time)">Employed (Full-time)</option>
+            <option value="Employed (Part-time)">Employed (Part-time)</option>
+            <option value="Entrepreneur">Entrepreneur</option>
+            <option value="Consultant">Consultant</option>
+            <option value="In Transition">In Transition</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-[var(--text-secondary)] text-sm block ml-1">Current Organisation (Optional)</label>
+          <input
+            {...register('currentOrganisation')}
+            className="input-glass w-full"
+            placeholder="Enter organisation name"
+          />
+        </div>
+
+        <div className="space-y-2 md:col-span-2">
+          <label className="text-[var(--text-secondary)] text-sm block ml-1">Brief Professional Bio (150–250 words)</label>
+          <textarea
+            {...register('bio')}
+            className="input-glass w-full min-h-[150px] py-4"
+            placeholder="Describe your professional journey, key achievements, and what drives you..."
+          />
+          {errors.bio && <p className="text-red-400 text-xs mt-1">{errors.bio.message}</p>}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const AreasOfInterest = ({ register, errors }: StepProps) => (
   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -628,17 +670,52 @@ export const UserCategorySelection = ({ register, errors }: StepProps) => (
 
 export const VerificationCredits = ({ register, errors, control }: StepProps) => {
   const userCategory = useWatch({ control, name: 'userCategory' });
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
-  const renderUploadField = (name: keyof OnboardingData, label: string, description: string) => (
+  const handleFileUpload = async (file: File, fieldName: string, setValue: any) => {
+    setUploading(prev => ({ ...prev, [fieldName]: true }));
+    try {
+      const result = await uploadFile(file, 'verification');
+      setValue(fieldName, result.url);
+      toast.success('File uploaded successfully!');
+    } catch (error: any) {
+      toast.error('Upload failed: ' + error.message);
+    } finally {
+      setUploading(prev => ({ ...prev, [fieldName]: false }));
+    }
+  };
+
+  const renderUploadField = (name: keyof OnboardingData, label: string, description: string, setValue: any) => (
     <div className="space-y-2 mb-4 text-left">
       <label className="text-[var(--text-secondary)] text-sm block ml-1 font-medium">{label}</label>
       <div className="relative group">
         <input
           {...(register(name as any))}
-          className="input-glass w-full pl-10 h-12 flex items-center"
+          className="input-glass w-full pl-10 pr-24 h-12 flex items-center"
           placeholder="Enter document URL (e.g. Google Drive/Dropbox)"
         />
         <Upload size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sp-accent)]" />
+        <label className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer">
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload(file, name as string, setValue);
+            }}
+          />
+          <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/20 transition-all text-xs font-medium">
+            {uploading[name as string] ? (
+              <div className="w-3 h-3 border-2 border-[var(--sp-accent)]/30 border-t-[var(--sp-accent)] rounded-full animate-spin" />
+            ) : (
+              <>
+                <Camera size={14} />
+                Upload
+              </>
+            )}
+          </div>
+        </label>
       </div>
       <p className="text-[10px] text-[var(--text-secondary)] ml-1 italic">{description}</p>
     </div>
@@ -658,7 +735,8 @@ export const VerificationCredits = ({ register, errors, control }: StepProps) =>
           {renderUploadField(
             'identityProofUrl', 
             'Identity & Passport Proof', 
-            'Kenyan passport (ID page) or National ID to confirm nationality.'
+            'Kenyan passport (ID page) or National ID to confirm nationality.',
+            control?._formValues ? (name: string, value: any) => control._formValues[name] = value : () => {}
           )}
 
           {/* Category specific fields */}
@@ -666,7 +744,8 @@ export const VerificationCredits = ({ register, errors, control }: StepProps) =>
             renderUploadField(
               'academicProofUrl', 
               'Academic Verification', 
-              'Degree certificate, transcript, or graduation letter.'
+              'Degree certificate, transcript, or graduation letter.',
+              control?._formValues ? (name: string, value: any) => control._formValues[name] = value : () => {}
             )
           )}
 
@@ -675,12 +754,14 @@ export const VerificationCredits = ({ register, errors, control }: StepProps) =>
               {renderUploadField(
                 'employmentProofUrl', 
                 'Employment Verification', 
-                'Contract from foreign employer, reference letter, or payslips.'
+                'Contract from foreign employer, reference letter, or payslips.',
+                control?._formValues ? (name: string, value: any) => control._formValues[name] = value : () => {}
               )}
               {renderUploadField(
                 'residencyProofUrl', 
                 'Residency Proof', 
-                'Visa, work permit, or immigration stamp history.'
+                'Visa, work permit, or immigration stamp history.',
+                control?._formValues ? (name: string, value: any) => control._formValues[name] = value : () => {}
               )}
             </>
           )}
@@ -689,7 +770,8 @@ export const VerificationCredits = ({ register, errors, control }: StepProps) =>
             renderUploadField(
               'professionalProofUrl', 
               'Professional Proof', 
-              'LinkedIn profile, business registration, or professional certification.'
+              'LinkedIn profile, business registration, or professional certification.',
+              control?._formValues ? (name: string, value: any) => control._formValues[name] = value : () => {}
             )
           )}
         </div>
