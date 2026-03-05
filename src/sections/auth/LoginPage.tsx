@@ -14,44 +14,93 @@ const LoginPage = () => {
   const session = useAuthStore((state) => state.session);
   
   useEffect(() => {
-    // Redirect to profile if already logged in
-    if (session) {
-      const syncProfile = async () => {
-        try {
-          // Sync metadata from OAuth providers (Google, LinkedIn)
-          const metadata = session.user.user_metadata;
-          if (metadata?.full_name || metadata?.avatar_url || metadata?.picture) {
-            await supabase.from('profiles').upsert({
-              id: session.user.id,
-              full_name: metadata.full_name || metadata.name,
-              avatar_url: metadata.avatar_url || metadata.picture,
-              email: session.user.email,
-              updated_at: new Date().toISOString()
-            });
-          }
+    // Handle OAuth callback and redirect
+    const handleOAuthCallback = async () => {
+      // Check if we're coming back from OAuth (hash or code in URL)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const searchParams = new URLSearchParams(window.location.search);
+      
+      if (hashParams.get('access_token') || searchParams.get('code')) {
+        // OAuth callback detected, wait for session to be set
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+          
+          // Sync profile and redirect
+          try {
+            const metadata = session.user.user_metadata;
+            if (metadata?.full_name || metadata?.avatar_url || metadata?.picture) {
+              await supabase.from('profiles').upsert({
+                id: session.user.id,
+                full_name: metadata.full_name || metadata.name,
+                avatar_url: metadata.avatar_url || metadata.picture,
+                email: session.user.email,
+                updated_at: new Date().toISOString()
+              });
+            }
 
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('onboarding_completed')
-            .eq('id', session.user.id)
-            .single();
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('onboarding_completed')
+              .eq('id', session.user.id)
+              .single();
 
-          if (session.user.email?.includes('admin') || session.user.email?.includes('joinstrategicpathways')) {
-            navigate('/admin');
-          } else if (profile?.onboarding_completed) {
+            if (session.user.email?.includes('admin') || session.user.email?.includes('joinstrategicpathways')) {
+              navigate('/admin');
+            } else if (profile?.onboarding_completed) {
+              navigate('/profile');
+            } else {
+              navigate('/onboarding');
+            }
+          } catch (error) {
+            console.error('Error syncing profile:', error);
             navigate('/profile');
-          } else {
-            navigate('/onboarding');
           }
-        } catch (error) {
-          console.error('Error syncing profile:', error);
-          navigate('/profile');
         }
-      };
+        return;
+      }
+      
+      // Regular session check (not OAuth callback)
+      if (session) {
+        const syncProfile = async () => {
+          try {
+            const metadata = session.user.user_metadata;
+            if (metadata?.full_name || metadata?.avatar_url || metadata?.picture) {
+              await supabase.from('profiles').upsert({
+                id: session.user.id,
+                full_name: metadata.full_name || metadata.name,
+                avatar_url: metadata.avatar_url || metadata.picture,
+                email: session.user.email,
+                updated_at: new Date().toISOString()
+              });
+            }
 
-      syncProfile();
-    }
-  }, [session, navigate]);
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('onboarding_completed')
+              .eq('id', session.user.id)
+              .single();
+
+            if (session.user.email?.includes('admin') || session.user.email?.includes('joinstrategicpathways')) {
+              navigate('/admin');
+            } else if (profile?.onboarding_completed) {
+              navigate('/profile');
+            } else {
+              navigate('/onboarding');
+            }
+          } catch (error) {
+            console.error('Error syncing profile:', error);
+            navigate('/profile');
+          }
+        };
+
+        syncProfile();
+      }
+    };
+    
+    handleOAuthCallback();
+  }, [session, navigate, setSession, setUser]);
 
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -67,16 +116,29 @@ const LoginPage = () => {
   const handleOAuth = async (provider: 'google' | 'linkedin_oidc') => {
     try {
       setLoading(true);
+      
+      if (provider === 'linkedin_oidc') {
+        const clientId = import.meta.env.VITE_LINKEDIN_CLIENT_ID;
+        if (!clientId) {
+          throw new Error('LinkedIn client ID not configured');
+        }
+      }
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/profile`,
-          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : 'openid profile email'
+          redirectTo: `${window.location.origin}/login`,
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : undefined
         }
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error(`${provider} OAuth error:`, error);
+        throw error;
+      }
     } catch (error: any) {
-      toast.error(error.message || `Failed to sign in with ${provider}`);
+      console.error(`OAuth ${provider} error:`, error);
+      toast.error(error.message || `Failed to sign in with ${provider === 'linkedin_oidc' ? 'LinkedIn' : 'Google'}`);
       setLoading(false);
     }
   };
