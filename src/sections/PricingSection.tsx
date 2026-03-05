@@ -124,7 +124,10 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
         })
       });
 
-      if (!response.ok) throw new Error('Failed to send request');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send request');
+      }
 
       toast.success(t('pricing.dialog.success', { tier: selectedTier }));
       setJoinDialogOpen(false);

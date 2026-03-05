@@ -32,7 +32,10 @@ const Footer = () => {
         })
       });
 
-      if (!response.ok) throw new Error('Failed to register');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to register');
+      }
 
       toast.success(t('contact.success'));
       setRegEmail('');
@@ -95,10 +98,10 @@ const Footer = () => {
     company: {
       title: t('footer.company'),
       links: [
-        { label: t('footer.howItWorks'), href: '#' },
-        { label: t('footer.successStories'), href: '#' },
-        { label: t('footer.careers'), href: '#' },
-        { label: t('footer.contact'), href: '#' }
+        { label: t('footer.howItWorks'), href: '/#how-it-works' },
+        { label: t('footer.successStories'), href: '/#impact' },
+        { label: t('footer.careers'), href: '/#contact' },
+        { label: t('footer.contact'), href: '/#contact' }
       ]
     },
     resources: {
@@ -107,7 +110,7 @@ const Footer = () => {
         { label: t('footer.privacy'), href: '/privacy' },
         { label: t('footer.terms'), href: '/terms' },
         { label: t('footer.cookies'), href: '/cookies' },
-        { label: t('footer.helpCenter'), href: '#' }
+        { label: t('footer.helpCenter'), href: '/#contact' }
       ]
     }
   };

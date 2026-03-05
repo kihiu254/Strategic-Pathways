@@ -136,6 +136,20 @@ function MainLayout() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Handle Hash Scrolling
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.substring(1);
+      const timer = setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 500); // Wait for page transition and rendering
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, location.hash]);
+
   return (
     <div ref={mainRef} className="relative">
       <AnimatedCursor />

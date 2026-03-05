@@ -366,6 +366,99 @@
       "noDocs": "No documents uploaded yet."
     }
   },
+  "about": {
+    "title": "Concept Note | Strategic Pathways",
+    "back": "← Back to Home",
+    "mission": {
+      "label": "Our Mission",
+      "headline": "Transforming Brain Drain into Brain Circulation",
+      "body": "Strategic Pathways mobilises study-abroad returnees and diaspora professionals into impactful local projects, fostering sustainable talent circulation across Kenya."
+    },
+    "problem": {
+      "headline": "The Challenge We're Solving",
+      "body1": "Kenya invests heavily in educating its brightest minds abroad, yet many struggle to find meaningful work upon return. Meanwhile, counties, NGOs, and institutions lack access to this pool of globally trained talent.",
+      "quote": "Talent is everywhere. Opportunity is not.",
+      "expertise": {
+        "title": "Underutilized Expertise",
+        "desc": "Returnees face limited pathways to apply their skills locally."
+      },
+      "gaps": {
+        "title": "Institutional Gaps",
+        "desc": "Organizations struggle to find credible, vetted professionals."
+      }
+    },
+    "solution": {
+      "headline": "Our Solution",
+      "subheadline": "A platform that connects, verifies, and mobilizes talent for impact.",
+      "items": [
+        {
+          "title": "Verified Profiles",
+          "desc": "Multi-tier verification ensures credibility and trust."
+        },
+        {
+          "title": "Talent Matching",
+          "desc": "Smart algorithms connect professionals with relevant opportunities."
+        },
+        {
+          "title": "Project Marketplace",
+          "desc": "Access vetted consultancies, research partnerships, and ventures."
+        },
+        {
+          "title": "Capacity Building",
+          "desc": "Mentorship, peer learning, and leadership development."
+        },
+        {
+          "title": "Impact Tracking",
+          "desc": "Measure and showcase your contributions to local development."
+        },
+        {
+          "title": "Institutional Trust",
+          "desc": "Counties, NGOs, and donors access pre-vetted talent pools."
+        }
+      ]
+    },
+    "objectives": {
+      "headline": "Our Goals",
+      "list": [
+        "Onboard 200+ verified professionals in Year 1",
+        "Partner with 10+ counties, universities, and NGOs",
+        "Deliver 15+ pilot projects across sectors",
+        "Create 50+ income-generating opportunities for members",
+        "Establish a replicable model for talent circulation across Africa"
+      ]
+    },
+    "beneficiaries": {
+      "primary": {
+        "title": "Primary Beneficiaries",
+        "returnees": "Study-abroad returnees seeking meaningful local work",
+        "diaspora": "Diaspora professionals contributing remotely"
+      },
+      "secondary": {
+        "title": "Secondary Beneficiaries",
+        "counties": "County governments needing technical expertise",
+        "universities": "Universities seeking research partnerships",
+        "ngos": "NGOs requiring program design support",
+        "smes": "SMEs and startups needing strategic guidance"
+      }
+    },
+    "impactAbout": {
+      "headline": "Expected Impact",
+      "short": {
+        "title": "Short-Term (Year 1)",
+        "desc": "200+ professionals onboarded, 15+ projects delivered, 10+ institutional partnerships."
+      },
+      "medium": {
+        "title": "Medium-Term (Years 2-3)",
+        "desc": "Scale to 1,000+ members, expand to 20+ counties, establish venture-building arm."
+      },
+      "long": {
+        "title": "Long-Term Vision",
+        "desc1": "Become the leading platform for talent circulation in East Africa.",
+        "desc2": "Demonstrate that brain drain can be reversed through strategic pathways."
+      }
+    },
+    "conclusion": "Together, we're building a future where global skills drive local impact."
+  },
   "auth": {
     "login": {
       "title": "Welcome back",
