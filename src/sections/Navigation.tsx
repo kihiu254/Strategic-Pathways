@@ -81,10 +81,10 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
 
   const navLinks = [
     { label: t('nav.about'), path: '/concept-note' },
-    { label: t('nav.audience'), id: 'audience' },
+    { label: t('footer.howItWorks'), path: '/how-it-works' },
+    { label: t('footer.successStories'), path: '/success-stories' },
     { label: t('nav.opportunities'), path: '/opportunities' },
-    { label: t('nav.pricing'), id: 'pricing' },
-    { label: t('nav.impact'), id: 'impact' },
+    { label: t('footer.contact'), path: '/contact' },
   ];
 
   return (
@@ -117,8 +117,8 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
           <div className="hidden lg:flex flex-1 items-center justify-center gap-6">
             {navLinks.map((link) => (
               <button
-                key={link.id || link.path}
-                onClick={() => link.path ? navigate(link.path) : scrollToSection(link.id!)}
+                key={link.path}
+                onClick={() => navigate(link.path)}
                 className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium tracking-wide whitespace-nowrap"
               >
                 {link.label}
@@ -285,9 +285,9 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
           
           {navLinks.map((link) => (
             <button
-              key={link.id || link.path}
+              key={link.path}
               onClick={() => {
-                link.path ? navigate(link.path) : scrollToSection(link.id!);
+                navigate(link.path);
                 setIsMobileMenuOpen(false);
               }}
               className="text-[var(--text-primary)] text-2xl font-medium hover:text-[var(--sp-accent)] transition-colors"

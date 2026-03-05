@@ -32,9 +32,14 @@ const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPage'));
 const OnboardingFlow = lazy(() => import('./sections/onboarding/ProfileOnboarding'));
 const VerificationPage = lazy(() => import('./sections/VerificationPage'));
 const SitemapPage = lazy(() => import('./sections/SitemapPage'));
-const PrivacyPolicyPage = lazy(() => import('./sections/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('./sections/TermsOfServicePage'));
 const CookiePolicyPage = lazy(() => import('./sections/CookiePolicyPage'));
+const HowItWorksPage = lazy(() => import('./sections/HowItWorksPage'));
+const SuccessStoriesPage = lazy(() => import('./sections/SuccessStoriesPage'));
+const CareersPage = lazy(() => import('./sections/CareersPage'));
+const ContactPage = lazy(() => import('./sections/ContactPage'));
+const HelpCenterPage = lazy(() => import('./sections/HelpCenterPage'));
+const PrivacyPolicyPage = lazy(() => import('./sections/PrivacyPolicyPage'));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -136,20 +141,6 @@ function MainLayout() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handle Hash Scrolling
-  useEffect(() => {
-    if (location.hash) {
-      const id = location.hash.substring(1);
-      const timer = setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 500); // Wait for page transition and rendering
-      return () => clearTimeout(timer);
-    }
-  }, [location.pathname, location.hash]);
-
   return (
     <div ref={mainRef} className="relative">
       <AnimatedCursor />
@@ -199,6 +190,11 @@ function MainLayout() {
                 <Route path="/privacy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms" element={<TermsOfServicePage />} />
                 <Route path="/cookies" element={<CookiePolicyPage />} />
+                <Route path="/how-it-works" element={<HowItWorksPage />} />
+                <Route path="/success-stories" element={<SuccessStoriesPage />} />
+                <Route path="/careers" element={<CareersPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/help-center" element={<HelpCenterPage />} />
                 
                 {/* Protected Admin Route */}
                 <Route element={<AdminRoute />}>

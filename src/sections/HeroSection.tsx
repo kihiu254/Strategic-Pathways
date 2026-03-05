@@ -145,7 +145,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
                 </button>
               )}
               <button 
-                onClick={() => scrollToSection('opportunities')}
+                onClick={() => navigate('/opportunities')}
                 className="sp-btn-secondary flex items-center justify-center gap-2"
               >
                 <Building2 size={18} />

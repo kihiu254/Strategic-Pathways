@@ -1,5 +1,6 @@
 import { useRef, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SEO from '../components/SEO';
@@ -8,6 +9,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const HowItWorksPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const pageRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
@@ -109,7 +111,7 @@ const HowItWorksPage = () => {
         <div className="mt-20 text-center">
           <button 
             className="sp-btn-primary px-10 py-4 text-lg"
-            onClick={() => window.location.href = '#registration'}
+            onClick={() => navigate('/signup')}
           >
             {t('nav.register')}
           </button>

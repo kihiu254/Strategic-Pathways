@@ -74,10 +74,10 @@ const Footer = () => {
     company: {
       title: t('footer.company'),
       links: [
-        { label: t('footer.howItWorks'), href: '/#how-it-works' },
-        { label: t('footer.successStories'), href: '/#impact' },
-        { label: t('footer.careers'), href: '/#contact' },
-        { label: t('footer.contact'), href: '/#contact' }
+        { label: t('footer.howItWorks'), href: '/how-it-works' },
+        { label: t('footer.successStories'), href: '/success-stories' },
+        { label: t('footer.careers'), href: '/careers' },
+        { label: t('footer.contact'), href: '/contact' }
       ]
     },
     resources: {
@@ -86,7 +86,7 @@ const Footer = () => {
         { label: t('footer.privacy'), href: '/privacy' },
         { label: t('footer.terms'), href: '/terms' },
         { label: t('footer.cookies'), href: '/cookies' },
-        { label: t('footer.helpCenter'), href: '/#contact' }
+        { label: t('footer.helpCenter'), href: '/help-center' }
       ]
     }
   };
