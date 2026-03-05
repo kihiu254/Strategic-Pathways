@@ -8,11 +8,10 @@ import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
 interface NavigationProps {
-  onNavigate?: (page: string) => void;
   currentPage?: string;
 }
 
-const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
+const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { session, user } = useAuthStore();
@@ -55,18 +54,6 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (id: string) => {
-    if (onNavigate) {
-      onNavigate('home');
-      setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    }
-    setIsMobileMenuOpen(false);
-  };
 
   const handleSignOut = async () => {
     try {
@@ -100,7 +87,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
           {/* Logo - Left */}
           <div className="flex-none">
             <button 
-              onClick={() => onNavigate ? onNavigate('home') : scrollToSection('hero')}
+              onClick={() => navigate('/')}
               className="flex items-center gap-3 group"
             >
               <img 

@@ -1,5 +1,6 @@
 import { useRef, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Building2, Briefcase } from 'lucide-react';
@@ -12,6 +13,7 @@ interface OpportunitiesSectionProps {
 
 const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const sectionRef = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
@@ -66,17 +68,10 @@ const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => 
     return () => ctx.revert();
   }, []);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   return (
     <section 
       ref={sectionRef}
-      id="opportunities"
       className={`sp-section-pinned bg-[var(--bg-primary)] ${className}`}
     >
       <div className="w-full h-full flex items-center justify-center px-6 lg:px-12">
@@ -125,7 +120,7 @@ const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => 
                 <ArrowRight size={18} />
               </button>
               <button 
-                onClick={() => scrollToSection('contact')}
+                onClick={() => navigate('/contact')}
                 className="sp-btn-secondary flex items-center justify-center gap-2"
               >
                 {t('opportunities.partnerCTA')}

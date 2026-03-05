@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { supabase } from '../lib/supabase';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -115,6 +116,21 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
     setIsSubmitting(true);
     
     try {
+      // 1. Save to Database
+      const { error: dbError } = await supabase
+        .from('partner_inquiries')
+        .insert([
+          { 
+            name: formData.name, 
+            email: formData.email, 
+            organization: formData.organization, 
+            message: `Join Request for ${selectedTier} Tier`
+          }
+        ]);
+
+      if (dbError) throw dbError;
+
+      // 2. Trigger Email Notification
       const response = await fetch('/api/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -126,7 +142,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to send request');
+        throw new Error(errorData.error || 'Failed to send request email');
       }
 
       toast.success(t('pricing.dialog.success', { tier: selectedTier }));
@@ -175,7 +191,6 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
   return (
     <section 
       ref={sectionRef}
-      id="pricing"
       className={`sp-section-pinned bg-[var(--bg-primary)] ${className}`}
     >
       <div className="w-full h-full flex flex-col items-center justify-center px-6 lg:px-12 pt-20">

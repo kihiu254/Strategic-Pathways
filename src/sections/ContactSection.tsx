@@ -132,7 +132,6 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
   return (
     <section 
       ref={sectionRef}
-      id="contact"
       className={`relative bg-[var(--bg-primary)] py-20 lg:py-28 ${className}`}
     >
       <div className="w-full px-6 lg:px-12">

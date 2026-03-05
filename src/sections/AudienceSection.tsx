@@ -76,7 +76,6 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
   return (
     <section 
       ref={sectionRef}
-      id="audience"
       className={`sp-section-pinned bg-[var(--bg-primary)] ${className}`}
     >
       <div className="w-full h-full flex flex-col items-center justify-center px-6 lg:px-12 pt-20">

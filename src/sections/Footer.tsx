@@ -11,7 +11,6 @@ const Footer = () => {
   const navigate = useNavigate();
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [regEmail, setRegEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,14 +177,12 @@ const Footer = () => {
               value={regEmail}
               onChange={(e) => setRegEmail(e.target.value)}
               className="input-glass bg-[var(--bg-card)]/20 px-6 py-3 rounded-l-2xl outline-none text-[var(--text-primary)] w-full md:w-64" 
-              disabled={isSubmitting}
             />
             <button 
               type="submit"
-              disabled={isSubmitting}
-              className="bg-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/80 text-white px-8 py-3 rounded-r-2xl font-bold transition-all shadow-lg shadow-[var(--sp-accent)]/20 disabled:opacity-50"
+              className="bg-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/80 text-white px-8 py-3 rounded-r-2xl font-bold transition-all shadow-lg shadow-[var(--sp-accent)]/20"
             >
-              {isSubmitting ? t('contact.labels.submitting') : t('nav.register')}
+              {t('nav.register')}
             </button>
           </form>
         </div>

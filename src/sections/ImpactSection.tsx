@@ -76,7 +76,6 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
   return (
     <section 
       ref={sectionRef}
-      id="impact"
       className={`sp-section-pinned bg-[var(--bg-primary)] ${className}`}
     >
       <div className="w-full h-full flex items-center justify-center px-6 lg:px-12">

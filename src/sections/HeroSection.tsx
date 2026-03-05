@@ -62,12 +62,6 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
 
   // Removed scrub pinning logic for smoother native scroll
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   return (
     <section 
@@ -137,7 +131,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
                 </button>
               ) : (
                 <button 
-                  onClick={() => scrollToSection('pricing')}
+                  onClick={() => navigate('/pricing')}
                   className="sp-btn-primary flex items-center justify-center gap-2"
                 >
                   {t('hero.cta')}

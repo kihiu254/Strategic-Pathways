@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -40,6 +40,7 @@ const CareersPage = lazy(() => import('./sections/CareersPage'));
 const ContactPage = lazy(() => import('./sections/ContactPage'));
 const HelpCenterPage = lazy(() => import('./sections/HelpCenterPage'));
 const PrivacyPolicyPage = lazy(() => import('./sections/PrivacyPolicyPage'));
+const PricingPage = lazy(() => import('./sections/PricingPage'));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -49,14 +50,14 @@ function HomeContent() {
     <main ref={mainRef} className="relative w-full overflow-hidden bg-[var(--bg-primary)]">
       <SEO title="Home" />
       {/* Sections inside the pinning container */}
-      <HeroSection className="z-10" />
-      <ValueSection className="z-20" />
-      <AudienceSection className="z-30" />
-      <HowItWorksSection className="z-40" />
-      <ImpactSection className="z-50" />
-      <OpportunitiesSection className="z-[60]" />
-      <PricingSection className="z-[70]" />
-      <ContactSection className="z-[80]" />
+      <HeroSection />
+      <ValueSection />
+      <AudienceSection />
+      <HowItWorksSection />
+      <ImpactSection />
+      <OpportunitiesSection />
+      <PricingSection />
+      <ContactSection />
     </main>
   );
 }
@@ -67,7 +68,6 @@ function MainLayout() {
   const [showContent, setShowContent] = useState(false);
   
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user has already seen onboarding this session
@@ -134,12 +134,6 @@ function MainLayout() {
     }, 100);
   };
 
-  const handleNavigate = (page: string) => {
-    if (page === 'home') navigate('/');
-    else if (page === 'profile') navigate('/profile');
-    else if (page === 'admin') navigate('/admin');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   return (
     <div ref={mainRef} className="relative">
@@ -169,7 +163,6 @@ function MainLayout() {
           {/* Navigation */}
           {location.pathname !== '/admin' && ( // Exclude the global nav on admin page since it has a sidebar
             <Navigation 
-              onNavigate={handleNavigate} 
               currentPage={location.pathname === '/' ? 'home' : location.pathname.substring(1)} 
             />
           )}
@@ -195,6 +188,7 @@ function MainLayout() {
                 <Route path="/careers" element={<CareersPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/help-center" element={<HelpCenterPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
                 
                 {/* Protected Admin Route */}
                 <Route element={<AdminRoute />}>

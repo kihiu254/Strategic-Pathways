@@ -16,7 +16,7 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({ children, title, lastUpdated 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
       {/* Reusing existing Navigation with simple setup */}
-      <Navigation onNavigate={(p) => navigate(p === 'home' ? '/' : `/${p}`)} currentPage="legal" />
+      <Navigation currentPage="legal" />
 
       <main className="pt-32 pb-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto">

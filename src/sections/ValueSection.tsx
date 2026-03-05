@@ -1,5 +1,6 @@
 import { useRef, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Briefcase, Users, Award } from 'lucide-react';
@@ -12,6 +13,7 @@ interface ValueSectionProps {
 
 const ValueSection = ({ className = '' }: ValueSectionProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const sectionRef = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
@@ -65,13 +67,6 @@ const ValueSection = ({ className = '' }: ValueSectionProps) => {
 
     return () => ctx.revert();
   }, []);
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   const benefits = [
     {
@@ -135,7 +130,7 @@ const ValueSection = ({ className = '' }: ValueSectionProps) => {
             {/* CTA */}
             <button 
               ref={ctaRef}
-              onClick={() => scrollToSection('how-it-works')}
+              onClick={() => navigate('/how-it-works')}
               className="sp-btn-secondary w-fit flex items-center gap-2"
             >
               {t('value.cta')}
