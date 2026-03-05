@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Mail, ArrowRight, Linkedin, KeyRound, CheckCircle2, User } from 'lucide-react';
