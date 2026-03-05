@@ -16,7 +16,40 @@ const LoginPage = () => {
   useEffect(() => {
     // Redirect to profile if already logged in
     if (session) {
-      navigate('/profile');
+      const syncProfile = async () => {
+        try {
+          // Sync metadata from OAuth providers (Google, LinkedIn)
+          const metadata = session.user.user_metadata;
+          if (metadata?.full_name || metadata?.avatar_url || metadata?.picture) {
+            await supabase.from('profiles').upsert({
+              id: session.user.id,
+              full_name: metadata.full_name || metadata.name,
+              avatar_url: metadata.avatar_url || metadata.picture,
+              email: session.user.email,
+              updated_at: new Date().toISOString()
+            });
+          }
+
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('id', session.user.id)
+            .single();
+
+          if (session.user.email?.includes('admin') || session.user.email?.includes('joinstrategicpathways')) {
+            navigate('/admin');
+          } else if (profile?.onboarding_completed) {
+            navigate('/profile');
+          } else {
+            navigate('/onboarding');
+          }
+        } catch (error) {
+          console.error('Error syncing profile:', error);
+          navigate('/profile');
+        }
+      };
+
+      syncProfile();
     }
   }, [session, navigate]);
 
@@ -38,7 +71,7 @@ const LoginPage = () => {
         provider,
         options: {
           redirectTo: `${window.location.origin}/profile`,
-          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : undefined
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : 'openid profile email'
         }
       });
       if (error) throw error;

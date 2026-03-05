@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -6,9 +6,10 @@ import {
   TrendingUp, DollarSign, CheckCircle,
   X, Plus, Search, Filter,
   BarChart3, Star, Edit2, Trash2, Eye,
-  Maximize2, Minimize2
+  Maximize2, Minimize2, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '../lib/supabase';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -18,43 +19,125 @@ const AdminDashboard = () => {
 
 
 
-  const recentApplications = [
-    { id: 1, name: 'Sarah Mwangi', email: 'sarah.m@email.com', type: 'Professional', status: 'pending', date: '2024-02-20' },
-    { id: 2, name: 'James Ochieng', email: 'james.o@email.com', type: 'Community', status: 'approved', date: '2024-02-19' },
-    { id: 3, name: 'Grace Wanjiku', email: 'grace.w@email.com', type: 'Professional', status: 'pending', date: '2024-02-19' },
-    { id: 4, name: 'Peter Kimani', email: 'peter.k@email.com', type: 'Firm', status: 'under_review', date: '2024-02-18' },
-    { id: 5, name: 'Mary Atieno', email: 'mary.a@email.com', type: 'Community', status: 'approved', date: '2024-02-18' },
-  ];
+  const [recentApplications, setRecentApplications] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalMembers: 0,
+    activeProjects: 0,
+    pendingApps: 0,
+    totalRevenue: '$0'
+  });
 
-  const projects = [
-    { id: 1, title: 'County Development Strategy', client: 'Nairobi County', budget: 'KSh 2.5M', status: 'active', members: 5, progress: 65 },
-    { id: 2, title: 'NGO Capacity Assessment', client: 'World Vision Kenya', budget: 'KSh 1.8M', status: 'completed', members: 3, progress: 100 },
-    { id: 3, title: 'Youth Employment Program', client: 'Ministry o  Youth', budget: 'KSh 4.2M', status: 'active', members: 8, progress: 40 },
-    { id: 4, title: 'Digital Trans ormation', client: 'KRA', budget: 'KSh 8.5M', status: 'planning', members: 12, progress: 15 },
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch Stats
+        const { count: memberCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+        const { count: projectCount } = await supabase.from('user_projects').select('*', { count: 'exact', head: true });
+        const { count: pendingCount } = await supabase.from('verification_documents').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
-  const members = [
-    { id: 1, name: 'John Kamau', email: 'john.k@email.com', tier: 'Professional', projects: 12, rating: 4.9, status: 'active', joined: '2024-01-15' },
-    { id: 2, name: 'Sarah Mwangi', email: 'sarah.m@email.com', tier: 'Professional', projects: 8, rating: 4.7, status: 'active', joined: '2024-01-20' },
-    { id: 3, name: 'James Ochieng', email: 'james.o@email.com', tier: 'Community', projects: 3, rating: 4.5, status: 'active', joined: '2024-02-01' },
-    { id: 4, name: 'Grace Wanjiku', email: 'grace.w@email.com', tier: 'Professional', projects: 15, rating: 5.0, status: 'active', joined: '2023-12-10' },
-  ];
+        setStats({
+          totalMembers: memberCount || 0,
+          activeProjects: projectCount || 0,
+          pendingApps: pendingCount || 0,
+          totalRevenue: '$0'
+        });
 
-  const sidebarItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'members', label: 'Members', icon: Users },
-    { id: 'projects', label: 'Projects', icon: Briefcase },
-    { id: 'applications', label: 'Applications', icon:  FileText },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
+        // Fetch Recent Applications
+        const { data: appsData } = await supabase
+          .from('verification_documents')
+          .select('*, profiles(full_name, email)')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (appsData) {
+          setRecentApplications(appsData.map(app => ({
+            id: app.id,
+            name: app.profiles?.full_name || 'Unknown',
+            email: app.profiles?.email || 'N/A',
+            type: app.document_category,
+            status: app.status,
+            date: new Date(app.created_at).toLocaleDateString()
+          })));
+        }
 
-  const handleApprove = (_id: number) => {
-    toast.success('Application approved success fully!');
+        // Fetch Members
+        const { data: membersData } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20);
+        
+        if (membersData) {
+          setMembers(membersData.map(m => ({
+            id: m.id,
+            name: m.full_name || 'Unnamed',
+            email: m.email,
+            tier: m.tier || 'Community',
+            projects: 0,
+            rating: 0,
+            status: 'active',
+            joined: new Date(m.created_at).toLocaleDateString()
+          })));
+        }
+
+        // Fetch Projects
+        const { data: projectsData } = await supabase
+          .from('user_projects')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (projectsData) {
+          setProjects(projectsData.map(p => ({
+            id: p.id,
+            title: p.project_title,
+            client: p.organization || 'Internal',
+            budget: 'N/A',
+            status: p.is_current ? 'active' : 'completed',
+            members: 1,
+            progress: p.is_current ? 50 : 100
+          })));
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const handleApprove = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('verification_documents')
+        .update({ status: 'approved' })
+        .eq('id', id);
+      if (error) throw error;
+      setRecentApplications(prev => prev.map(app => app.id === id ? { ...app, status: 'approved' } : app));
+      toast.success('Application approved successfully!');
+    } catch (error) {
+      toast.error('Failed to approve application');
+    }
   };
 
-  const handleReject = (_id: number) => {
-    toast.error('Application rejected');
+  const handleReject = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('verification_documents')
+        .update({ status: 'rejected' })
+        .eq('id', id);
+      if (error) throw error;
+      setRecentApplications(prev => prev.map(app => app.id === id ? { ...app, status: 'rejected' } : app));
+      toast.error('Application rejected');
+    } catch (error) {
+      toast.error('Failed to reject application');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -69,6 +152,24 @@ const AdminDashboard = () => {
     };
     return styles[status] || 'bg-gray-500/20 text-gray-400';
   };
+
+  const sidebarItems = [
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'members', label: 'Members', icon: Users },
+    { id: 'projects', label: 'Projects', icon: Briefcase },
+    { id: 'applications', label: 'Applications', icon: FileText },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 gap-4">
+        <Loader2 className="w-10 h-10 text-[var(--sp-accent)] animate-spin" />
+        <p className="text-[var(--text-secondary)]">Loading dashboard data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]  flex">
@@ -155,10 +256,10 @@ const AdminDashboard = () => {
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {[
-                  { label: t('dashboard.stats.totalMembers'), value: '1,284', change: '+12%', icon: Users },
-                  { label: t('dashboard.stats.activeProjects'), value: '42', change: '+5%', icon: Briefcase },
-                  { label: t('dashboard.stats.pendingApps'), value: '156', change: '-2%', icon: FileText },
-                  { label: t('dashboard.stats.totalRevenue'), value: '$48,200', change: '+8%', icon: DollarSign },
+                  { label: t('dashboard.stats.totalMembers'), value: stats.totalMembers.toLocaleString(), change: '+0%', icon: Users },
+                  { label: t('dashboard.stats.activeProjects'), value: stats.activeProjects.toString(), change: '+0%', icon: Briefcase },
+                  { label: t('dashboard.stats.pendingApps'), value: stats.pendingApps.toString(), change: '+0%', icon: FileText },
+                  { label: t('dashboard.stats.totalRevenue'), value: stats.totalRevenue, change: '+0%', icon: DollarSign },
                 ].map((stat, i) => (
                   <div key={i} className="glass-card p-6 border border-[var(--text-primary)]/5">
                     <div className="flex justify-between items-start mb-4">
@@ -564,7 +665,7 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <label className="text-[var(--text-secondary)] text-sm mb-2 block">{t('dashboard.settings.contactEmail')}</label>
-                    <input type="email" defaultValue="hello@joinstrategicpathways.com" className="input-glass w-full px-4 py-2" />
+                    <input type="email" defaultValue="joinstrategicpathways@gmail.com" className="input-glass w-full px-4 py-2" />
                   </div>
                   <div>
                     <label className="text-[var(--text-secondary)] text-sm mb-2 block">{t('dashboard.settings.defaultCurrency')}</label>

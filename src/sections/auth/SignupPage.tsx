@@ -35,7 +35,7 @@ const SignupPage = () => {
         provider,
         options: {
           redirectTo: `${window.location.origin}/onboarding`,
-          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : undefined
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : 'openid profile email'
         }
       });
       if (error) throw error;

@@ -2,6 +2,7 @@ import { Linkedin, Instagram, Youtube, Facebook, Twitter, Globe, Github, Mail } 
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 
 const Footer = () => {
@@ -9,6 +10,38 @@ const Footer = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const [regEmail, setRegEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regEmail) {
+      toast.error(t('auth.toast.invalidEmail'));
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: regEmail,
+          name: 'Strategic Member',
+          message: 'Footer Newsletter Registration'
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to register');
+
+      toast.success(t('contact.success'));
+      setRegEmail('');
+    } catch (error: any) {
+      toast.error(error.message || 'Registration failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     fetchSocialLinks();
@@ -159,16 +192,23 @@ const Footer = () => {
             <h4 className="text-xl font-bold text-[var(--text-primary)] mb-2">{t('footer.connect')}</h4>
             <p className="text-[var(--text-secondary)] text-sm">{t('footer.madeWith')}</p>
           </div>
-          <div className="flex w-full md:w-auto p-4 md:p-0">
+          <form onSubmit={handleRegister} className="flex w-full md:w-auto p-4 md:p-0">
             <input 
               type="email" 
               placeholder="email@example.com" 
+              value={regEmail}
+              onChange={(e) => setRegEmail(e.target.value)}
               className="input-glass bg-[var(--bg-card)]/20 px-6 py-3 rounded-l-2xl outline-none text-[var(--text-primary)] w-full md:w-64" 
+              disabled={isSubmitting}
             />
-            <button className="bg-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/80 text-white px-8 py-3 rounded-r-2xl font-bold transition-all shadow-lg shadow-[var(--sp-accent)]/20">
-              {t('nav.register')}
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/80 text-white px-8 py-3 rounded-r-2xl font-bold transition-all shadow-lg shadow-[var(--sp-accent)]/20 disabled:opacity-50"
+            >
+              {isSubmitting ? t('contact.labels.submitting') : t('nav.register')}
             </button>
-          </div>
+          </form>
         </div>
 
         {/* Bottom Bar */}

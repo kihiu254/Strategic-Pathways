@@ -68,7 +68,7 @@ const PrivacyPolicyPage = () => {
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">7. Contact Us</h2>
           <p>
             If you have any questions about this Privacy Policy or our data practices, please contact our Data Protection Officer at: 
-            <a href="mailto:hello@joinstrategicpathways.com" className="text-[var(--sp-accent)] underline ml-1">hello@joinstrategicpathways.com</a>
+            <a href="mailto:joinstrategicpathways@gmail.com" className="text-[var(--sp-accent)] underline ml-1">joinstrategicpathways@gmail.com</a>
           </p>
         </section>
       </div>

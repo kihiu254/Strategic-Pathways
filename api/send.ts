@@ -18,26 +18,33 @@ export default async function handler(
     // Send an email notification to the Admin
     const { data, error } = await resend.emails.send({
       from: 'Strategic Pathways <hello@joinstrategicpathways.com>',
-      to: ['hello@joinstrategicpathways.com'],
-      replyTo: email,
-      subject: `New Partner Inquiry: ${organization || name}`,
+      to: [email],
+      replyTo: 'joinstrategicpathways@gmail.com',
+      subject: `Welcome to Strategic Pathways`,
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #0b2a3c;">New Partnership Inquiry</h2>
-          <p>You have received a new message from the Strategic Pathways portal.</p>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #0b2a3c;">
+          <h2 style="color: #c89f5e;">Welcome to Strategic Pathways!</h2>
+          <p>Thank you for your interest in joining Strategic Pathways. We're excited to have you as part of our community.</p>
           <hr style="border: 1px solid #eee; margin: 20px 0;" />
           
-          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Your Details:</strong></p>
+          <p><strong>Name:</strong> ${name || 'Strategic Member'}</p>
           <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Organization:</strong> ${organization || 'N/A'}</p>
+          ${organization ? `<p><strong>Organization:</strong> ${organization}</p>` : ''}
           
-          <h3 style="margin-top: 20px;">Message:</h3>
+          ${message ? `
+          <h3 style="margin-top: 20px;">Your Message:</h3>
           <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
             <p style="white-space: pre-wrap; margin: 0;">${message}</p>
           </div>
+          ` : ''}
+          
+          <p style="margin-top: 30px;">
+            Our team will review your information and get back to you shortly. In the meantime, feel free to explore our platform.
+          </p>
           
           <p style="margin-top: 30px; font-size: 12px; color: #888;">
-            This email was generated automatically by the Strategic Pathways platform. You can reply directly to this email to respond to ${name}.
+            This is an automated confirmation. You can contact us at joinstrategicpathways@gmail.com if you have any questions.
           </p>
         </div>
       `,

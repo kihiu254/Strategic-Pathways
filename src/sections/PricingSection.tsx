@@ -24,6 +24,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
   
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', organization: '' });
 
   useLayoutEffect(() => {
@@ -109,11 +110,30 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
     setJoinDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(t('pricing.dialog.success', { tier: selectedTier }));
-    setJoinDialogOpen(false);
-    setFormData({ name: '', email: '', organization: '' });
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          message: `Join Request for ${selectedTier} Tier`
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to send request');
+
+      toast.success(t('pricing.dialog.success', { tier: selectedTier }));
+      setJoinDialogOpen(false);
+      setFormData({ name: '', email: '', organization: '' });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit request');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const tiers = [
@@ -276,8 +296,8 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
                 placeholder={t('pricing.dialog.orgLabel')}
               />
             </div>
-            <button type="submit" className="sp-btn-primary w-full">
-              {t('pricing.dialog.submit')}
+            <button type="submit" disabled={isSubmitting} className="sp-btn-primary w-full disabled:opacity-50">
+              {isSubmitting ? t('contact.labels.submitting') : t('pricing.dialog.submit')}
             </button>
           </form>
         </DialogContent>

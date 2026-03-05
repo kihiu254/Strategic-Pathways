@@ -155,7 +155,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                 </div>
                 <div>
                   <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.email')}</p>
-                  <p className="text-[var(--text-primary)]">hello@joinstrategicpathways.com</p>
+                  <p className="text-[var(--text-primary)]">joinstrategicpathways@gmail.com</p>
                 </div>
               </div>
 

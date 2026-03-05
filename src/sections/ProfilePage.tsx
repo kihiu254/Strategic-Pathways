@@ -28,7 +28,30 @@ const ProfilePage = () => {
     return t('profilePage.greeting.evening');
   };
 
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<{
+    name: string;
+    title: string;
+    email: string;
+    phone: string;
+    countryCode: string;
+    location: string;
+    language: string;
+    bio: string;
+    education: any[];
+    experience: any[];
+    skills: string[];
+    certifications: string[];
+    projects: number;
+    connections: number;
+    rating: number;
+    memberSince: string;
+    tier: string;
+    avatar_url: string;
+    profileType: string;
+    userCategory: string;
+    verificationTier: string;
+    matchScore: number;
+  }>({
     name: user?.user_metadata?.full_name || t('common.loading'),
     title: t('profilePage.status.professional'),
     email: '',
@@ -37,16 +60,10 @@ const ProfilePage = () => {
     location: '',
     language: 'English',
     bio: '',
-    education: [
-      { degree: 'MSc in Public Policy', school: 'London School of Economics', year: '2019-2021' },
-      { degree: 'BA in Economics', school: 'University of Nairobi', year: '2015-2019' }
-    ],
-    experience: [
-      { role: 'Senior Policy Advisor', company: 'Ministry of Devolution', period: '2022 - Present' },
-      { role: 'Research Associate', company: 'Kenya Institute for Public Policy Research', period: '2021 - 2022' }
-    ],
-    skills: ['Policy Analysis', 'Research', 'Stakeholder Engagement', 'Project Management', 'Data Analysis'],
-    certifications: ['Project Management Professional (PMP)', 'Data Analytics Certificate'],
+    education: [],
+    experience: [],
+    skills: [],
+    certifications: [],
     projects: 0,
     connections: 0,
     rating: 0.0,
@@ -56,7 +73,7 @@ const ProfilePage = () => {
     profileType: 'Standard (MVP)',
     userCategory: '',
     verificationTier: 'Tier 1 – Self-Declared',
-    matchScore: 85 // Mock initial score
+    matchScore: 0
   });
 
   useEffect(() => {
@@ -97,7 +114,11 @@ const ProfilePage = () => {
             profileType: data.profile_type || 'Standard (MVP)',
             userCategory: data.user_category || '',
             verificationTier: data.verification_tier || 'Tier 1 – Self-Declared',
-            matchScore: 85
+            matchScore: data.profile_completion_percentage || 0,
+            education: Array.isArray(data.education) ? data.education : [],
+            // Experience can be a JSON array in profiles or expertise text array
+            experience: Array.isArray(data.experience_json) ? data.experience_json : [], 
+            certifications: Array.isArray(data.certifications) ? data.certifications : []
           }));
         } else {
           setProfile(prev => ({
@@ -108,13 +129,50 @@ const ProfilePage = () => {
         }
       } catch (err: any) {
         console.error('Error fetching profile:', err);
-        // Only show error if they are truly logged in but profile failed to load
-        // Avoid flashing error on initial redirect
         if (user.role === 'authenticated') {
           toast.error('Failed to load profile data.');
         }
       } finally {
         setIsLoadingProfile(false);
+      }
+    };
+
+    const fetchSkills = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_skills')
+          .select('skill_name')
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        if (data) {
+          setProfile(prev => ({
+            ...prev,
+            skills: data.map(s => s.skill_name)
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching skills:', err);
+      }
+    };
+
+    const fetchProjects = async () => {
+      try {
+        const { data, error, count } = await supabase
+          .from('user_projects')
+          .select('*', { count: 'exact' })
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        if (data) {
+          setProfile(prev => ({
+            ...prev,
+            projects: count || 0
+          }));
+          // We could also store project details in a separate state if needed for the projects tab
+        }
+      } catch (err) {
+        console.error('Error fetching projects:', err);
       }
     };
 
@@ -126,7 +184,6 @@ const ProfilePage = () => {
 
         if (error) throw error;
         if (data) {
-          // Filter out the hidden placeholder folder if Supabase created it
           setDocuments(data.filter(file => file.name !== '.emptyFolderPlaceholder'));
         }
       } catch (err: any) {
@@ -135,6 +192,8 @@ const ProfilePage = () => {
     };
 
     fetchProfile();
+    fetchSkills();
+    fetchProjects();
     fetchDocuments();
   }, [user, navigate]);
 
