@@ -14,25 +14,12 @@ const LoginPage = () => {
   const session = useAuthStore((state) => state.session);
   
   useEffect(() => {
-    // Handle OAuth callback and redirect
     const handleOAuthCallback = async () => {
-      // Check if we're coming back from OAuth (hash or code in URL)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const searchParams = new URLSearchParams(window.location.search);
       
-      console.log('OAuth Check:', {
-        hash: window.location.hash,
-        search: window.location.search,
-        hasAccessToken: !!hashParams.get('access_token'),
-        hasCode: !!searchParams.get('code')
-      });
-      
       if (hashParams.get('access_token') || searchParams.get('code')) {
-        console.log('OAuth callback detected, getting session...');
-        // OAuth callback detected, wait for session to be set
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('Session after OAuth:', session ? 'Found' : 'Not found');
-        
         if (session) {
           setSession(session);
           setUser(session.user);
