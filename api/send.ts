@@ -17,7 +17,7 @@ export default async function handler(
 
     // Send an email notification to the Admin
     const { data, error } = await resend.emails.send({
-      from: 'Strategic Pathways <hello@joinstrategicpathways.com>',
+      from: 'Strategic Pathways <hello@updates.joinstrategicpathways.com>',
       to: [email],
       replyTo: 'joinstrategicpathways@gmail.com',
       subject: `Welcome to Strategic Pathways`,
@@ -51,8 +51,11 @@ export default async function handler(
     });
 
     if (error) {
-      console.error('Resend API Error:', error);
-      return res.status(400).json({ error });
+      console.error('Resend API Error details:', JSON.stringify(error, null, 2));
+      return res.status(400).json({ 
+        error: error.message || 'Failed to send email via Resend',
+        details: error
+      });
     }
 
     return res.status(200).json({ success: true, data });
