@@ -19,31 +19,7 @@ const Footer = () => {
       toast.error(t('auth.toast.invalidEmail'));
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: regEmail,
-          name: 'Strategic Member',
-          message: 'Footer Newsletter Registration'
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to register');
-      }
-
-      toast.success(t('contact.success'));
-      setRegEmail('');
-    } catch (error: any) {
-      toast.error(error.message || 'Registration failed');
-    } finally {
-      setIsSubmitting(false);
-    }
+    navigate('/signup');
   };
 
   useEffect(() => {

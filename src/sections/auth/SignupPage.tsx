@@ -64,12 +64,16 @@ const SignupPage = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('OTP Error:', error);
+        throw error;
+      }
       
       setOtpSent(true);
       toast.success(t('auth.toast.sentVerify'));
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send code.');
+      console.error('Signup error:', error);
+      toast.error(error.message || 'Email template error. Please contact support.');
     } finally {
       setLoading(false);
     }
