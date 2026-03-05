@@ -93,7 +93,9 @@
       "organization": "Shirika lako (hiari)",
       "message": "Tuambie unachofanya..."
     },
-    "success": "Asante kwa kuwasiliana nasi! Tutajibu ndani ya siku 2 za kazi."
+    "success": "Asante kwa kuwasiliana nasi! Tutajibu ndani ya siku 2 za kazi.",
+    "follow": "Fuata Safari Yetu",
+    "followSub": "Pata habari mpya kuhusu maendeleo na hatua zetu kuu."
   },
   "pricing": {
     "headline": "Uanachama unaofaa.",
@@ -362,6 +364,35 @@
       "uploading": "Inapakia...",
       "download": "Pakua",
       "noDocs": "Hakuna hati zilizopakiwa bado."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Karibu tena",
+      "subtitle": "Ingiza barua pepe yako ili uingie au ufungue akaunti.",
+      "emailLabel": "Anwani ya Barua Pepe",
+      "emailPlaceholder": "jina@mfano.com",
+      "nameLabel": "Jina Kamili",
+      "namePlaceholder": "Jina lako kamili",
+      "submitSignIn": "Ingia Bila Nywila",
+      "submitSignUp": "Fungua Akaunti",
+      "submitCheck": "Angalia Barua Pepe Yako",
+      "or": "Au tumia nambari ya barua pepe",
+      "linkedin": "Endelea na LinkedIn",
+      "google": "Endelea na Google",
+      "noAccount": "Huna akaunti?",
+      "signUp": "Jiunge",
+      "hasAccount": "Tayari una akaunti?",
+      "logIn": "Ingia"
+    },
+    "toast": {
+      "newUser": "Mtumiaji mpya amegunduliwa. Tafadhali ingiza jina lako ili uendelee.",
+      "sentVerify": "Nambari ya uhakiki imetumwa! Angalia barua pepe yako.",
+      "sentLogin": "Nambari ya kuingia imetumwa kwenye barua pepe yako!",
+      "success": "Umeingia kwa mafanikio!",
+      "error": "Hitilafu ya uthibitishaji",
+      "invalidEmail": "Tafadhali ingiza anwani halali ya barua pepe",
+      "invalidName": "Tafadhali ingiza jina lako"
     }
   }
 }

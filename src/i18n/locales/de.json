@@ -93,7 +93,9 @@
       "organization": "Ihre Organisation (optional)",
       "message": "Sagen Sie uns, woran Sie arbeiten..."
     },
-    "success": "Vielen Dank für Ihre Kontaktaufnahme! Wir antworten innerhalb von 2 Werktagen."
+    "success": "Vielen Dank für Ihre Kontaktaufnahme! Wir antworten innerhalb von 2 Werktagen.",
+    "follow": "Folgen Sie unserer Reise",
+    "followSub": "Bleiben Sie über unsere Fortschritte und Meilensteine auf dem Laufenden."
   },
   "pricing": {
     "headline": "Mitgliedschaft, die passt.",
@@ -362,6 +364,35 @@
       "uploading": "Hochladen...",
       "download": "Herunterladen",
       "noDocs": "Noch keine Dokumente hochgeladen."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Willkommen zurück",
+      "subtitle": "Geben Sie Ihre E-Mail-Adresse ein, um sich anzumelden oder ein Konto zu erstellen.",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "name@beispiel.com",
+      "nameLabel": "Vollständiger Name",
+      "namePlaceholder": "Ihr vollständiger Name",
+      "submitSignIn": "Passwortlose Anmeldung",
+      "submitSignUp": "Konto erstellen",
+      "submitCheck": "Überprüfen Sie Ihre E-Mail",
+      "or": "Oder verwenden Sie einen E-Mail-Code",
+      "linkedin": "Mit LinkedIn fortfahren",
+      "google": "Mit Google fortfahren",
+      "noAccount": "Sie haben noch kein Konto?",
+      "signUp": "Registrieren",
+      "hasAccount": "Sie haben bereits ein Konto?",
+      "logIn": "Anmelden"
+    },
+    "toast": {
+      "newUser": "Neuer Benutzer erkannt. Bitte geben Sie Ihren Namen ein, um fortzufahren.",
+      "sentVerify": "Bestätigungscode gesendet! Überprüfen Sie Ihre E-Mail.",
+      "sentLogin": "Anmeldecode an Ihre E-Mail gesendet!",
+      "success": "Erfolgreich angemeldet!",
+      "error": "Authentifizierungsfehler",
+      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+      "invalidName": "Bitte geben Sie Ihren Namen ein"
     }
   }
 }

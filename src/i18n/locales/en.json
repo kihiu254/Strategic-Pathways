@@ -93,7 +93,9 @@
       "organization": "Your organization (optional)",
       "message": "Tell us what you're working on..."
     },
-    "success": "Thank you for reaching out! We will respond within 2 business days."
+    "success": "Thank you for reaching out! We will respond within 2 business days.",
+    "follow": "Follow Our Journey",
+    "followSub": "Stay updated on our progress and milestones."
   },
   "pricing": {
     "headline": "Membership that fits.",
@@ -362,6 +364,35 @@
       "uploading": "Uploading...",
       "download": "Download",
       "noDocs": "No documents uploaded yet."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Enter your email to sign in or create an account.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "name@example.com",
+      "nameLabel": "Full Name",
+      "namePlaceholder": "Your full name",
+      "submitSignIn": "Passwordless Sign In",
+      "submitSignUp": "Create Account",
+      "submitCheck": "Check Your Email",
+      "or": "Or use an email code",
+      "linkedin": "Continue with LinkedIn",
+      "google": "Continue with Google",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "hasAccount": "Already have an account?",
+      "logIn": "Log in"
+    },
+    "toast": {
+      "newUser": "New user detected. Please enter your name to continue.",
+      "sentVerify": "Verification code sent! Check your email.",
+      "sentLogin": "Login code sent to your email!",
+      "success": "Successfully logged in!",
+      "error": "Authentication error",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidName": "Please enter your name"
     }
   }
 }

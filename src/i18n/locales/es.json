@@ -93,7 +93,9 @@
       "organization": "Tu organización (opcional)",
       "message": "Cuéntanos en qué estás trabajando..."
     },
-    "success": "¡Gracias por contactarnos! Responderemos en un plazo de 2 días hábiles."
+    "success": "¡Gracias por contactarnos! Responderemos en un plazo de 2 días hábiles.",
+    "follow": "Sigue nuestro viaje",
+    "followSub": "Mantente actualizado sobre nuestro progreso y hitos."
   },
   "pricing": {
     "headline": "Una membresía que se adapta.",
@@ -362,6 +364,35 @@
       "uploading": "Subiendo...",
       "download": "Descargar",
       "noDocs": "Aún no se han subido documentos."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Ingresa tu correo para iniciar sesión o crear una cuenta.",
+      "emailLabel": "Dirección de correo electrónico",
+      "emailPlaceholder": "nombre@ejemplo.com",
+      "nameLabel": "Nombre completo",
+      "namePlaceholder": "Tu nombre completo",
+      "submitSignIn": "Iniciar sesión sin contraseña",
+      "submitSignUp": "Crear cuenta",
+      "submitCheck": "Revisa tu correo",
+      "or": "O usa un código por correo",
+      "linkedin": "Continuar con LinkedIn",
+      "google": "Continuar con Google",
+      "noAccount": "¿No tienes una cuenta?",
+      "signUp": "Regístrate",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "logIn": "Inicia sesión"
+    },
+    "toast": {
+      "newUser": "Nuevo usuario detectado. Por favor ingresa tu nombre para continuar.",
+      "sentVerify": "¡Código de verificación enviado! Revisa tu correo.",
+      "sentLogin": "¡Código de inicio de sesión enviado a tu correo!",
+      "success": "¡Inicio de sesión exitoso!",
+      "error": "Error de autenticación",
+      "invalidEmail": "Por favor ingresa un correo válido",
+      "invalidName": "Por favor ingresa tu nombre"
     }
   }
 }

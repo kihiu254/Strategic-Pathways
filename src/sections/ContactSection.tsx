@@ -182,7 +182,10 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
 
             {/* Follow Us */}
             <div className="mt-4 pt-6 border-t border-[var(--sp-accent)]/10">
-              <p className="text-[var(--text-secondary)] text-sm mb-4 font-medium uppercase tracking-wider">Follow Our Journey</p>
+              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">{t('contact.follow')}</h3>
+              <p className="text-[var(--text-secondary)] mb-8 leading-relaxed">
+                {t('contact.followSub')}
+              </p>
               <div className="flex flex-wrap gap-3">
                 <a 
                   href="https://www.linkedin.com/company/join-strategicpathways/" 

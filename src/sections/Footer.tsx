@@ -1,7 +1,7 @@
 import { Linkedin, Instagram, Youtube, Facebook, Twitter, Globe, Github, Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const Footer = () => {
@@ -130,15 +130,21 @@ const Footer = () => {
                 <ul className="space-y-4">
                   {section.links.map((link, i) => (
                     <li key={i}>
-                      <button 
-                        onClick={() => link.href !== '#' && navigate(link.href)}
-                        className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors inline-block group text-left"
-                      >
-                        <span className="relative">
+                      {link.href === '#' ? (
+                        <span className="text-[var(--text-secondary)] transition-colors inline-block text-left opacity-50 cursor-not-allowed">
                           {link.label}
-                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--sp-accent)] transition-all duration-300 group-hover:w-full"></span>
                         </span>
-                      </button>
+                      ) : (
+                        <Link 
+                          to={link.href}
+                          className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors inline-block group text-left"
+                        >
+                          <span className="relative">
+                            {link.label}
+                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--sp-accent)] transition-all duration-300 group-hover:w-full"></span>
+                          </span>
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -167,11 +173,15 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-[var(--text-primary)]/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-[var(--text-secondary)] text-sm order-2 md:order-1">
-            © {new Date().getFullYear()} {t('footer.rights')}
+          <div className="flex flex-col md:flex-row items-center gap-4 text-[var(--text-secondary)] text-sm order-2 md:order-1 text-center md:text-left">
+            <span>© {new Date().getFullYear()} {t('footer.rights')}</span>
+            <span className="hidden md:block text-white/20">|</span>
+            <Link to="/privacy" className="hover:text-[var(--sp-accent)] transition-colors">
+              {t('footer.privacy')}
+            </Link>
           </div>
           <div className="flex items-center gap-6 order-1 md:order-2">
-            <span className="text-[var(--text-secondary)] text-[10px] md:text-xs">
+            <span className="text-[var(--text-secondary)] text-[10px] md:text-xs text-center md:text-right">
               {t('footer.compliance')}
             </span>
             <div className="flex gap-4">

@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Mail, ArrowRight, Linkedin, KeyRound, CheckCircle2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 
 const SignupPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const setSession = useAuthStore((state) => state.setSession);
   const setUser = useAuthStore((state) => state.setUser);
@@ -47,7 +48,7 @@ const SignupPage = () => {
     if (e) e.preventDefault();
     
     if (!formData.name) {
-      toast.error('Please enter your full name');
+      toast.error(t('auth.toast.invalidName'));
       return;
     }
 
@@ -65,7 +66,7 @@ const SignupPage = () => {
       if (error) throw error;
       
       setOtpSent(true);
-      toast.success('Verification code sent! Check your email.');
+      toast.success(t('auth.toast.sentVerify'));
     } catch (error: any) {
       toast.error(error.message || 'Failed to send code.');
     } finally {
@@ -88,7 +89,7 @@ const SignupPage = () => {
       
       setSession(data.session);
       setUser(data.user);
-      toast.success('Account created successfully!');
+      toast.success(t('auth.toast.success'));
       navigate('/onboarding');
     } catch (error: any) {
       toast.error(error.message || 'Invalid or expired code.');
@@ -113,12 +114,12 @@ const SignupPage = () => {
           </button>
           
           <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-            {otpSent ? 'Check Your Email' : 'Create Your Account'}
+            {otpSent ? t('auth.login.submitCheck') : t('auth.login.submitSignUp')}
           </h1>
           <p className="text-[var(--text-secondary)]">
             {otpSent 
-              ? `We sent a secure code to ${formData.email}` 
-              : 'Join Strategic Pathways and connect with opportunities'}
+              ? `${t('auth.login.submitCheck')} ${formData.email}` 
+              : t('auth.login.subtitle')}
           </p>
         </div>
 
@@ -138,7 +139,7 @@ const SignupPage = () => {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
-                  Sign up with Google
+                  {t('auth.login.google')}
                 </button>
                 <button
                   type="button"
@@ -147,19 +148,19 @@ const SignupPage = () => {
                   className="w-full py-3 px-4 flex items-center justify-center gap-3 bg-[#0A66C2] hover:bg-[#004182] text-white rounded-xl font-medium transition-colors disabled:opacity-50"
                 >
                   <Linkedin className="w-5 h-5" />
-                  Sign up with LinkedIn
+                  {t('auth.login.linkedin')}
                 </button>
               </div>
 
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex-1 h-px bg-[var(--text-inverse)]/10"></div>
-                <span className="text-[var(--text-secondary)] text-sm">Or with email</span>
+                <span className="text-[var(--text-secondary)] text-sm">{t('auth.login.or')}</span>
                 <div className="flex-1 h-px bg-[var(--text-inverse)]/10"></div>
               </div>
 
               <form onSubmit={handleSendToken} className="space-y-5">
                 <div>
-                  <label className="text-[var(--text-secondary)] text-sm block mb-2">Full Name</label>
+                  <label className="text-[var(--text-secondary)] text-sm block mb-2">{t('auth.login.nameLabel')}</label>
                   <div className="relative">
                     <input
                       type="text"
@@ -167,14 +168,14 @@ const SignupPage = () => {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="input-glass w-full pl-10 pr-4 py-3 text-[var(--text-primary)]"
-                      placeholder="John Doe"
+                      placeholder={t('auth.login.namePlaceholder')}
                     />
                     <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[var(--text-secondary)] text-sm block mb-2">Email Address</label>
+                  <label className="text-[var(--text-secondary)] text-sm block mb-2">{t('auth.login.emailLabel')}</label>
                   <div className="relative">
                     <input
                       type="email"
@@ -182,7 +183,7 @@ const SignupPage = () => {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="input-glass w-full pl-10 pr-4 py-3 text-[var(--text-primary)]"
-                      placeholder="you@example.com"
+                      placeholder={t('auth.login.emailPlaceholder')}
                     />
                     <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                   </div>
@@ -197,7 +198,7 @@ const SignupPage = () => {
                     <div className="w-5 h-5 border-2 border-[var(--text-inverse)]/30 border-t-[#0B2A3C] rounded-full animate-spin" />
                   ) : (
                     <>
-                      Create Account
+                      {t('auth.login.submitSignUp')}
                       <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -215,7 +216,7 @@ const SignupPage = () => {
               <form onSubmit={handleVerifyToken} className="space-y-5">
                 <div>
                   <label className="text-[var(--text-secondary)] text-sm block mb-2 text-center">
-                    Enter the 8-digit code sent to your email
+                    {t('auth.login.submitCheck')}
                   </label>
                   <div className="relative mt-4">
                     <input
@@ -239,7 +240,7 @@ const SignupPage = () => {
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-[var(--text-inverse)]/30 border-t-[#0B2A3C] rounded-full animate-spin" />
                   ) : (
-                    'Verify & Create Account'
+                    t('auth.login.submitCheck')
                   )}
                 </button>
               </form>
@@ -263,12 +264,12 @@ const SignupPage = () => {
           )}
           
           <div className="mt-6 text-center text-[var(--text-secondary)] text-sm">
-            Already have an account?{' '}
+            {t('auth.login.hasAccount')}{' '}
             <button
               onClick={() => navigate('/login')}
               className="text-[var(--sp-accent)] font-medium hover:text-[var(--text-primary)] transition-colors"
             >
-              Sign in
+              {t('auth.login.logIn')}
             </button>
           </div>
         </div>

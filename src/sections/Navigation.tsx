@@ -82,9 +82,9 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
   const navLinks = [
     { label: t('nav.about'), path: '/concept-note' },
     { label: t('nav.audience'), id: 'audience' },
-    { label: t('nav.howItWorks'), id: 'how-it-works' },
     { label: t('nav.opportunities'), path: '/opportunities' },
     { label: t('nav.pricing'), id: 'pricing' },
+    { label: t('nav.impact'), id: 'impact' },
   ];
 
   return (
@@ -96,28 +96,30 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
             : 'bg-transparent py-5'
         }`}
       >
-        <div className="w-full px-6 lg:px-12 flex items-center justify-between">
-          {/* Logo */}
-          <button 
-            onClick={() => onNavigate ? onNavigate('home') : scrollToSection('hero')}
-            className="flex items-center gap-3 group"
-          >
-            <img 
-              src="/logo.png" 
-              alt="Strategic Pathways" 
-              width={160}
-              height={40}
-              className="h-10 w-auto object-contain transform scale-150 lg:scale-[1.75] origin-left"
-            />
-          </button>
+        <div className="w-full px-6 lg:px-12 flex items-center">
+          {/* Logo - Left */}
+          <div className="flex-none">
+            <button 
+              onClick={() => onNavigate ? onNavigate('home') : scrollToSection('hero')}
+              className="flex items-center gap-3 group"
+            >
+              <img 
+                src="/logo.png" 
+                alt="Strategic Pathways" 
+                width={160}
+                height={40}
+                className="h-10 w-auto object-contain transform scale-150 lg:scale-[1.75] origin-left"
+              />
+            </button>
+          </div>
 
           {/* Desktop Navigation Links (Centered) */}
-          <div className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+          <div className="hidden lg:flex flex-1 items-center justify-center gap-6">
             {navLinks.map((link) => (
               <button
                 key={link.id || link.path}
                 onClick={() => link.path ? navigate(link.path) : scrollToSection(link.id!)}
-                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium tracking-wide"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium tracking-wide whitespace-nowrap"
               >
                 {link.label}
               </button>
@@ -125,7 +127,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
           </div>
             
           {/* Desktop Auth & Actions (Right) */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex flex-none items-center gap-4">
             {/* Language Switcher */}
             <LanguageSwitcher />
 
@@ -272,6 +274,8 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
           <img 
             src="/logo.png" 
             alt="Strategic Pathways" 
+            width={160}
+            height={64}
             className="h-24 w-auto object-contain mb-4"
           />
           

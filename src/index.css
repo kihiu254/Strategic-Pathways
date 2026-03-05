@@ -74,6 +74,10 @@
     font-family: "Space Grotesk", sans-serif;
     letter-spacing: -0.02em;
   }
+
+  a:hover {
+    text-decoration: underline;
+  }
 }
 
 @layer components {

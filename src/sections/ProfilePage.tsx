@@ -325,7 +325,13 @@ const ProfilePage = () => {
                 {isUploadingAvatar ? (
                   <Loader2 size={40} className="text-[var(--sp-accent)] animate-spin" />
                 ) : profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                  <img 
+                    src={profile.avatar_url} 
+                    alt="Profile" 
+                    width={160}
+                    height={160}
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
                   <User size={64} className="text-[var(--sp-accent)]" />
                 )}

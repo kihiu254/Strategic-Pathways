@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Mail, ArrowRight, Linkedin, KeyRound, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const setSession = useAuthStore((state) => state.setSession);
   const setUser = useAuthStore((state) => state.setUser);
@@ -55,7 +56,7 @@ const LoginPage = () => {
       setAccountExists(exists);
       setIsSignUp(!exists);
       if (!exists && !formData.name) {
-        toast.info('New user detected. Please enter your name to continue.');
+        toast.info(t('auth.toast.newUser'));
       }
     } catch (error) {
       setAccountExists(false);
@@ -87,7 +88,7 @@ const LoginPage = () => {
       if (error) throw error;
       
       setOtpSent(true);
-      toast.success(isSignUp ? 'Verification code sent! Check your email.' : 'Login code sent to your email!');
+      toast.success(isSignUp ? t('auth.toast.sentVerify') : t('auth.toast.sentLogin'));
     } catch (error: any) {
       toast.error(error.message || 'Failed to send code.');
     } finally {
@@ -130,7 +131,7 @@ const LoginPage = () => {
       
       setSession(data.session);
       setUser(data.user);
-      toast.success('Successfully logged in!');
+      toast.success(t('auth.toast.success'));
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -169,12 +170,12 @@ const LoginPage = () => {
           </button>
           
           <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-            {otpSent ? 'Check Your Email' : (isSignUp ? 'Create Account' : 'Passwordless Sign In')}
+            {otpSent ? t('auth.login.submitCheck') : (isSignUp ? t('auth.login.submitSignUp') : t('auth.login.submitSignIn'))}
           </h1>
           <p className="text-[var(--text-secondary)]">
             {otpSent 
-              ? `We sent a secure code to ${formData.email}` 
-              : (isSignUp ? 'Join Strategic Pathways network today with a secure OTP.' : 'Enter your email to receive a secure login link or code.')}
+              ? `${t('auth.login.submitCheck')} ${formData.email}` 
+              : (isSignUp ? t('auth.login.subtitle') : t('auth.login.subtitle'))}
           </p>
         </div>
 
@@ -196,7 +197,7 @@ const LoginPage = () => {
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                     <path d="M1 1h22v22H1z" fill="none" />
                   </svg>
-                  Continue with Google
+                  {t('auth.login.google')}
                 </button>
                 <button
                   type="button"
@@ -205,19 +206,19 @@ const LoginPage = () => {
                   className="w-full py-3 px-4 flex items-center justify-center gap-3 bg-[#0A66C2] hover:bg-[#004182] text-white rounded-xl font-medium transition-colors disabled:opacity-50"
                 >
                   <Linkedin className="w-5 h-5" />
-                  Continue with LinkedIn
+                  {t('auth.login.linkedin')}
                 </button>
               </div>
 
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex-1 h-px bg-[var(--text-inverse)]/10"></div>
-                <span className="text-[var(--text-secondary)] text-sm">Or use an email code</span>
+                <span className="text-[var(--text-secondary)] text-sm">{t('auth.login.or')}</span>
                 <div className="flex-1 h-px bg-[var(--text-inverse)]/10"></div>
               </div>
 
               <form onSubmit={handleSendToken} className="space-y-5">
                 <div>
-                  <label className="text-[var(--text-secondary)] text-sm block mb-2">Email Address</label>
+                  <label className="text-[var(--text-secondary)] text-sm block mb-2">{t('auth.login.emailLabel')}</label>
                   <div className="relative">
                     <input
                       type="email"
@@ -226,7 +227,7 @@ const LoginPage = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       onBlur={checkAccountExists}
                       className="input-glass w-full pl-10 pr-4 py-3 text-[var(--text-primary)]"
-                      placeholder="you@example.com"
+                      placeholder={t('auth.login.emailPlaceholder')}
                     />
                     <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                   </div>
@@ -240,7 +241,7 @@ const LoginPage = () => {
 
                 {isSignUp && accountExists === false && (
                   <div>
-                    <label className="text-[var(--text-secondary)] text-sm block mb-2">Full Name</label>
+                    <label className="text-[var(--text-secondary)] text-sm block mb-2">{t('auth.login.nameLabel')}</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -248,7 +249,7 @@ const LoginPage = () => {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="input-glass w-full pl-10 pr-4 py-3 text-[var(--text-primary)]"
-                        placeholder="John Doe"
+                        placeholder={t('auth.login.namePlaceholder')}
                       />
                       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]">
                         <div className="w-4 h-4 rounded-full border border-current" />
@@ -279,7 +280,7 @@ const LoginPage = () => {
                     <div className="w-5 h-5 border-2 border-[var(--text-inverse)]/30 border-t-[#0B2A3C] rounded-full animate-spin" />
                   ) : (
                     <>
-                      Send Login Code
+                      {isSignUp ? t('auth.login.submitSignUp') : t('auth.login.submitSignIn')}
                       <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -300,7 +301,7 @@ const LoginPage = () => {
               <form onSubmit={handleVerifyToken} className="space-y-5">
                 <div>
                   <label className="text-[var(--text-secondary)] text-sm block mb-2 text-center">
-                    Enter the 8-digit code sent to your email
+                    {t('auth.login.submitCheck')}
                   </label>
                   <div className="relative mt-4">
                     <input
@@ -324,7 +325,7 @@ const LoginPage = () => {
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-[var(--text-inverse)]/30 border-t-[#0B2A3C] rounded-full animate-spin" />
                   ) : (
-                    'Verify Code'
+                    t('auth.login.submitCheck')
                   )}
                 </button>
               </form>
@@ -358,7 +359,7 @@ const LoginPage = () => {
                 }}
                 className="text-[var(--sp-accent)] font-medium hover:text-[var(--text-primary)] transition-colors"
               >
-                {isSignUp ? 'Sign in instead' : 'Create account'}
+                {isSignUp ? t('auth.login.logIn') : t('auth.login.signUp')}
               </button>
             </div>
           )}
