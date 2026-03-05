@@ -1,27 +1,22 @@
-import { useState }  from 'react';
-import { useNavigate }  from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   LayoutDashboard, Users, Briefcase, FileText, Settings, 
-  TrendingUp, DollarSign, UserCheck, CheckCircle,
+  TrendingUp, DollarSign, CheckCircle,
   X, Plus, Search, Filter,
-  BarChart3, PieChart, Star, Edit2, Trash2, Eye
+  BarChart3, Star, Edit2, Trash2, Eye,
+  Maximize2, Minimize2
 } from 'lucide-react';
-import { toast }  from 'sonner';
+import { toast } from 'sonner';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState('overview');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
 
-  // Demo data
-  const stats = {
-    totalMembers: 524,
-    activeProjects: 18,
-    pendingApplications: 47,
-    totalRevenue: 'KSh 628,800',
-    newMembersThisMonth: 86,
-    completedProjects: 156
-  };
+
 
   const recentApplications = [
     { id: 1, name: 'Sarah Mwangi', email: 'sarah.m@email.com', type: 'Professional', status: 'pending', date: '2024-02-20' },
@@ -78,43 +73,51 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]  flex">
       {/* Sidebar */}
-      <div className={`dashboard-sidebar transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'}  flex  flex-col`}>
+      <div className={`dashboard-sidebar transition-all duration-300 ${isSidebarCollapsed ? 'w-64' : 'w-20'}  flex  flex-col`}>
         {/* Logo */}
         <div className="p-6 border-b border-white/10">
-          <button 
+          <button
             onClick={() => navigate('/')}
-            className={` flex items-center gap-3 ${!sidebarOpen && 'justify-center'}`}
+            className={` flex items-center gap-3 ${!isSidebarCollapsed && 'justify-center'}`}
           >
             <img src="/logo.png" alt="SP" className="h-10 w-auto" />
-            {sidebarOpen && <span className="text-[var(--text-primary)]  font-semibold">Admin</span>}
+            {isSidebarCollapsed && <span className="text-[var(--text-primary)]  font-semibold">Admin</span>}
           </button>
         </div>
 
         {/* Navigation */}
         <nav className=" flex-1 p-4 space-y-2">
-          {sidebarItems.map((item) => (
+          {[
+            { id: 'overview', icon: LayoutDashboard, label: t('dashboard.sections.overview') },
+            { id: 'members', icon: Users, label: t('dashboard.sections.members') },
+            { id: 'projects', icon: Briefcase, label: t('dashboard.sections.projects') },
+            { id: 'applications', icon: FileText, label: t('dashboard.sections.applications') },
+            { id: 'analytics', icon: BarChart3, label: t('dashboard.sections.analytics') },
+            { id: 'settings', icon: Settings, label: t('dashboard.sections.settings') },
+          ].map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveSection(item.id)}
-              className={`w- full  flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 activeSection === item.id
-                  ? 'bg-[var(--sp-accent)]/20 text-[var(--sp-accent)]'
-                  : 'text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)]'
+                  ? 'bg-[var(--sp-accent)] text-white shadow-lg shadow-[var(--sp-accent)]/20'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card)]/10 hover:text-[var(--text-primary)]'
               }`}
             >
               <item.icon size={20} />
-              {sidebarOpen && <span className=" font-medium">{item.label}</span>}
+              {isSidebarCollapsed && <span className=" font-medium">{item.label}</span>}
             </button>
           ))}
         </nav>
 
         {/* Toggle Sidebar */}
         <div className="p-4 border-t border-white/10">
-          <button 
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w- full  flex items-center justify-center p-2 rounded-xl text-[var(--text-secondary)] hover:bg-white/5"
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-card)]/10 hover:text-[var(--text-primary)] transition-all"
           >
-            {sidebarOpen ? ' �  Collapse' : ' ��'}
+            {isSidebarCollapsed ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+            {isSidebarCollapsed && <span className="font-medium">{t('dashboard.sidebar.collapse')}</span>}
           </button>
         </div>
       </div>
@@ -123,22 +126,22 @@ const AdminDashboard = () => {
       <div className=" flex-1  flex  flex-col">
         {/* Header */}
         <header className="glass border-b border-white/10 px-6 py-4">
-          <div className=" flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl  font-bold text-[var(--text-primary)]">
-                {sidebarItems. find(i => i.id === activeSection)?.label}
+              <h1 className="text-xl font-bold text-[var(--text-primary)]">
+                {sidebarItems.find(i => i.id === activeSection)?.label}
               </h1>
-              <p className="text-[var(--text-secondary)] text-sm">Welcome back, Admin</p>
+              <p className="text-[var(--text-secondary)] text-sm">{t('dashboard.welcome')}</p>
             </div>
-            <div className=" flex items-center gap-4">
-              <button 
+            <div className="flex items-center gap-4">
+              <button
                 onClick={() => navigate('/')}
                 className="sp-btn-glass"
               >
-                View Website
+                {t('dashboard.buttons.viewWebsite')}
               </button>
-              <div className="w-10 h-10 rounded- full bg-gradient-to-br  rom-[#C89 5E] to-[#8B7355]  flex items-center justify-center">
-                <span className="text-[var(--text-inverse)]  font-semibold">A</span>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center">
+                <span className="text-[var(--text-inverse)] font-semibold">A</span>
               </div>
             </div>
           </div>
@@ -150,96 +153,73 @@ const AdminDashboard = () => {
           {activeSection === 'overview' && (
             <div className="space-y-6">
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {[
-                  { label: 'Total Members', value: stats.totalMembers, icon: Users, change: '+12%' },
-                  { label: 'Active Projects', value: stats.activeProjects, icon: Briefcase, change: '+5%' },
-                  { label: 'Pending Apps', value: stats.pendingApplications, icon:  FileText, change: '+8' },
-                  { label: 'Total Revenue', value: stats.totalRevenue, icon: DollarSign, change: '+23%' },
-                  { label: 'New This Month', value: stats.newMembersThisMonth, icon: UserCheck, change: '+18%' },
-                  { label: 'Completed', value: stats.completedProjects, icon: CheckCircle, change: '+9%' },
+                  { label: t('dashboard.stats.totalMembers'), value: '1,284', change: '+12%', icon: Users },
+                  { label: t('dashboard.stats.activeProjects'), value: '42', change: '+5%', icon: Briefcase },
+                  { label: t('dashboard.stats.pendingApps'), value: '156', change: '-2%', icon: FileText },
+                  { label: t('dashboard.stats.totalRevenue'), value: '$48,200', change: '+8%', icon: DollarSign },
                 ].map((stat, i) => (
-                  <div key={i} className="stat-card p-4">
-                    <div className=" flex items-center justify-between mb-2">
-                      <stat.icon size={20} className="text-[var(--sp-accent)]" />
-                      <span className="text-green-400 text-xs">{stat.change}</span>
+                  <div key={i} className="glass-card p-6 border border-[var(--text-primary)]/5">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="p-2 bg-[var(--sp-accent)]/10 rounded-lg">
+                        <stat.icon className="text-[var(--sp-accent)] w-5 h-5" />
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.change.startsWith('+') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                        {stat.change}
+                      </span>
                     </div>
-                    <div className="text-2xl  font-bold text-[var(--text-primary)]">{stat.value}</div>
-                    <div className="text-[var(--text-secondary)] text-sm">{stat.label}</div>
+                    <h4 className="text-[var(--text-secondary)] text-sm font-medium mb-1">{stat.label}</h4>
+                    <p className="text-2xl font-bold text-[var(--text-primary)]">{stat.value}</p>
                   </div>
                 ))}
               </div>
 
               {/* Charts Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="glass-card p-6">
-                  <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4  flex items-center gap-2">
-                    <BarChart3 size={18} className="text-[var(--sp-accent)]" />
-                    Member Growth
-                  </h3>
-                  <div className="h-48  flex items-end gap-2">
-                    {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 100].map((h, i) => (
-                      <div key={i} className=" flex-1  flex  flex-col items-center gap-1">
-                        <div 
-                          className="w- full bg-gradient-to-t  rom-[#C89 5E] to-[#C89 5E]/50 rounded-t"
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="lg:col-span-2 glass-card p-6">
+                  <h4 className="font-bold text-[var(--text-primary)] mb-6">{t('dashboard.charts.growth')}</h4>
+                  <div className="h-64 flex items-end justify-between gap-2 px-4">
+                    {[45, 60, 48, 75, 55, 90, 100].map((h, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                        <div
+                          className="w-full bg-[var(--sp-accent)]/20 group-hover:bg-[var(--sp-accent)]/40 rounded-t-lg transition-all duration-500"
                           style={{ height: `${h}%` }}
-                        />
-                        <span className="text-[var(--text-secondary)] text-xs">{['J', ' ', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'][i]}</span>
+                        ></div>
+                        <span className="text-[10px] text-[var(--text-secondary)] font-medium">Month {i+1}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="glass-card p-6">
-                  <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4  flex items-center gap-2">
-                    <PieChart size={18} className="text-[var(--sp-accent)]" />
-                    Membership Distribution
-                  </h3>
-                  <div className=" flex items-center justify-center h-48">
-                    <div className="relative w-40 h-40">
-                      <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                        <circle cx="50" cy="50" r="40"  fill="none" stroke="#C89 5E" strokeWidth="20" strokeDasharray="188 251" />
-                        <circle cx="50" cy="50" r="40"  fill="none" stroke="#8B7355" strokeWidth="20" strokeDasharray="44 251" strokeDashoffset="-188" />
-                        <circle cx="50" cy="50" r="40"  fill="none" stroke="#4A5568" strokeWidth="20" strokeDasharray="19 251" strokeDashoffset="-232" />
-                      </svg>
-                      <div className="absolute inset-0  flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="text-2xl  font-bold text-[var(--text-primary)]">524</div>
-                          <div className="text-[var(--text-secondary)] text-xs">Total</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="ml-6 space-y-2">
-                      <div className=" flex items-center gap-2">
-                        <div className="w-3 h-3 rounded- full bg-[var(--sp-accent)]" />
-                        <span className="text-[var(--text-secondary)] text-sm">Professional (75%)</span>
-                      </div>
-                      <div className=" flex items-center gap-2">
-                        <div className="w-3 h-3 rounded- full bg-[#8B7355]" />
-                        <span className="text-[var(--text-secondary)] text-sm">Community (18%)</span>
-                      </div>
-                      <div className=" flex items-center gap-2">
-                        <div className="w-3 h-3 rounded- full bg-[#4A5568]" />
-                        <span className="text-[var(--text-secondary)] text-sm">Firm (7%)</span>
-                      </div>
+                  <h4 className="font-bold text-[var(--text-primary)] mb-6">{t('dashboard.charts.distribution')}</h4>
+                  <div className="relative h-64 flex items-center justify-center">
+                    <div className="w-48 h-48 rounded-full border-[12px] border-[var(--sp-accent)] border-r-transparent border-b-transparent -rotate-45"></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-bold text-[var(--text-primary)]">65%</span>
+                      <span className="text-xs text-[var(--text-secondary)]">{t('dashboard.charts.total')}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Recent Activity */}
-              <div className="glass-card p-6">
-                <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">Recent Applications</h3>
+              <div className="glass-card overflow-hidden">
+                <div className="p-6 border-b border-[var(--text-primary)]/5 flex justify-between items-center">
+                  <h4 className="font-bold text-[var(--text-primary)]">{t('dashboard.recentApps.title')}</h4>
+                  <button className="text-[var(--sp-accent)] text-sm font-medium hover:underline">{t('dashboard.recentApps.viewAll')}</button>
+                </div>
                 <div className="overflow-x-auto">
-                  <table className="w- full">
-                    <thead>
-                      <tr className="text-le t text-[var(--text-secondary)] text-sm border-b border-white/10">
-                        <th className="pb-3">Name</th>
-                        <th className="pb-3">Email</th>
-                        <th className="pb-3">Type</th>
-                        <th className="pb-3">Date</th>
-                        <th className="pb-3">Status</th>
-                        <th className="pb-3">Actions</th>
+                  <table className="w-full text-left">
+                    <thead className="bg-[var(--bg-card)]/5 text-[var(--text-secondary)] text-xs uppercase tracking-wider">
+                      <tr>
+                        <th className="px-6 py-4 font-semibold">{t('dashboard.recentApps.name')}</th>
+                        <th className="px-6 py-4 font-semibold">{t('dashboard.recentApps.email')}</th>
+                        <th className="px-6 py-4 font-semibold">{t('dashboard.recentApps.type')}</th>
+                        <th className="px-6 py-4 font-semibold">{t('dashboard.recentApps.date')}</th>
+                        <th className="px-6 py-4 font-semibold">{t('dashboard.recentApps.status')}</th>
+                        <th className="px-6 py-4 font-semibold text-right">{t('dashboard.recentApps.actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -250,7 +230,7 @@ const AdminDashboard = () => {
                           <td className="py-3 text-[var(--text-secondary)]">{app.type}</td>
                           <td className="py-3 text-[var(--text-secondary)]">{app.date}</td>
                           <td className="py-3">
-                            <span className={`px-2 py-1 rounded- full text-xs ${getStatusBadge(app.status)}`}>
+                            <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(app.status)}`}>
                               {app.status.replace('_', ' ')}
                             </span>
                           </td>
@@ -288,18 +268,18 @@ const AdminDashboard = () => {
                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                     <input 
                       type="text"
-                      placeholder="Search members..."
+                      placeholder={t('dashboard.placeholders.searchMembers')}
                       className="input-glass pl-10 pr-4 py-2 w-64"
                     />
                   </div>
                   <button className="sp-btn-glass flex items-center gap-2">
                     <Filter size={16} />
-                    Filter
+                    {t('dashboard.buttons.filter')}
                   </button>
                 </div>
                 <button className="sp-btn-primary flex items-center gap-2">
                   <Plus size={16} />
-                  Add Member
+                  {t('dashboard.buttons.addMember')}
                 </button>
               </div>
 
@@ -307,43 +287,43 @@ const AdminDashboard = () => {
                 <table className="w-full">
                   <thead className="bg-white/5">
                     <tr className="text-left text-[var(--text-secondary)] text-sm">
-                      <th className="p-4">Member</th>
-                      <th className="p-4">Tier</th>
-                      <th className="p-4">Projects</th>
-                      <th className="p-4">Rating</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4">Joined</th>
-                      <th className="p-4">Actions</th>
+                      <th className="p-4">{t('dashboard.headers.member')}</th>
+                      <th className="p-4">{t('dashboard.headers.tier')}</th>
+                      <th className="p-4">{t('dashboard.headers.projects')}</th>
+                      <th className="p-4">{t('dashboard.headers.rating')}</th>
+                      <th className="p-4">{t('dashboard.headers.status')}</th>
+                      <th className="p-4">{t('dashboard.headers.joined')}</th>
+                      <th className="p-4">{t('dashboard.recentApps.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {members.map((member) => (
                       <tr key={member.id} className="border-b border-white/5 hover:bg-white/5">
                         <td className="p-4">
-                          <div className=" flex items-center gap-3">
-                            <div className="w-10 h-10 rounded- full bg-gradient-to-br  rom-[#C89 5E] to-[#8B7355]  flex items-center justify-center">
-                              <span className="text-[var(--text-inverse)]  font-semibold">{member.name.charAt(0)}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center">
+                              <span className="text-[var(--text-inverse)] font-semibold">{member.name.charAt(0)}</span>
                             </div>
                             <div>
-                              <div className="text-[var(--text-primary)]  font-medium">{member.name}</div>
+                              <div className="text-[var(--text-primary)] font-medium">{member.name}</div>
                               <div className="text-[var(--text-secondary)] text-sm">{member.email}</div>
                             </div>
                           </div>
                         </td>
                         <td className="p-4">
-                          <span className="px-2 py-1 rounded- full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-xs">
+                          <span className="px-2 py-1 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-xs">
                             {member.tier}
                           </span>
                         </td>
                         <td className="p-4 text-[var(--text-secondary)]">{member.projects}</td>
                         <td className="p-4">
                           <div className=" flex items-center gap-1 text-[var(--sp-accent)]">
-                            <Star size={14} className=" ill-[#C89 5E]" />
+                            <Star size={14} className="fill-[#C89F5E]" />
                             {member.rating}
                           </div>
                         </td>
                         <td className="p-4">
-                          <span className={`px-2 py-1 rounded- full text-xs ${getStatusBadge(member.status)}`}>
+                          <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(member.status)}`}>
                             {member.status}
                           </span>
                         </td>
@@ -378,18 +358,18 @@ const AdminDashboard = () => {
                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                     <input 
                       type="text"
-                      placeholder="Search projects..."
+                      placeholder={t('dashboard.placeholders.searchProjects')}
                       className="input-glass pl-10 pr-4 py-2 w-64"
                     />
                   </div>
                   <button className="sp-btn-glass flex items-center gap-2">
                     <Filter size={16} />
-                    Filter
+                    {t('dashboard.buttons.filter')}
                   </button>
                 </div>
                 <button className="sp-btn-primary flex items-center gap-2">
                   <Plus size={16} />
-                  New Project
+                  {t('dashboard.buttons.newProject')}
                 </button>
               </div>
 
@@ -401,7 +381,7 @@ const AdminDashboard = () => {
                         <h3 className="text-lg  font-semibold text-[var(--text-primary)]">{project.title}</h3>
                         <p className="text-[var(--text-secondary)] text-sm">{project.client}</p>
                       </div>
-                      <span className={`px-2 py-1 rounded- full text-xs ${getStatusBadge(project.status)}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(project.status)}`}>
                         {project.status}
                       </span>
                     </div>
@@ -419,9 +399,9 @@ const AdminDashboard = () => {
                         <span className="text-[var(--text-secondary)]">Progress</span>
                         <span className="text-[var(--text-primary)]">{project.progress}%</span>
                       </div>
-                      <div className="h-2 bg-white/10 rounded- full overflow-hidden">
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                         <div 
-                          className="h- full bg-gradient-to-r  rom-[#C89 5E] to-[#D4B76E] rounded- full transition-all"
+                          className="h-full bg-gradient-to-r from-[#C89F5E] to-[#D4B76E] rounded-full transition-all"
                           style={{ width: `${project.progress}%` }}
                         />
                       </div>
@@ -450,15 +430,15 @@ const AdminDashboard = () => {
                   <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                   <input 
                     type="text"
-                    placeholder="Search applications..."
+                    placeholder={t('dashboard.placeholders.searchApps')}
                     className="input-glass pl-10 pr-4 py-2 w-64"
                   />
                 </div>
                 <select className="input-glass px-4 py-2">
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="all">{t('oppsPage.filters.all')} {t('dashboard.headers.status')}</option>
+                  <option value="pending">{t('dashboard.recentApps.status')}: {t('dashboard.buttons.approve')}</option>
+                  <option value="approved">{t('dashboard.buttons.approve')}d</option>
+                  <option value="rejected">{t('dashboard.buttons.reject')}ed</option>
                 </select>
               </div>
 
@@ -467,8 +447,8 @@ const AdminDashboard = () => {
                   {recentApplications.map((app) => (
                     <div key={app.id} className="glass-light rounded-xl p-4  flex items-center justify-between">
                       <div className=" flex items-center gap-4">
-                        <div className="w-12 h-12 rounded- full bg-gradient-to-br  rom-[#C89 5E] to-[#8B7355]  flex items-center justify-center">
-                          <span className="text-[var(--text-inverse)]  font-semibold">{app.name.charAt(0)}</span>
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center">
+                          <span className="text-[var(--text-inverse)] font-semibold">{app.name.charAt(0)}</span>
                         </div>
                         <div>
                           <h4 className="text-[var(--text-primary)]  font-medium">{app.name}</h4>
@@ -477,7 +457,7 @@ const AdminDashboard = () => {
                       </div>
                       <div className=" flex items-center gap-4">
                         <span className="text-[var(--text-secondary)] text-sm">{app.date}</span>
-                        <span className={`px-3 py-1 rounded- full text-xs ${getStatusBadge(app.status)}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs ${getStatusBadge(app.status)}`}>
                           {app.status.replace('_', ' ')}
                         </span>
                         <div className=" flex gap-2">
@@ -507,27 +487,27 @@ const AdminDashboard = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="glass-card p-6">
-                  <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">Revenue Overview</h3>
+                  <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">{t('dashboard.analytics.revenue')}</h3>
                   <div className="text-3xl  font-bold text-[var(--sp-accent)] mb-2">KSh 628,800</div>
                   <p className="text-green-400 text-sm  flex items-center gap-1">
                     <TrendingUp size={14} />
-                    +23%  from last month
+                    +23%  {t('dashboard.analytics.lastMonth')}
                   </p>
                 </div>
                 <div className="glass-card p-6">
-                  <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">Active Members</h3>
+                  <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">{t('dashboard.analytics.activeMembers')}</h3>
                   <div className="text-3xl  font-bold text-[var(--sp-accent)] mb-2">486</div>
                   <p className="text-green-400 text-sm  flex items-center gap-1">
                     <TrendingUp size={14} />
-                    +12%  from last month
+                    +12%  {t('dashboard.analytics.lastMonth')}
                   </p>
                 </div>
                 <div className="glass-card p-6">
-                  <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">Project Success Rate</h3>
+                  <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">{t('dashboard.analytics.successRate')}</h3>
                   <div className="text-3xl  font-bold text-[var(--sp-accent)] mb-2">94%</div>
                   <p className="text-green-400 text-sm  flex items-center gap-1">
                     <TrendingUp size={14} />
-                    +5%  from last month
+                    +5%  {t('dashboard.analytics.lastMonth')}
                   </p>
                 </div>
               </div>
@@ -543,14 +523,14 @@ const AdminDashboard = () => {
                     { label: 'May', members: 110, projects: 22 },
                     { label: 'Jun', members: 125, projects: 25 },
                   ].map((month, i) => (
-                    <div key={i} className=" flex-1  flex  flex-col items-center gap-2">
-                      <div className="w- full  flex gap-1 items-end h-48">
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                      <div className="w-full flex gap-1 items-end h-48">
                         <div 
-                          className=" flex-1 bg-[var(--sp-accent)] rounded-t"
+                          className="flex-1 bg-[var(--sp-accent)] rounded-t"
                           style={{ height: `${(month.members / 150) * 100}%` }}
                         />
                         <div 
-                          className=" flex-1 bg-[#8B7355] rounded-t"
+                          className="flex-1 bg-[#8B7355] rounded-t"
                           style={{ height: `${(month.projects / 30) * 100}%` }}
                         />
                       </div>
@@ -558,12 +538,12 @@ const AdminDashboard = () => {
                     </div>
                   ))}
                 </div>
-                <div className=" flex justify-center gap-6 mt-4">
-                  <div className=" flex items-center gap-2">
+                <div className="flex justify-center gap-6 mt-4">
+                  <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded bg-[var(--sp-accent)]" />
                     <span className="text-[var(--text-secondary)] text-sm">New Members</span>
                   </div>
-                  <div className=" flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded bg-[#8B7355]" />
                     <span className="text-[var(--text-secondary)] text-sm">Projects</span>
                   </div>
@@ -576,39 +556,39 @@ const AdminDashboard = () => {
           {activeSection === 'settings' && (
             <div className="max-w-2xl space-y-6">
               <div className="glass-card p-6">
-                <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">General Settings</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('dashboard.settings.general')}</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-[var(--text-secondary)] text-sm mb-2 block">Platform Name</label>
-                    <input type="text" defaultValue="Strategic Pathways" className="input-glass w- full px-4 py-2" />
+                    <label className="text-[var(--text-secondary)] text-sm mb-2 block">{t('dashboard.settings.platformName')}</label>
+                    <input type="text" defaultValue="Strategic Pathways" className="input-glass w-full px-4 py-2" />
                   </div>
                   <div>
-                    <label className="text-[var(--text-secondary)] text-sm mb-2 block">Contact Email</label>
-                    <input type="email" defaultValue="hello@joinstrategicpathways.com" className="input-glass w- full px-4 py-2" />
+                    <label className="text-[var(--text-secondary)] text-sm mb-2 block">{t('dashboard.settings.contactEmail')}</label>
+                    <input type="email" defaultValue="hello@joinstrategicpathways.com" className="input-glass w-full px-4 py-2" />
                   </div>
                   <div>
-                    <label className="text-[var(--text-secondary)] text-sm mb-2 block">De ault Currency</label>
-                    <select className="input-glass w- full px-4 py-2">
+                    <label className="text-[var(--text-secondary)] text-sm mb-2 block">{t('dashboard.settings.defaultCurrency')}</label>
+                    <select className="input-glass w-full px-4 py-2">
                       <option value="KES">Kenyan Shilling (KSh)</option>
                       <option value="USD">US Dollar ($)</option>
-                      <option value="EUR">Eurof( � )</option>
+                      <option value="EUR">Euro (€)</option>
                     </select>
                   </div>
                 </div>
               </div>
 
               <div className="glass-card p-6">
-                <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">Membership Tiers</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('dashboard.settings.membershipTiers')}</h3>
                 <div className="space-y-4">
                   {[
                     { name: 'Community', price: 'Free', features: 3 },
                     { name: 'Professional', price: 'only $100/year (or $10/month)', features: 6 },
                     { name: 'Firm', price: 'Custom', features: 8 },
                   ].map((tier, i) => (
-                    <div key={i} className="glass-light rounded-xl p-4  flex items-center justify-between">
+                    <div key={i} className="glass-light rounded-xl p-4 flex items-center justify-between">
                       <div>
-                        <h4 className="text-[var(--text-primary)]  font-medium">{tier.name}</h4>
-                        <p className="text-[var(--text-secondary)] text-sm">{tier.features} features  �  {tier.price}</p>
+                        <h4 className="text-[var(--text-primary)] font-medium">{tier.name}</h4>
+                        <p className="text-[var(--text-secondary)] text-sm">{tier.features} features – {tier.price}</p>
                       </div>
                       <button className="sp-btn-glass text-sm">Edit</button>
                     </div>
@@ -617,25 +597,25 @@ const AdminDashboard = () => {
               </div>
 
               <div className="glass-card p-6">
-                <h3 className="text-lg  font-semibold text-[var(--text-primary)] mb-4">Notifications</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('dashboard.settings.notifications')}</h3>
                 <div className="space-y-3">
                   {[
-                    'Email notifications  for new applications',
-                    'Email notifications  for project updates',
+                    'Email notifications for new applications',
+                    'Email notifications for project updates',
                     'Weekly summary reports',
                     'Member activity alerts',
                   ].map((setting, i) => (
-                    <label key={i} className=" flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-[var(--sp-accent)]/30 bg-white/5 text-[var(--sp-accent)] focus:ring-[#C89 5E]" />
+                    <label key={i} className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-[var(--sp-accent)]/30 bg-white/5 text-[var(--sp-accent)] focus:ring-[#C89F5E]" />
                       <span className="text-[var(--text-secondary)]">{setting}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className=" flex gap-4">
-                <button className="sp-btn-primary  flex-1">Save Changes</button>
-                <button className="sp-btn-secondary">Cancel</button>
+              <div className="flex gap-4">
+                <button className="sp-btn-primary flex-1">{t('dashboard.buttons.saveChanges')}</button>
+                <button className="sp-btn-secondary">{t('dashboard.buttons.cancel')}</button>
               </div>
             </div>
           )}

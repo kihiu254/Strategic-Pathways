@@ -35,7 +35,8 @@ const LoginPage = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/profile`
+          redirectTo: `${window.location.origin}/profile`,
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : undefined
         }
       });
       if (error) throw error;

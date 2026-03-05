@@ -1,0 +1,367 @@
+{
+  "nav": {
+    "about": "À propos",
+    "howItWorks": "Comment ça marche",
+    "pricing": "Tarifs",
+    "audience": "Pour les professionnels",
+    "opportunities": "Opportunités",
+    "impact": "Impact",
+    "login": "Connexion",
+    "register": "S'inscrire"
+  },
+  "hero": {
+    "title": "Où les compétences mondiales bouclent la boucle",
+    "subtitle": "Une plateforme d'exécution de talents et de création d'entreprises mobilisant les rapatriés d'études à l'étranger dans des projets locaux percutants qui favorisent une circulation durable des cerveaux.",
+    "cta": "Explorer les opportunités",
+    "secondary": "En savoir plus"
+  },
+  "value": {
+    "title": "Pourquoi Strategic Pathways ?",
+    "outcomeLabel": "Résultats pour les membres",
+    "headline": "Vrai travail. Vraie croissance. Vrai impact.",
+    "benefits": {
+      "projects": "Accès à des projets de conseil supervisés et à des partenariats de recherche.",
+      "mentorship": "Mentorat, apprentissage par les pairs et développement du leadership.",
+      "profile": "Un profil crédible auquel les comtés, les ONG et les donateurs font confiance."
+    },
+    "cta": "Voir comment ça marche"
+  },
+  "audience": {
+    "headline": "Conçu pour les rapatriés. Ouvert aux institutions.",
+    "caption": "Si vous travaillez sur le développement du Kenya, vous avez votre place ici.",
+    "returnees": "Rapatriés d'études à l'étranger et experts de la diaspora",
+    "institutions": "Comtés · Universités · ONG · Donateurs"
+  },
+  "howItWorks": {
+    "headline": "Comment fonctionne l'adhésion",
+    "subheadline": "Un chemin simple et crédible, de la candidature à l'opportunité.",
+    "steps": [
+      {
+        "title": "Postuler et vérifier",
+        "description": "Partagez votre parcours. Nous examinons l'adéquation et la crédibilité."
+      },
+      {
+        "title": "Connecter et collaborer",
+        "description": "Rejoignez des cercles, participez à des séances d'information et rencontrez des partenaires."
+      },
+      {
+        "title": "Gagner du travail et grandir",
+        "description": "Soumissionnez sur des projets, rejoignez des équipes et suivez votre impact."
+      }
+    ]
+  },
+  "impact": {
+    "headline": "Un impact à grande échelle.",
+    "label": "Objectifs du pilote (Année 1)",
+    "stats": {
+      "professionals": "Professionnels intégrés",
+      "partners": "Partenaires institutionnels",
+      "projects": "Projets pilotes livrés",
+      "opportunities": "Opportunités de revenus créées"
+    },
+    "cta": "Télécharger le résumé (PDF)"
+  },
+  "opportunities": {
+    "headline": "Des projets qui valent la peine d'être construits.",
+    "chips": {
+      "consultancies": "Conseils",
+      "research": "Partenariats de recherche"
+    },
+    "body": "De la stratégie de comté à la conception de programmes — les membres bénéficient d'un accès anticipé à des opportunités vérifiées.",
+    "viewCTA": "Voir les opportunités ouvertes",
+    "partnerCTA": "Devenir partenaire"
+  },
+  "contact": {
+    "headline": "Prêt à construire avec nous ?",
+    "body": "Dites-nous sur quoi vous travaillez. Nous tracerons la voie appropriée — que vous soyez un professionnel ou un partenaire.",
+    "labels": {
+      "email": "Email",
+      "location": "Lieu",
+      "locationVal": "Nairobi, Kenya · À distance dans les comtés",
+      "responseTime": "Temps de réponse",
+      "responseTimeVal": "Nous répondons sous 2 jours ouvrables.",
+      "name": "Nom",
+      "emailField": "Email",
+      "organization": "Organisation",
+      "message": "Message",
+      "submit": "Demander un appel",
+      "submitting": "Envoi..."
+    },
+    "placeholders": {
+      "name": "Votre nom complet",
+      "email": "votre@email.com",
+      "organization": "Votre organisation (facultatif)",
+      "message": "Dites-nous sur quoi vous travaillez..."
+    },
+    "success": "Merci de nous avoir contactés ! Nous vous répondrons sous 2 jours ouvrables."
+  },
+  "pricing": {
+    "headline": "Une adhésion qui vous convient.",
+    "subheadline": "Commencez gratuitement. Passez au niveau supérieur lorsque vous êtes prêt à soumissionner sur des projets.",
+    "recommended": "Recommandé",
+    "tiers": {
+      "community": {
+        "name": "Communauté",
+        "price": "Gratuit",
+        "description": "Commencez votre voyage",
+        "features": ["Inscription au profil", "Bulletin mensuel", "Invitations aux événements"],
+        "cta": "Rejoindre gratuitement"
+      },
+      "professional": {
+        "name": "Professionnel",
+        "price": "seulement 100 $",
+        "period": "/an (ou 10 $/mois)",
+        "description": "Le plus populaire",
+        "features": ["Tout de la Communauté", "Alertes de projet + accès anticipé", "Introductions aux partenaires", "Badge de crédibilité"],
+        "cta": "Choisir Professionnel"
+      },
+      "firm": {
+        "name": "Entreprise",
+        "price": "Sur mesure",
+        "description": "Pour les organisations",
+        "features": ["Intégration d'équipe", "Support de compte dédié", "Opportunités co-marquées"],
+        "cta": "Nous contacter"
+      }
+    },
+    "dialog": {
+      "title": "Rejoindre Strategic Pathways",
+      "description": "Postulez pour le niveau {{tier}}. Nous examinerons votre candidature et vous répondrons sous 2 jours ouvrables.",
+      "nameLabel": "Nom complet",
+      "emailLabel": "Email",
+      "orgLabel": "Organisation (facultatif)",
+      "submit": "Soumettre la candidature",
+      "success": "Merci de votre intérêt pour le niveau {{tier}} ! Nous vous contacterons bientôt."
+    }
+  },
+  "oppsPage": {
+    "title": "Opportunités | Strategic Pathways",
+    "headline": "Découvrez des opportunités <span class=\"text-[var(--sp-accent)]\">locales</span>",
+    "subheadline": "Connectez votre expertise mondiale avec des projets vérifiés, des consultations et des entreprises générant un impact au Kenya.",
+    "filters": {
+      "title": "Filtres",
+      "sectors": "Secteurs",
+      "all": "Tout",
+      "tech": "Technologie",
+      "agri": "Agriculture",
+      "health": "Santé",
+      "finance": "Finance",
+      "public": "Secteur Public",
+      "ngo": "ONG"
+    },
+    "search": "Rechercher par rôle, organisation ou mot-clé...",
+    "apply": "Postuler maintenant",
+    "noResults": "Aucune opportunité trouvée pour les filtres sélectionnés.",
+    "clearFilters": "Effacer les filtres",
+    "data": {
+      "opp1": {
+        "title": "Consultant en transformation numérique",
+        "org": "Gouvernement du comté de Nairobi",
+        "desc": "Diriger la stratégie de transformation numérique pour la prestation de services du comté.",
+        "location": "Nairobi, Kenya",
+        "type": "Consultance",
+        "duration": "6 mois"
+      },
+      "opp2": {
+        "title": "Expert en chaîne de valeur AgriTech",
+        "org": "ONG Green Innovations",
+        "desc": "Concevoir et mettre en œuvre des optimisations de la chaîne d'approvisionnement pour les agriculteurs locaux.",
+        "location": "Nakuru, Kenya (Hybride)",
+        "type": "Chef de projet",
+        "duration": "12 mois"
+      },
+      "opp3": {
+        "title": "Bâtisseur d'entreprise en résidence",
+        "org": "Kenya Innovation Hub",
+        "desc": "Encadrer des startups en phase de démarrage et aider à construire des modèles financiers viables.",
+        "location": "À distance",
+        "type": "Temps partiel",
+        "duration": "En cours"
+      },
+      "opp4": {
+        "title": "Analyste de données de santé publique",
+        "org": "Alliance du ministère de la Santé",
+        "desc": "Analyser les données de santé publique de retour pour optimiser l'allocation des ressources.",
+        "location": "Mombasa, Kenya",
+        "type": "Contrat",
+        "duration": "3 mois"
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "Bon retour, Admin",
+    "sidebar": {
+      "collapse": "Réduire la barre latérale"
+    },
+    "sections": {
+      "overview": "Aperçu",
+      "members": "Membres",
+      "projects": "Projets",
+      "applications": "Candidatures",
+      "analytics": "Analytique",
+      "settings": "Paramètres"
+    },
+    "stats": {
+      "totalMembers": "Total membres",
+      "activeProjects": "Projets actifs",
+      "pendingApps": "Candidatures en attente",
+      "totalRevenue": "Revenu total"
+    },
+    "charts": {
+      "growth": "Croissance des membres",
+      "distribution": "Distribution des membres",
+      "total": "Total membres"
+    },
+    "recentApps": {
+      "title": "Candidatures récentes",
+      "name": "Nom",
+      "email": "Email",
+      "type": "Type",
+      "date": "Date",
+      "status": "Statut",
+      "actions": "Actions",
+      "viewAll": "Voir tout"
+    },
+    "placeholders": {
+      "searchMembers": "Rechercher des membres...",
+      "searchProjects": "Rechercher des projets...",
+      "searchApps": "Rechercher des candidatures..."
+    },
+    "buttons": {
+      "filter": "Filtrer",
+      "addMember": "Ajouter un membre",
+      "newProject": "Nouveau projet",
+      "viewWebsite": "Voir le site web",
+      "saveChanges": "Enregistrer",
+      "cancel": "Annuler",
+      "view": "Voir",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "approve": "Approuver",
+      "reject": "Rejeter"
+    },
+    "headers": {
+      "member": "Membre",
+      "tier": "Niveau",
+      "projects": "Projets",
+      "rating": "Évaluation",
+      "status": "Statut",
+      "joined": "Inscrit",
+      "progress": "Progression"
+    },
+    "analytics": {
+      "revenue": "Aperçu des revenus",
+      "activeMembers": "Membres actifs",
+      "successRate": "Taux de réussite des projets",
+      "lastMonth": "par rapport au mois dernier",
+      "monthlyActivity": "Activité mensuelle",
+      "newMembers": "Nouveaux membres"
+    },
+    "settings": {
+      "general": "Paramètres généraux",
+      "platformName": "Nom de la plateforme",
+      "contactEmail": "Email de contact",
+      "defaultCurrency": "Devise par défaut",
+      "membershipTiers": "Niveaux d'adhésion",
+      "notifications": "Notifications"
+    }
+  },
+  "footer": {
+    "brandDesc": "Connecter les professionnels africains formés à l'échelle mondiale avec des opportunités d'impact. Transformer la fuite des cerveaux en circulation des cerveaux.",
+    "platform": "Plateforme",
+    "opportunities": "Opportunités",
+    "profile": "Profil",
+    "verification": "Vérification",
+    "about": "À propos",
+    "company": "Entreprise",
+    "howItWorks": "Comment ça marche",
+    "successStories": "Histoires de réussite",
+    "careers": "Carrières",
+    "contact": "Contact",
+    "resources": "Ressources",
+    "blog": "Blog",
+    "helpCenter": "Centre d'aide",
+    "community": "Communauté",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'Utilisation",
+    "cookies": "Politique de Cookies",
+    "connect": "Prêt à avoir un impact ?",
+    "madeWith": "Connecter les talents mondiaux de l'Afrique avec un impact local.",
+    "rights": "Strategic Pathways. Tous droits réservés.",
+    "compliance": "Une plateforme pour les professionnels, le conseil et les opportunités d'affaires au Kenya."
+  },
+  "common": {
+    "dashboard": "Tableau de bord",
+    "profile": "Mon profil",
+    "signOut": "Se déconnecter",
+    "signIn": "Se connecter",
+    "register": "Rejoindre le réseau",
+    "loading": "Chargement...",
+    "conceptNote": "Note conceptuelle",
+    "microcopy": "Demande gratuite. Adhésion vérifiée.",
+    "member": "Membre",
+    "admin": "Admin"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "welcome": {
+      "title": "Bienvenue sur Strategic Pathways !",
+      "body": "Votre compte a été créé avec succès. Nous sommes ravis de vous avoir parmi nous."
+    },
+    "newOpps": {
+      "title": "Nouvelles opportunités disponibles",
+      "body": "Découvrez les derniers projets correspondant aux compétences de votre profil."
+    },
+    "justNow": "À l'instant",
+    "oneHourAgo": "Il y a 1 heure",
+    "markAsRead": "Tout marquer comme lu",
+    "signOutSuccess": "Déconnexion réussie",
+    "signOutError": "Erreur lors de la déconnexion"
+  },
+  "profilePage": {
+    "greeting": {
+      "morning": "Bonjour",
+      "afternoon": "Bon après-midi",
+      "evening": "Bonsoir"
+    },
+    "status": {
+      "loading": "Chargement de votre profil...",
+      "professional": "Membre professionnel",
+      "admin": "Administrateur",
+      "member": "Membre stratégique",
+      "selfDeclared": "Auto-déclaré",
+      "institutionalReady": "Prêt pour l'institution",
+      "verified": "Professionnel vérifié",
+      "ventureBuilder": "Constructeur d'entreprise"
+    },
+    "tabs": {
+      "overview": "Aperçu",
+      "projects": "Projets",
+      "documents": "Documents",
+      "activity": "Activité"
+    },
+    "labels": {
+      "back": "← Retour à l'accueil",
+      "about": "À propos",
+      "experience": "Expérience",
+      "education": "Éducation",
+      "myProjects": "Mes projets",
+      "recentActivity": "Activité récente",
+      "recommended": "Recommandé pour vous",
+      "viewMatches": "Voir tous les matchs →",
+      "skills": "Compétences",
+      "certifications": "Certifications",
+      "connections": "Connexions",
+      "rating": "Évaluation",
+      "tier": "Niveau de membre"
+    },
+    "actions": {
+      "edit": "Modifier le profil",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "upload": "Télécharger le CV",
+      "uploading": "Téléchargement...",
+      "download": "Télécharger",
+      "noDocs": "Aucun document téléchargé pour le moment."
+    }
+  }
+}

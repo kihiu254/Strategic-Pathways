@@ -4,7 +4,7 @@
     "howItWorks": "Jinsi Inavyofanya Kazi",
     "pricing": "Bei",
     "audience": "Kwa Wataalamu",
-    "opportunities": "Kwa Washirika",
+    "opportunities": "Fursa",
     "impact": "Athari",
     "login": "Ingia",
     "register": "Jisajili"
@@ -133,101 +133,6 @@
       "success": "Asante kwa maslahi yako katika uanachama wa {{tier}}! Tutawasiliana hivi karibuni."
     }
   },
-  "footer": {
-    "platform": "Jukwaa",
-    "community": "Jumuiya",
-    "support": "Msaada",
-    "about": "Kuhusu Sisi",
-    "howItWorks": "Jinsi Inavyofanya Kazi",
-    "pricing": "Bei",
-    "professionals": "Kwa Wataalamu",
-    "partners": "Kwa Washirika",
-    "impact": "Athari",
-    "sitemap": "Sitemap",
-    "contact": "Wasiliana nasi",
-    "privacy": "Sera ya Faragha",
-    "terms": "Masharti ya Huduma",
-    "cookies": "Sera ya Vidakuzi",
-    "brandDesc": "Jukwaa la utekelezaji wa vipaji lenye makao yake nchini Kenya lililoundwa kuwahamasisha wataalamu wa diaspora katika ujenzi wa biashara za ndani na ushauri. Kubadilisha upotevu wa ubongo kuwa mzunguko wa ubongo.",
-    "rights": "Strategic Pathways. Haki zote zimehifadhiwa.",
-    "compliance": "Inazingatia Sheria ya Kulinda Data ya Kenya, 2019"
-  },
-  "about": {
-    "title": "Kuhusu Sisi | Strategic Pathways",
-    "back": "Rudi Nyumbani",
-    "mission": {
-      "label": "Dhamira Yetu",
-      "headline": "Mahali Ambapo Ujuzi wa Kimataifa Unakamilika",
-      "body": "Kuhamasisha wanaorejea kutoka masomoni nje ya nchi na wataalamu wa diaspora katika miradi ya ushirikiano, ushauri, na mipango ya ujenzi wa biashara inayimarisha uchumi wa ndani."
-    },
-    "problem": {
-      "headline": "Kiungo Kinachokosekana katika Vipaji vya Kenya.",
-      "body1": "Kila mwaka, maelfu ya Wakenya husoma na kufanya kazi nje ya nchi, wakipata elimu ya juu na uzoefu wa kimataifa. Hata hivyo, kurejea nyumbani mara nyingi humaanisha kukutana na mitandao iliyovunjika na kutotumia ujuzi kikamilifu.",
-      "quote": "Kutokuunganishwa huku kunaimarisha mifumo ya upotevu wa ubongo badala ya kuwezesha mzunguko endelevu wa ubongo.",
-      "expertise": {
-        "title": "Utaalamu wa Kimataifa",
-        "desc": "Inabaki kutounganishwa na fursa za kiuchumi za ndani wakati wa kurejea."
-      },
-      "gaps": {
-        "title": "Mapungufu ya Ndani",
-        "desc": "SME, mashirika yasiyo ya kiserikali, na kaunti zinakabiliwa na changamoto za kupata vipaji vya kuaminika vilivyo tayari kutekeleza."
-      }
-    },
-    "solution": {
-      "headline": "Suluhisho Inayopendekezwa",
-      "subheadline": "Jukwaa linalowezeshwa kidijitali linalofanya kazi kama mfumo wa utekelezaji wa vipaji na ujenzi wa biashara.",
-      "items": [
-        { "title": "Usajili wa Kidijitali", "desc": "Usimamizi rahisi wa wasifu na ufuatiliaji wa sifa zilizothibitishwa." },
-        { "title": "Uundaji wa Timu", "desc": "Uundaji wa timu zenye kazi mbalimbali kwa miradi maalum." },
-        { "title": "Uratibu wa Miradi", "desc": "Usimamizi wa ushauri na mipango ya kiuchumi ya ndani." },
-        { "title": "Ukuzaji wa Biashara", "desc": "Kusaidia maendeleo ya kibiashara mapya na uvumbuzi." },
-        { "title": "Ushirikiano wa Kitaasisi", "desc": "Kuunganisha vipaji moja kwa moja na kaunti, vyuo vikuu, NGOs, na wafadhili." },
-        { "title": "Lengo la Utekelezaji", "desc": "Sio ubao wa ajira—jukwaa la kutekeleza kazi yenye athari kubwa na iliyoratibiwa." }
-      ]
-    },
-    "objectives": {
-      "headline": "Malengo ya Awali ya Miezi 12",
-      "list": [
-        "Kuunda na kuzindua mfumo wa kidijitali wa MVP unaofanya kazi.",
-        "Kusajili angalau wataalamu 500 waliopata mafunzo ya kimataifa na ujuzi wa ndani.",
-        "Kuanzisha ushirikiano na taasisi 5–7 (vyuo vikuu, kaunti, NGOs).",
-        "Kutoa miradi ya majaribio 5–8 au ushauri.",
-        "Kuunda angalau fursa 50 za mapato za muda mfupi au za kiprojekti."
-      ]
-    },
-    "beneficiaries": {
-      "headline": "Nani Tunayemtumikia",
-      "primary": {
-        "title": "Msingi",
-        "returnees": "Wanaorejea kutoka masomoni nje ya nchi",
-        "diaspora": "Wataalamu wa diaspora wanaotafuta ushirikiano uliopangwa"
-      },
-      "secondary": {
-        "title": "Sekondari",
-        "counties": "Serikali za Kaunti",
-        "universities": "Vyuo Vikuu na mitandao ya wahitimu",
-        "ngos": "NGOs na mashirika ya maendeleo",
-        "smes": "SME na biashara zinazoibuka"
-      }
-    },
-    "impactAbout": {
-      "headline": "Athari Inayotarajiwa",
-      "short": {
-        "title": "Muda Mfupi",
-        "desc": "Kuongezeka kwa ushirikiano wa wataalamu waliofunzwa kimataifa. Njia za ushirikiano zilizopangwa kuanzishwa."
-      },
-      "medium": {
-        "title": "Muda wa Kati",
-        "desc": "Uundaji wa ajira/mapato kupitia kazi za kiprojekti. Uzinduzi wa biashara mpya zinazoungwa mkono na timu za kazi mbalimbali."
-      },
-      "long": {
-        "title": "Dira ya Muda Mrefu",
-        "desc1": "Kubadilisha kutoka Upotevu wa Ubongo kwenda Mzunguko wa Ubongo.",
-        "desc2": "Ukuaji endelevu wa kiuchumi wa ndani unaoendeshwa na utaalamu wa kimataifa."
-      }
-    },
-    "conclusion": "Strategic Pathways inahakikisha kuwa ujuzi wa kimataifa haubaki nje ya nchi au kutotumika."
-  },
   "oppsPage": {
     "title": "Fursa | Strategic Pathways",
     "headline": "Gundua Fursa za <span class=\"text-[var(--sp-accent)]\">Ndani</span>",
@@ -246,6 +151,217 @@
     "search": "Tafuta kwa jukumu, shirika, au neno kuu...",
     "apply": "Tuma Ombi Sasa",
     "noResults": "Hakuna fursa zilizopatikana kwa vichujio vilivyochaguliwa.",
-    "clearFilters": "Futa Vichujio"
+    "clearFilters": "Futa Vichujio",
+    "data": {
+      "opp1": {
+        "title": "Mshauri wa Mabadiliko ya Kidijitali",
+        "org": "Serikali ya Kaunti ya Nairobi",
+        "desc": "Kuongoza mkakati wa mabadiliko ya kidijitali kwa utoaji wa huduma za kaunti.",
+        "location": "Nairobi, Kenya",
+        "type": "Ushauri",
+        "duration": "Miezi 6"
+      },
+      "opp2": {
+        "title": "Mtaalamu wa Mnyororo wa Thamani wa AgriTech",
+        "org": "NGO ya Mashirika ya Kijani",
+        "desc": "Kubuni na kutekeleza uboreshaji wa mnyororo wa ugavi kwa wakulima wa ndani.",
+        "location": "Nakuru, Kenya (Hybrid)",
+        "type": "Kiongozi wa Mradi",
+        "duration": "Miezi 12"
+      },
+      "opp3": {
+        "title": "Mjenga Biashara wa Ndani",
+        "org": "Kituo cha Ubunifu cha Kenya",
+        "desc": "Kushauri biashara changa na kusaidia kujenga mifumo ya kifedha inayofaa.",
+        "location": "Remote",
+        "type": "Muda wa Sehemu",
+        "duration": "Inaendelea"
+      },
+      "opp4": {
+        "title": "Mchambuzi wa Data ya Afya ya Umma",
+        "org": "Muungano wa Wizara ya Afya",
+        "desc": "Kuchambua data ya afya ya umma inayorejea ili kuboresha ugawaji wa rasilimali.",
+        "location": "Mombasa, Kenya",
+        "type": "Mkataba",
+        "duration": "Miezi 3"
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "Karibu tena, Admin",
+    "sidebar": {
+      "collapse": "Kunja Upau wa Pembeni"
+    },
+    "sections": {
+      "overview": "Muhtasari",
+      "members": "Wanachama",
+      "projects": "Miradi",
+      "applications": "Maombi",
+      "analytics": "Unalitiki",
+      "settings": "Mipangilio"
+    },
+    "stats": {
+      "totalMembers": "Jumla ya Wanachama",
+      "activeProjects": "Miradi Hai",
+      "pendingApps": "Maombi yanayosubiri",
+      "totalRevenue": "Jumla ya Mapato"
+    },
+    "charts": {
+      "growth": "Ukuaji wa Wanachama",
+      "distribution": "Usambazaji wa Wanachama",
+      "total": "Jumla ya Wanachama"
+    },
+    "recentApps": {
+      "title": "Maombi ya Hivi Karibuni",
+      "name": "Jina",
+      "email": "Barua Pepe",
+      "type": "Aina",
+      "date": "Tarehe",
+      "status": "Hali",
+      "actions": "Vitendo",
+      "viewAll": "Tazama Zote"
+    },
+    "placeholders": {
+      "searchMembers": "Tafuta wanachama...",
+      "searchProjects": "Tafuta miradi...",
+      "searchApps": "Tafuta maombi..."
+    },
+    "buttons": {
+      "filter": "Chuja",
+      "addMember": "Ongeza Mwanachama",
+      "newProject": "Mradi Mpya",
+      "viewWebsite": "Tazama Tovuti",
+      "saveChanges": "Hifadhi Mabadiliko",
+      "cancel": "Ghairi",
+      "view": "Tazama",
+      "edit": "Hariri",
+      "delete": "Futa",
+      "approve": "Idhinisha",
+      "reject": "Kataa"
+    },
+    "headers": {
+      "member": "Mwanachama",
+      "tier": "Ngazi",
+      "projects": "Miradi",
+      "rating": "Ukadiriaji",
+      "status": "Hali",
+      "joined": "Amejiunga",
+      "progress": "Maendeleo"
+    },
+    "analytics": {
+      "revenue": "Muhtasari wa Mapato",
+      "activeMembers": "Wanachama Walio Hai",
+      "successRate": "Kiwango cha Mafanikio ya Mradi",
+      "lastMonth": "kutoka mwezi uliopita",
+      "monthlyActivity": "Shughuli za Kila Mwezi",
+      "newMembers": "Wanachama Wapya"
+    },
+    "settings": {
+      "general": "Mipangilio ya Jumla",
+      "platformName": "Jina la Jukwaa",
+      "contactEmail": "Barua Pepe ya Mawasiliano",
+      "defaultCurrency": "Sarafu Chaguomsingi",
+      "membershipTiers": "Ngazi za Uanachama",
+      "notifications": "Arifa"
+    }
+  },
+  "footer": {
+    "brandDesc": "Kuunganisha wataalamu wa Kiafrika waliofunzwa kimataifa na fursa za kuleta athari. Kubadilisha upotevu wa ubongo kuwa mzunguko wa ubongo.",
+    "platform": "Jukwaa",
+    "opportunities": "Fursa",
+    "profile": "Wasifu",
+    "verification": "Uthibitishaji",
+    "about": "Kuhusu Sisi",
+    "company": "Kampuni",
+    "howItWorks": "Jinsi Inavyofanya Kazi",
+    "successStories": "Hadithi za Mafanikio",
+    "careers": "Kazi",
+    "contact": "Mawasiliano",
+    "resources": "Rasilimali",
+    "blog": "Blogu",
+    "helpCenter": "Kituo cha Msaada",
+    "community": "Jumuiya",
+    "privacy": "Sera ya Faragha",
+    "terms": "Masharti ya Huduma",
+    "cookies": "Sera ya Vidakuzi",
+    "connect": "Je, uko tayari kuleta athari?",
+    "madeWith": "Kuunganisha Vipaji vya Kimataifa vya Afrika na Athari za Kienyeji.",
+    "rights": "Strategic Pathways. Haki zote zimehifadhiwa.",
+    "compliance": "Jukwaa la wataalamu, ushauri, na fursa za biashara nchini Kenya."
+  },
+  "common": {
+    "dashboard": "Dashibodi",
+    "profile": "Wasifu Wangu",
+    "signOut": "Ondoka",
+    "signIn": "Ingia",
+    "register": "Jiunge na Mtandao",
+    "loading": "Inapakia...",
+    "conceptNote": "Dokezo la Dhana",
+    "microcopy": "Bure kutuma ombi. Uanachama uliokaguliwa.",
+    "member": "Mwanachama",
+    "admin": "Admin"
+  },
+  "notifications": {
+    "title": "Arifa",
+    "welcome": {
+      "title": "Karibu Strategic Pathways!",
+      "body": "Akaunti yako imeundwa kwa mafanikio. Tunafurahi kuwa nawe hapa."
+    },
+    "newOpps": {
+      "title": "Fursa Mpya Zinapatikana",
+      "body": "Angalia miradi ya hivi karibuni inayolingana na ujuzi wako wa wasifu."
+    },
+    "justNow": "Sasa hivi",
+    "oneHourAgo": "Saa 1 lililopita",
+    "markAsRead": "Weka zote kuwa zimesomwa",
+    "signOutSuccess": "Umetoka kwa mafanikio",
+    "signOutError": "Hitilafu wakati wa kutoka"
+  },
+  "profilePage": {
+    "greeting": {
+      "morning": "Habari za asubuhi",
+      "afternoon": "Habari za mchana",
+      "evening": "Habari za jioni"
+    },
+    "status": {
+      "loading": "Inapakia wasifu wako...",
+      "professional": "Mwanachama wa Kitaalamu",
+      "admin": "Msimamizi",
+      "member": "Mwanachama wa Kimkakati",
+      "selfDeclared": "Aliyejitangaza",
+      "institutionalReady": "Tayari kwa Taasisi",
+      "verified": "Mtaalamu Aliyethibitishwa",
+      "ventureBuilder": "Mjenzi wa Venture"
+    },
+    "tabs": {
+      "overview": "Muhtasari",
+      "projects": "Miradi",
+      "documents": "Nyaraka",
+      "activity": "Shughuli"
+    },
+    "labels": {
+      "back": "← Rudi Nyumbani",
+      "about": "Kuhusu",
+      "experience": "Uzoefu",
+      "education": "Elimu",
+      "myProjects": "Miradi Yangu",
+      "recentActivity": "Shughuli za Hivi Karibuni",
+      "recommended": "Imependekezwa kwako",
+      "viewMatches": "Angalia mechi zote →",
+      "skills": "Ujuzi",
+      "certifications": "Vyeti",
+      "connections": "Viunganisho",
+      "rating": "Ukadiriaji",
+      "tier": "Daraja la Mwanachama"
+    },
+    "actions": {
+      "edit": "Hariri Wasifu",
+      "save": "Hifadhi",
+      "cancel": "Ghairi",
+      "upload": "Pakia CV",
+      "uploading": "Inapakia...",
+      "download": "Pakua",
+      "noDocs": "Hakuna hati zilizopakiwa bado."
+    }
   }
 }

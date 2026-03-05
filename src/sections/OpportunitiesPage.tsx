@@ -15,43 +15,43 @@ const OpportunitiesPage = () => {
   const opportunities = [
     {
       id: 1,
-      title: 'Digital Transformation Consultant',
-      org: 'Nairobi County Government',
-      location: 'Nairobi, Kenya',
-      type: 'Consultancy',
-      duration: '6 Months',
+      title: t('oppsPage.data.opp1.title'),
+      org: t('oppsPage.data.opp1.org'),
+      location: t('oppsPage.data.opp1.location'),
+      type: t('oppsPage.data.opp1.type'),
+      duration: t('oppsPage.data.opp1.duration'),
       tags: ['Tech', 'Public Sector'],
-      description: 'Lead the digital transformation strategy for county service delivery.'
+      description: t('oppsPage.data.opp1.desc')
     },
     {
       id: 2,
-      title: 'AgriTech Value Chain Expert',
-      org: 'Green Innovations NGO',
-      location: 'Nakuru, Kenya (Hybrid)',
-      type: 'Project Lead',
-      duration: '12 Months',
+      title: t('oppsPage.data.opp2.title'),
+      org: t('oppsPage.data.opp2.org'),
+      location: t('oppsPage.data.opp2.location'),
+      type: t('oppsPage.data.opp2.type'),
+      duration: t('oppsPage.data.opp2.duration'),
       tags: ['Agriculture', 'NGO'],
-      description: 'Design and implement supply chain optimizations for local farmers.'
+      description: t('oppsPage.data.opp2.desc')
     },
     {
       id: 3,
-      title: 'Venture Builder In-Residence',
-      org: 'Kenya Innovation Hub',
-      location: 'Remote',
-      type: 'Part-Time',
-      duration: 'Ongoing',
+      title: t('oppsPage.data.opp3.title'),
+      org: t('oppsPage.data.opp3.org'),
+      location: t('oppsPage.data.opp3.location'),
+      type: t('oppsPage.data.opp3.type'),
+      duration: t('oppsPage.data.opp3.duration'),
       tags: ['Startups', 'Finance'],
-      description: 'Mentor early-stage startups and help build viable financial models.'
+      description: t('oppsPage.data.opp3.desc')
     },
     {
       id: 4,
-      title: 'Public Health Data Analyst',
-      org: 'Ministry of Health Alliance',
-      location: 'Mombasa, Kenya',
-      type: 'Contract',
-      duration: '3 Months',
+      title: t('oppsPage.data.opp4.title'),
+      org: t('oppsPage.data.opp4.org'),
+      location: t('oppsPage.data.opp4.location'),
+      type: t('oppsPage.data.opp4.type'),
+      duration: t('oppsPage.data.opp4.duration'),
       tags: ['Healthcare', 'Data'],
-      description: 'Analyze returning public health data to optimize resource allocation.'
+      description: t('oppsPage.data.opp4.desc')
     },
   ];
 
@@ -100,10 +100,7 @@ const OpportunitiesPage = () => {
       <section className="max-w-7xl mx-auto px-6 lg:px-12 mb-16">
         <div className="max-w-3xl animate-hero">
           <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-6">
-            {i18n.language === 'sw' ? 
-              <span dangerouslySetInnerHTML={{ __html: t('oppsPage.headline') }} /> : 
-              <>Discover <span className="text-[var(--sp-accent)]">Local</span> Opportunities</>
-            }
+            <span dangerouslySetInnerHTML={{ __html: t('oppsPage.headline') }} />
           </h1>
           <p className="text-lg text-[var(--text-secondary)]">
             {t('oppsPage.subheadline')}

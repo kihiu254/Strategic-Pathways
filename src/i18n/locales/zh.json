@@ -1,0 +1,367 @@
+{
+  "nav": {
+    "about": "关于我们",
+    "howItWorks": "运作方式",
+    "pricing": "定价",
+    "audience": "专业人士",
+    "opportunities": "机遇",
+    "impact": "影响",
+    "login": "登录",
+    "register": "注册"
+  },
+  "hero": {
+    "title": "全球技能回归之处",
+    "subtitle": "一个人才执行和创业平台，动员留学归国人员参与具有影响力的本地项目，促进可持续的人才循环。",
+    "cta": "探索机遇",
+    "secondary": "了解更多"
+  },
+  "value": {
+    "title": "为什么选择 Strategic Pathways？",
+    "outcomeLabel": "成员成果",
+    "headline": "真实的工作。真实的增长。真实的影响。",
+    "benefits": {
+      "projects": "获得经过审核的咨询项目和研究伙伴关系。",
+      "mentorship": "导师指导、同行学习和领导力发展。",
+      "profile": "县级政府、非政府组织和捐赠者信任的可信个人资料。"
+    },
+    "cta": "查看运作方式"
+  },
+  "audience": {
+    "headline": "为归国人员打造。向机构开放。",
+    "caption": "如果你正在为肯尼亚的发展而努力，这里就是你的归属。",
+    "returnees": "留学归国人员及海外专家",
+    "institutions": "县级政府 · 大学 · 非政府组织 · 捐赠者"
+  },
+  "howItWorks": {
+    "headline": "会员运作方式",
+    "subheadline": "从申请到机遇的简单、可靠的路径。",
+    "steps": [
+      {
+        "title": "申请与审核",
+        "description": "分享你的背景。我们审核契合度和可信度。"
+      },
+      {
+        "title": "联系与协作",
+        "description": "加入圈子，参加简报会，结识合作伙伴。"
+      },
+      {
+        "title": "赢得工作与成长",
+        "description": "竞标项目，加入团队，追踪你的影响。"
+      }
+    ]
+  },
+  "impact": {
+    "headline": "规模化的影响。",
+    "label": "试点目标（第 1 年）",
+    "stats": {
+      "professionals": "入驻专业人士",
+      "partners": "机构合作伙伴",
+      "projects": "交付的试点项目",
+      "opportunities": "创造的收入机会"
+    },
+    "cta": "下载简报 (PDF)"
+  },
+  "opportunities": {
+    "headline": "值得建设的项目。",
+    "chips": {
+      "consultancies": "咨询",
+      "research": "研究合伙人"
+    },
+    "body": "从县级战略到计划设计——成员可尽早获得经过审核的机遇。",
+    "viewCTA": "查看开放机遇",
+    "partnerCTA": "成为合作伙伴"
+  },
+  "contact": {
+    "headline": "准备好与我们一起建设了吗？",
+    "body": "告诉我们你正在从事的工作。我们将为你规划正确的路径——无论你是专业人士还是合作伙伴。",
+    "labels": {
+      "email": "电子邮件",
+      "location": "地点",
+      "locationVal": "肯尼亚内罗毕 · 各县远程办公",
+      "responseTime": "响应时间",
+      "responseTimeVal": "我们会在 2 个工作日内回复。",
+      "name": "姓名",
+      "emailField": "电子邮件",
+      "organization": "组织",
+      "message": "消息",
+      "submit": "预约通话",
+      "submitting": "发送中..."
+    },
+    "placeholders": {
+      "name": "你的全名",
+      "email": "your@email.com",
+      "organization": "你的组织（选填）",
+      "message": "告诉我们你正在从事的工作..."
+    },
+    "success": "感谢你的联系！我们将在 2 个工作日内回复。"
+  },
+  "pricing": {
+    "headline": "适合你的会员方案。",
+    "subheadline": "免费开始。当你准备好竞标项目时，点击升级。",
+    "recommended": "推荐",
+    "tiers": {
+      "community": {
+        "name": "社区",
+        "price": "免费",
+        "description": "开启你的旅程",
+        "features": ["个人资料列出", "每月通讯", "活动邀请"],
+        "cta": "免费加入"
+      },
+      "professional": {
+        "name": "专业版",
+        "price": "只需 $100",
+        "period": "/年（或 $10/月）",
+        "description": "最受欢迎",
+        "features": ["社区版所有功能", "项目通知 + 抢先体验", "合作伙伴介绍", "可信度徽章"],
+        "cta": "选择专业版"
+      },
+      "firm": {
+        "name": "公司版",
+        "price": "定制",
+        "description": "面向组织",
+        "features": ["团队入驻", "专属客户支持", "联合品牌机遇"],
+        "cta": "联系我们"
+      }
+    },
+    "dialog": {
+      "title": "加入 Strategic Pathways",
+      "description": "申请 {{tier}} 等级。我们将审核你的申请，并在 2 个工作日内给你答复。",
+      "nameLabel": "全名",
+      "emailLabel": "电子邮件",
+      "orgLabel": "组织（选填）",
+      "submit": "提交申请",
+      "success": "感谢你对 {{tier}} 等级的兴趣！我们会尽快联络。"
+    }
+  },
+  "oppsPage": {
+    "title": "机会 | Strategic Pathways",
+    "headline": "探索<span class=\"text-[var(--sp-accent)]\">本地</span>机会",
+    "subheadline": "将您的全球专业知识与在肯尼亚推动影响的经过验证的项目、咨询和风险投资联系起来。",
+    "filters": {
+      "title": "筛选",
+      "sectors": "行业",
+      "all": "全部",
+      "tech": "科技",
+      "agri": "农业",
+      "health": "医疗保健",
+      "finance": "金融",
+      "public": "公共部门",
+      "ngo": "非政府组织"
+    },
+    "search": "按角色、组织或关键词搜索...",
+    "apply": "现在申请",
+    "noResults": "未找到符合所选筛选条件的机会。",
+    "clearFilters": "清除筛选",
+    "data": {
+      "opp1": {
+        "title": "数字化转型顾问",
+        "org": "内罗毕县政府",
+        "desc": "领导县级服务交付的数字化转型战略。",
+        "location": "内罗毕，肯尼亚",
+        "type": "咨询",
+        "duration": "6 个月"
+      },
+      "opp2": {
+        "title": "农业科技价值链专家",
+        "org": "绿色创新非政府组织",
+        "desc": "为当地农民设计并实施供应链优化。",
+        "location": "纳库鲁，肯尼亚（混合办公）",
+        "type": "项目负责人",
+        "duration": "12 个月"
+      },
+      "opp3": {
+        "title": "驻场风险投资建设者",
+        "org": "肯尼亚创新中心",
+        "desc": "指导早期初创企业并帮助建立可行的财务模型。",
+        "location": "远程",
+        "type": "兼职",
+        "duration": "持续进行"
+      },
+      "opp4": {
+        "title": "公共卫生数据分析师",
+        "org": "卫生部联盟",
+        "desc": "分析返回的公共卫生数据以优化资源配置。",
+        "location": "蒙巴萨，肯尼亚",
+        "type": "合同制",
+        "duration": "3 个月"
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "欢迎回来，管理员",
+    "sidebar": {
+      "collapse": "收起侧边栏"
+    },
+    "sections": {
+      "overview": "概览",
+      "members": "成员",
+      "projects": "项目",
+      "applications": "申请",
+      "analytics": "分析",
+      "settings": "设置"
+    },
+    "stats": {
+      "totalMembers": "总成员",
+      "activeProjects": "活跃项目",
+      "pendingApps": "待处理申请",
+      "totalRevenue": "总收入"
+    },
+    "charts": {
+      "growth": "成员增长",
+      "distribution": "成员分布",
+      "total": "总成员"
+    },
+    "recentApps": {
+      "title": "最新申请",
+      "name": "姓名",
+      "email": "电子邮件",
+      "type": "类型",
+      "date": "日期",
+      "status": "状态",
+      "actions": "操作",
+      "viewAll": "查看全部"
+    },
+    "placeholders": {
+      "searchMembers": "搜索成员...",
+      "searchProjects": "搜索项目...",
+      "searchApps": "搜索申请..."
+    },
+    "buttons": {
+      "filter": "筛选",
+      "addMember": "添加成员",
+      "newProject": "新项目",
+      "viewWebsite": "查看网站",
+      "saveChanges": "保存更改",
+      "cancel": "取消",
+      "view": "查看",
+      "edit": "编辑",
+      "delete": "删除",
+      "approve": "批准",
+      "reject": "拒绝"
+    },
+    "headers": {
+      "member": "成员",
+      "tier": "等级",
+      "projects": "项目",
+      "rating": "评分",
+      "status": "状态",
+      "joined": "加入时间",
+      "progress": "进度"
+    },
+    "analytics": {
+      "revenue": "收入概览",
+      "activeMembers": "活跃成员",
+      "successRate": "项目成功率",
+      "lastMonth": "环比上月",
+      "monthlyActivity": "每月活动",
+      "newMembers": "新成员"
+    },
+    "settings": {
+      "general": "常规设置",
+      "platformName": "平台名称",
+      "contactEmail": "联系邮箱",
+      "defaultCurrency": "默认货币",
+      "membershipTiers": "会员等级",
+      "notifications": "通知"
+    }
+  },
+  "footer": {
+    "brandDesc": "将接受过全球培训的非洲专业人士与产生影响的机会联系起来。将人才外流转化为人才循环。",
+    "platform": "平台",
+    "opportunities": "机遇",
+    "profile": "个人资料",
+    "verification": "验证",
+    "about": "关于我们",
+    "company": "公司",
+    "howItWorks": "运作方式",
+    "successStories": "成功案例",
+    "careers": "职业生涯",
+    "contact": "联系我们",
+    "resources": "资源",
+    "blog": "博客",
+    "helpCenter": "帮助中心",
+    "community": "社区",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "cookies": "Cookie 政策",
+    "connect": "准备好产生影响了吗？",
+    "madeWith": "将非洲的全球人才与当地影响联系起来。",
+    "rights": "Strategic Pathways. 版权所有。",
+    "compliance": "肯尼亚专业人士、咨询和商业机会平台。"
+  },
+  "common": {
+    "dashboard": "控制面板",
+    "profile": "我的个人资料",
+    "signOut": "登出",
+    "signIn": "登录",
+    "register": "加入网络",
+    "loading": "加载中...",
+    "conceptNote": "概念说明",
+    "microcopy": "免费申请。经过审核的会员资格。",
+    "member": "成员",
+    "admin": "管理员"
+  },
+  "notifications": {
+    "title": "通知",
+    "welcome": {
+      "title": "欢迎来到 Strategic Pathways！",
+      "body": "您的账户已成功创建。我们很高兴在这里见到您。"
+    },
+    "newOpps": {
+      "title": "新机会可用",
+      "body": "查看与您的个人资料技能匹配的最新项目。"
+    },
+    "justNow": "刚刚",
+    "oneHourAgo": "1 小时前",
+    "markAsRead": "全部设为已读",
+    "signOutSuccess": "成功登出",
+    "signOutError": "登出时出错"
+  },
+  "profilePage": {
+    "greeting": {
+      "morning": "早上好",
+      "afternoon": "下午好",
+      "evening": "晚上好"
+    },
+    "status": {
+      "loading": "正在加载您的个人资料...",
+      "professional": "专业会员",
+      "admin": "管理员",
+      "member": "战略会员",
+      "selfDeclared": "自我声明",
+      "institutionalReady": "机构就绪",
+      "verified": "认证专业人士",
+      "ventureBuilder": "风险构建者"
+    },
+    "tabs": {
+      "overview": "概览",
+      "projects": "项目",
+      "documents": "文档",
+      "activity": "活动"
+    },
+    "labels": {
+      "back": "← 返回首页",
+      "about": "关于",
+      "experience": "经验",
+      "education": "教育",
+      "myProjects": "我的项目",
+      "recentActivity": "近期活动",
+      "recommended": "为您推荐",
+      "viewMatches": "查看所有匹配项 →",
+      "skills": "技能",
+      "certifications": "证书",
+      "connections": "联系人",
+      "rating": "评分",
+      "tier": "会员等级"
+    },
+    "actions": {
+      "edit": "编辑个人资料",
+      "save": "保存",
+      "cancel": "取消",
+      "upload": "上传简历",
+      "uploading": "正在上传...",
+      "download": "下载",
+      "noDocs": "尚未上传任何文档。"
+    }
+  }
+}

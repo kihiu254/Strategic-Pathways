@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   User, Mail, Phone, MapPin, Briefcase, GraduationCap, 
   Edit2, Camera, Linkedin, Twitter, Globe, Award, FileText,
@@ -10,6 +11,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 
 const ProfilePage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -21,14 +23,14 @@ const ProfilePage = () => {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t('profilePage.greeting.morning');
+    if (hour < 18) return t('profilePage.greeting.afternoon');
+    return t('profilePage.greeting.evening');
   };
 
   const [profile, setProfile] = useState({
-    name: user?.user_metadata?.full_name || 'Loading...',
-    title: 'Professional Member',
+    name: user?.user_metadata?.full_name || t('common.loading'),
+    title: t('profilePage.status.professional'),
     email: '',
     phone: '',
     countryCode: '+254',
@@ -81,7 +83,7 @@ const ProfilePage = () => {
 
           setProfile(prev => ({
             ...prev,
-            name: data.full_name || user.user_metadata?.full_name || 'Strategic Member',
+            name: data.full_name || user.user_metadata?.full_name || t('profilePage.status.member'),
             email: data.email || user.email || '',
             phone: data.phone || '',
             countryCode: data.country_code || '+254',
@@ -89,7 +91,7 @@ const ProfilePage = () => {
             bio: data.bio || '',
             location: data.location || '',
             tier: data.tier || 'Community',
-            title: data.role === 'admin' ? 'Administrator' : 'Professional Member',
+            title: data.role === 'admin' ? t('profilePage.status.admin') : t('profilePage.status.professional'),
             memberSince: monthYear,
             avatar_url: data.avatar_url || '',
             profileType: data.profile_type || 'Standard (MVP)',
@@ -288,17 +290,17 @@ const ProfilePage = () => {
   };
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: User },
-    { id: 'projects', label: 'Projects', icon: Briefcase },
-    { id: 'documents', label: 'Documents', icon: FileText },
-    { id: 'activity', label: 'Activity', icon: Clock },
+    { id: 'overview', label: t('profilePage.tabs.overview'), icon: User },
+    { id: 'projects', label: t('profilePage.tabs.projects'), icon: Briefcase },
+    { id: 'documents', label: t('profilePage.tabs.documents'), icon: FileText },
+    { id: 'activity', label: t('profilePage.tabs.activity'), icon: Clock },
   ];
 
   if (isLoadingProfile) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 gap-4">
         <Loader2 className="w-10 h-10 text-[var(--sp-accent)] animate-spin" />
-        <p className="text-[var(--text-secondary)]">Loading your profile...</p>
+        <p className="text-[var(--text-secondary)]">{t('profilePage.status.loading')}</p>
       </div>
     );
   }
@@ -311,7 +313,7 @@ const ProfilePage = () => {
           onClick={() => navigate('/')}
           className="sp-btn-glass mb-6 flex items-center gap-2"
         >
-          ← Back to Home
+          {t('profilePage.labels.back')}
         </button>
 
         {/* Profile Header */}
@@ -385,7 +387,7 @@ const ProfilePage = () => {
                     {profile.verificationTier === 'Tier 1 – Self-Declared' ? (
                       <span className="px-3 py-1 rounded-full bg-white/5 text-[var(--text-secondary)] text-[10px] font-medium flex items-center gap-1 border border-white/10">
                         <Clock size={10} />
-                        Self-Declared
+                        {t('profilePage.status.selfDeclared')}
                       </span>
                     ) : (
                       <div className="flex flex-wrap gap-2">
@@ -473,7 +475,7 @@ const ProfilePage = () => {
                     className="sp-btn-glass flex items-center gap-2"
                   >
                     <Edit2 size={16} />
-                    {isEditing ? 'Cancel' : 'Edit Profile'}
+                    {isEditing ? t('profilePage.actions.cancel') : t('profilePage.actions.edit')}
                   </button>
                   {isEditing && (
                     <button 
@@ -481,7 +483,7 @@ const ProfilePage = () => {
                       className="sp-btn-primary flex items-center gap-2"
                     >
                       <CheckCircle size={16} />
-                      Save
+                      {t('profilePage.actions.save')}
                     </button>
                   )}
                 </div>
@@ -491,22 +493,22 @@ const ProfilePage = () => {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <div className="glass-light rounded-xl p-4 text-center">
                   <div className="text-2xl font-bold text-[var(--sp-accent)]">{profile.projects}</div>
-                  <div className="text-[var(--text-secondary)] text-sm">Projects</div>
+                  <div className="text-[var(--text-secondary)] text-sm">{t('profilePage.labels.projects')}</div>
                 </div>
                 <div className="glass-light rounded-xl p-4 text-center">
                   <div className="text-2xl font-bold text-[var(--sp-accent)]">{profile.connections}</div>
-                  <div className="text-[var(--text-secondary)] text-sm">Connections</div>
+                  <div className="text-[var(--text-secondary)] text-sm">{t('profilePage.labels.connections')}</div>
                 </div>
                 <div className="glass-light rounded-xl p-4 text-center">
                   <div className="text-2xl font-bold text-[var(--sp-accent)] flex items-center justify-center gap-1">
                     {profile.rating}
                     <Star size={16} className="fill-[#C89F5E]" />
                   </div>
-                  <div className="text-[var(--text-secondary)] text-sm">Rating</div>
+                  <div className="text-[var(--text-secondary)] text-sm">{t('profilePage.labels.rating')}</div>
                 </div>
                 <div className="glass-light rounded-xl p-4 text-center">
                   <div className="text-lg font-bold text-[var(--sp-accent)]">{profile.tier}</div>
-                  <div className="text-[var(--text-secondary)] text-sm">Member Tier</div>
+                  <div className="text-[var(--text-secondary)] text-sm">{t('profilePage.labels.tier')}</div>
                 </div>
               </div>
             </div>
@@ -541,7 +543,7 @@ const ProfilePage = () => {
                 <div className="glass-card p-6">
                   <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                     <User size={18} className="text-[var(--sp-accent)]" />
-                    About
+                    {t('profilePage.labels.about')}
                   </h3>
                   {isEditing ? (
                     <textarea
@@ -558,7 +560,7 @@ const ProfilePage = () => {
                 <div className="glass-card p-6">
                   <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                     <Briefcase size={18} className="text-[var(--sp-accent)]" />
-                    Experience
+                    {t('profilePage.labels.experience')}
                   </h3>
                   <div className="space-y-4">
                     {profile.experience.map((exp, index) => (
@@ -579,7 +581,7 @@ const ProfilePage = () => {
                 <div className="glass-card p-6">
                   <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                     <GraduationCap size={18} className="text-[var(--sp-accent)]" />
-                    Education
+                    {t('profilePage.labels.education')}
                   </h3>
                   <div className="space-y-4">
                     {profile.education.map((edu, index) => (
@@ -600,7 +602,7 @@ const ProfilePage = () => {
 
             {activeTab === 'projects' && (
               <div className="glass-card p-6">
-                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">My Projects</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('profilePage.labels.myProjects')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="glass-light rounded-xl p-4 hover:bg-white/5 transition-colors cursor-pointer">
@@ -627,7 +629,7 @@ const ProfilePage = () => {
             {activeTab === 'documents' && (
               <div className="glass-card p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">Documents</h3>
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">{t('profilePage.tabs.documents')}</h3>
                   <div>
                     <input 
                       type="file" 
@@ -642,14 +644,14 @@ const ProfilePage = () => {
                       className={`sp-btn-primary flex items-center gap-2 cursor-pointer text-sm ${isUploadingFile ? 'opacity-50' : ''}`}
                     >
                       {isUploadingFile ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-                      {isUploadingFile ? 'Uploading...' : 'Upload CV'}
+                      {isUploadingFile ? t('profilePage.actions.uploading') : t('profilePage.actions.upload')}
                     </label>
                   </div>
                 </div>
                 
                   <div className="space-y-3">
                   {documents.length === 0 ? (
-                    <div className="text-center py-6 text-[var(--text-secondary)]">No documents uploaded yet.</div>
+                    <div className="text-center py-6 text-[var(--text-secondary)]">{t('profilePage.actions.noDocs')}</div>
                   ) : (
                     documents.map((doc, i) => (
                       <div key={i} className="glass-light rounded-xl p-4 flex items-center justify-between group">
@@ -669,7 +671,7 @@ const ProfilePage = () => {
                             onClick={() => handleDownloadFile(doc.name)}
                             className="sp-btn-glass text-sm"
                           >
-                            Download
+                            {t('profilePage.actions.download')}
                           </button>
                           <button 
                             onClick={() => handleDeleteFile(doc.name)}
@@ -693,7 +695,7 @@ const ProfilePage = () => {
 
             {activeTab === 'activity' && (
               <div className="glass-card p-6">
-                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Recent Activity</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('profilePage.labels.recentActivity')}</h3>
                 <div className="space-y-4">
                   {[
                     { action: 'Applied to project', target: 'County Development Strategy', time: '2 days ago' },
@@ -723,7 +725,7 @@ const ProfilePage = () => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--sp-accent)]/10 blur-[50px] rounded-full pointer-events-none" />
               <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2 relative z-10">
                 <Star size={18} className="text-[var(--sp-accent)] fill-[var(--sp-accent)]" />
-                Recommended for You
+                {t('profilePage.labels.recommended')}
               </h3>
               
               <div className="space-y-4 relative z-10">
@@ -773,7 +775,7 @@ const ProfilePage = () => {
                 })()}
               </div>
               <button onClick={() => navigate('/opportunities')} className="mt-4 w-full text-center text-sm text-[var(--sp-accent)] hover:text-[var(--text-primary)] transition-colors font-medium">
-                View all matches →
+                {t('profilePage.labels.viewMatches')}
               </button>
             </div>
 
@@ -781,7 +783,7 @@ const ProfilePage = () => {
             <div className="glass-card p-6">
               <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                 <Award size={18} className="text-[var(--sp-accent)]" />
-                Skills
+                {t('profilePage.labels.skills')}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {profile.skills.map((skill, index) => (
@@ -798,8 +800,8 @@ const ProfilePage = () => {
             {/* Certifications */}
             <div className="glass-card p-6">
               <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-                <Award size={18} className="text-[var(--sp-accent)]" />
-                Certifications
+                <Shield size={18} className="text-[var(--sp-accent)]" />
+                {t('profilePage.labels.certifications')}
               </h3>
               <div className="space-y-3">
                 {profile.certifications.map((cert, index) => (

@@ -108,6 +108,9 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
               src="/images/audience_returnees.jpg" 
               alt="Study-abroad returnees"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              width={800}
+              height={600}
+              loading="lazy"
             />
             {/* Label Bar */}
             <div className="absolute bottom-0 left-0 right-0 h-16 lg:h-20 bg-[var(--bg-primary)]/80 backdrop-blur-sm flex items-center px-6">
@@ -126,6 +129,9 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
               src="/images/audience_institutions.jpg" 
               alt="Institutions"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              width={800}
+              height={600}
+              loading="lazy"
             />
             {/* Label Bar */}
             <div className="absolute bottom-0 left-0 right-0 h-16 lg:h-20 bg-[var(--bg-primary)]/80 backdrop-blur-sm flex items-center px-6">

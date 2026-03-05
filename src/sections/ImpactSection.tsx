@@ -91,6 +91,9 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
               src="/images/impact_mentorship.jpg" 
               alt="Mentorship"
               className="w-full h-full object-cover"
+              width={800}
+              height={600}
+              loading="lazy"
             />
           </div>
 
@@ -133,14 +136,15 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
             </div>
 
             {/* CTA */}
-            <button 
-              ref={ctaRef}
+            <a 
+              href="/docs/Strategic_Pathways_Brief.pdf"
+              download="Strategic_Pathways_Brief.pdf"
               className="sp-btn-secondary w-fit flex items-center gap-2"
-              onClick={() => alert('Download brief coming soon!')}
+              ref={ctaRef as any}
             >
               <Download size={18} />
               {t('impact.cta')}
-            </button>
+            </a>
           </div>
         </div>
       </div>

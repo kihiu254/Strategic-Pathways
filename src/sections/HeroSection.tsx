@@ -87,6 +87,9 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
               src="/images/hero_collaboration.jpg" 
               alt="Professional collaboration"
               className="w-full h-full object-cover"
+              width={600}
+              height={800}
+              fetchPriority="high"
             />
           </div>
 
@@ -99,7 +102,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
             <div ref={labelRef} className="mb-4 lg:mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-0.5 bg-gradient-to-r from-[#C89F5E] to-transparent" />
-                <span className="sp-label text-sm tracking-widest uppercase">Concept Note</span>
+                <span className="sp-label text-sm tracking-widest uppercase">{t('common.conceptNote')}</span>
               </div>
             </div>
 
@@ -129,7 +132,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
                   onClick={() => navigate('/profile')}
                   className="sp-btn-primary flex items-center justify-center gap-2"
                 >
-                  Dashboard
+                  {t('common.dashboard')}
                   <ArrowRight size={18} />
                 </button>
               ) : (
@@ -152,7 +155,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
 
             {/* Microcopy */}
             <p className="text-xs text-[var(--text-secondary)]/70 mt-4">
-              Free to apply. Vetted membership.
+              {t('common.microcopy')}
             </p>
           </div>
         </div>

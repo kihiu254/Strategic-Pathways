@@ -152,6 +152,9 @@ const ValueSection = ({ className = '' }: ValueSectionProps) => {
               src="/images/value_team_meeting.jpg" 
               alt="Team meeting"
               className="w-full h-full object-cover"
+              width={800}
+              height={600}
+              loading="lazy"
             />
           </div>
         </div>

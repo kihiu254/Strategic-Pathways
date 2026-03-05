@@ -72,17 +72,19 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      toast.success('Signed out successfully');
+      toast.success(t('notifications.signOutSuccess'));
       navigate('/login');
     } catch (error: any) {
-      toast.error('Error signing out');
+      toast.error(t('notifications.signOutError'));
     }
   };
 
   const navLinks = [
     { label: t('nav.about'), path: '/concept-note' },
     { label: t('nav.audience'), id: 'audience' },
+    { label: t('nav.howItWorks'), id: 'how-it-works' },
     { label: t('nav.opportunities'), path: '/opportunities' },
+    { label: t('nav.pricing'), id: 'pricing' },
   ];
 
   return (
@@ -103,6 +105,8 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
             <img 
               src="/logo.png" 
               alt="Strategic Pathways" 
+              width={160}
+              height={40}
               className="h-10 w-auto object-contain transform scale-150 lg:scale-[1.75] origin-left"
             />
           </button>
@@ -149,19 +153,19 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 
                 {isNotificationsOpen && (
                   <div className="absolute right-0 top-full mt-2 w-80 glass-card p-4 z-50 shadow-2xl">
-                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Notifications</h3>
+                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">{t('notifications.title')}</h3>
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
                       {user && new Date().getTime() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000 ? (
                         <div className="p-3 glass-light hover:bg-white/5 transition-colors cursor-pointer rounded-xl border border-[var(--sp-accent)]/20">
-                          <p className="text-[var(--text-primary)] text-sm font-medium">Welcome to Strategic Pathways!</p>
-                          <p className="text-[var(--text-secondary)] text-xs mt-1">Your account has been successfully created. We're thrilled to have you here.</p>
-                          <span className="text-xs text-[var(--sp-accent)] mt-2 block">Just now</span>
+                          <p className="text-[var(--text-primary)] text-sm font-medium">{t('notifications.welcome.title')}</p>
+                          <p className="text-[var(--text-secondary)] text-xs mt-1">{t('notifications.welcome.body')}</p>
+                          <span className="text-xs text-[var(--sp-accent)] mt-2 block">{t('notifications.justNow')}</span>
                         </div>
                       ) : (
                         <div className="p-3 glass-light hover:bg-white/5 transition-colors cursor-pointer rounded-xl border border-[var(--sp-accent)]/20">
-                          <p className="text-[var(--text-primary)] text-sm font-medium">New Opportunities Available</p>
-                          <p className="text-[var(--text-secondary)] text-xs mt-1">Check out the latest projects matching your profile skills.</p>
-                          <span className="text-xs text-[var(--sp-accent)] mt-2 block">1 hour ago</span>
+                          <p className="text-[var(--text-primary)] text-sm font-medium">{t('notifications.newOpps.title')}</p>
+                          <p className="text-[var(--text-secondary)] text-xs mt-1">{t('notifications.newOpps.body')}</p>
+                          <span className="text-xs text-[var(--sp-accent)] mt-2 block">{t('notifications.oneHourAgo')}</span>
                         </div>
                       )}
                     </div>
@@ -169,7 +173,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                       onClick={() => setIsNotificationsOpen(false)}
                       className="w-full mt-4 text-center text-sm text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors py-2"
                     >
-                      Mark all as read
+                      {t('notifications.markAsRead')}
                     </button>
                   </div>
                 )}
@@ -194,7 +198,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                   <div className="absolute right-0 top-full mt-2 w-56 glass-card p-2 z-50">
                     <div className="px-3 py-2 border-b border-white/10 mb-2">
                       <p className="text-[var(--text-primary)] font-medium truncate">{user?.user_metadata?.full_name || user?.email}</p>
-                      <p className="text-[var(--text-secondary)] text-xs">Member</p>
+                      <p className="text-[var(--text-secondary)] text-xs">{t('common.member')}</p>
                     </div>
                     <button 
                       onClick={() => {
@@ -204,7 +208,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
                     >
                       <User size={16} />
-                      <span className="text-sm">My Profile</span>
+                      <span className="text-sm">{t('common.profile')}</span>
                     </button>
                     <button 
                       onClick={() => {
@@ -214,7 +218,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
                     >
                       <LayoutDashboard size={16} />
-                      <span className="text-sm">Dashboard</span>
+                      <span className="text-sm">{t('common.dashboard')}</span>
                     </button>
                     <div className="border-t border-white/10 mt-2 pt-2">
                        <button 
@@ -225,7 +229,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors text-left"
                       >
                         <LogOut size={16} />
-                        <span className="text-sm">Sign Out</span>
+                        <span className="text-sm">{t('common.signOut')}</span>
                       </button>
                     </div>
                   </div>
@@ -237,7 +241,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 className="sp-btn-primary text-sm flex items-center gap-2"
               >
                 <LogIn size={16} />
-                {t('nav.login')}
+                {t('common.signIn')}
               </button>
             )}
 
@@ -246,7 +250,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 onClick={() => navigate('/signup')}
                 className="sp-btn-glass text-sm"
               >
-                {t('nav.register')}
+                {t('common.register')}
               </button>
             )}
           </div>
@@ -298,7 +302,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 className="text-[var(--text-primary)] text-2xl font-medium hover:text-[var(--sp-accent)] transition-colors flex items-center gap-2"
               >
                 <User size={24} />
-                My Profile
+                {t('common.profile')}
               </button>
               
               <button 
@@ -309,7 +313,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 className="text-[var(--text-primary)] text-2xl font-medium hover:text-[var(--sp-accent)] transition-colors flex items-center gap-2"
               >
                 <LayoutDashboard size={24} />
-                Dashboard
+                {t('common.dashboard')}
               </button>
 
               <button 
@@ -320,7 +324,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 className="text-red-400 text-2xl font-medium hover:text-red-300 transition-colors flex items-center gap-2 mt-4"
               >
                 <LogOut size={24} />
-                Sign Out
+                {t('common.signOut')}
               </button>
             </>
           ) : (
@@ -333,7 +337,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 className="sp-btn-primary mt-4 w-48 text-center flex justify-center items-center gap-2"
               >
                 <LogIn size={20} />
-                Sign In
+                {t('common.signIn')}
               </button>
               <button 
                 onClick={() => {
@@ -342,7 +346,7 @@ const Navigation = ({ onNavigate, currentPage = 'home' }: NavigationProps) => {
                 }}
                 className="sp-btn-glass mt-2 w-48 text-center"
               >
-                Join the Network
+                {t('common.register')}
               </button>
             </>
           )}

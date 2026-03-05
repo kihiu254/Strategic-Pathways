@@ -152,6 +152,9 @@ const HowItWorksSection = ({ className = '' }: HowItWorksSectionProps) => {
                   src={step.image} 
                   alt={step.title}
                   className="w-full h-full object-cover mix-blend-screen"
+                  width={400}
+                  height={300}
+                  loading="lazy"
                 />
               </div>
 

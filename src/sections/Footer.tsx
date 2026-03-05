@@ -1,9 +1,12 @@
-import { useNavigate } from 'react-router-dom';
-import { Linkedin, Instagram, Youtube, Facebook, Twitter, Globe } from 'lucide-react';
+import { Linkedin, Instagram, Youtube, Facebook, Twitter, Globe, Github, Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const Footer = () => {
+
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
 
@@ -46,91 +49,138 @@ const Footer = () => {
     return iconMap[platform] || Globe;
   };
 
+  const footerLinks = {
+    platform: {
+      title: t('footer.platform'),
+      links: [
+        { label: t('footer.opportunities'), href: '/opportunities' },
+        { label: t('footer.profile'), href: '/profile' },
+        { label: t('footer.verification'), href: '/verification' },
+        { label: t('footer.about'), href: '/concept-note' }
+      ]
+    },
+    company: {
+      title: t('footer.company'),
+      links: [
+        { label: t('footer.howItWorks'), href: '#' },
+        { label: t('footer.successStories'), href: '#' },
+        { label: t('footer.careers'), href: '#' },
+        { label: t('footer.contact'), href: '#' }
+      ]
+    },
+    resources: {
+      title: t('footer.resources'),
+      links: [
+        { label: t('footer.privacy'), href: '/privacy' },
+        { label: t('footer.terms'), href: '/terms' },
+        { label: t('footer.cookies'), href: '/cookies' },
+        { label: t('footer.helpCenter'), href: '#' }
+      ]
+    }
+  };
+
   return (
     <footer className="relative bg-[var(--bg-primary)] border-t border-white/5 py-12">
       <div className="w-full px-6 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
           {/* Brand */}
-          <div className="md:col-span-1">
-            <img src="/logo.png" alt="Strategic Pathways" className="h-10 w-auto mb-4 rounded-lg" />
-            <p className="text-[var(--text-secondary)] text-sm">
-              Connecting globally trained African professionals with opportunities for impact.
+          <div className="lg:col-span-4">
+            <img 
+              src="/logo.png" 
+              alt="Strategic Pathways" 
+              width={160} 
+              height={40} 
+              className="h-10 w-auto mb-6 rounded-lg cursor-pointer" 
+              onClick={() => navigate('/')}
+            />
+            <p className="text-[var(--text-secondary)] text-sm mb-8 leading-relaxed max-w-sm">
+              {t('footer.brandDesc')}
             </p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-[var(--text-primary)] font-semibold mb-4">Platform</h4>
-            <ul className="space-y-2 text-sm">
-              <li><button onClick={() => navigate('/opportunities')} className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">Opportunities</button></li>
-              <li><button onClick={() => navigate('/profile')} className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">Profile</button></li>
-              <li><button onClick={() => navigate('/verification')} className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">Verification</button></li>
-              <li><button onClick={() => navigate('/concept-note')} className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">About</button></li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="text-[var(--text-primary)] font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm">
-              <li><button onClick={() => navigate('/privacy')} className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">Privacy Policy</button></li>
-              <li><button onClick={() => navigate('/terms')} className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">Terms of Service</button></li>
-              <li><button onClick={() => navigate('/cookies')} className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">Cookie Policy</button></li>
-              <li><button onClick={() => navigate('/sitemap')} className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">Sitemap</button></li>
-            </ul>
-          </div>
-
-          {/* Social */}
-          <div>
-            <h4 className="text-[var(--text-primary)] font-semibold mb-4">Connect With Us</h4>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex gap-4">
               {socialLinks.length > 0 ? (
                 socialLinks.map((link) => {
-                  const Icon = getSocialIcon(link.platform);
+                  const Icon = getSocialIcon(link.platform_name);
                   return (
-                    <a
-                      key={link.id}
-                      href={link.url}
-                      target="_blank"
+                    <a 
+                      key={link.id} 
+                      href={link.url} 
+                      target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                      title={link.platform}
+                      className="w-10 h-10 rounded-full bg-[var(--bg-card)]/10 flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--sp-accent)] hover:text-white transition-all duration-300"
                     >
-                      {typeof Icon === 'function' ? <Icon /> : <Icon size={18} />}
+                      <Icon size={18} />
                     </a>
                   );
                 })
               ) : (
-                <>
-                  <a href="https://www.linkedin.com/company/join-strategicpathways" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
-                    <Linkedin size={18} />
+                [Twitter, Github, Linkedin, Mail].map((Icon, i) => (
+                  <a key={i} href="#" className="w-10 h-10 rounded-full bg-[var(--bg-card)]/10 flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--sp-accent)] hover:text-white transition-all duration-300">
+                    <Icon size={18} />
                   </a>
-                  <a href="https://www.instagram.com/joinstrategicpathways" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
-                    <Instagram size={18} />
-                  </a>
-                  <a href="https://x.com/SPathways_" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
-                    <Twitter size={18} />
-                  </a>
-                  <a href="https://www.facebook.com/profile.php?id=61588643401308" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
-                    <Facebook size={18} />
-                  </a>
-                  <a href="https://www.youtube.com/@joinstrategicpathways" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
-                    <Youtube size={18} />
-                  </a>
-                </>
+                ))
               )}
             </div>
+          </div>
+
+          {/* Links Columns */}
+          <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-8">
+            {Object.entries(footerLinks).map(([key, section]) => (
+              <div key={key}>
+                <h4 className="text-[var(--text-primary)] font-bold mb-6 text-sm uppercase tracking-widest">{section.title}</h4>
+                <ul className="space-y-4">
+                  {section.links.map((link, i) => (
+                    <li key={i}>
+                      <button 
+                        onClick={() => link.href !== '#' && navigate(link.href)}
+                        className="text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors inline-block group text-left"
+                      >
+                        <span className="relative">
+                          {link.label}
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--sp-accent)] transition-all duration-300 group-hover:w-full"></span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Newsletter / CTA */}
+        <div className="glass-card p-1 pb-1 pr-1 pl-1 md:p-8 rounded-3xl mb-16 flex flex-col md:flex-row items-center justify-between gap-8 border border-[var(--text-primary)]/5">
+          <div className="p-6 md:p-0">
+            <h4 className="text-xl font-bold text-[var(--text-primary)] mb-2">{t('footer.connect')}</h4>
+            <p className="text-[var(--text-secondary)] text-sm">{t('footer.madeWith')}</p>
+          </div>
+          <div className="flex w-full md:w-auto p-4 md:p-0">
+            <input 
+              type="email" 
+              placeholder="email@example.com" 
+              className="input-glass bg-[var(--bg-card)]/20 px-6 py-3 rounded-l-2xl outline-none text-[var(--text-primary)] w-full md:w-64" 
+            />
+            <button className="bg-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/80 text-white px-8 py-3 rounded-r-2xl font-bold transition-all shadow-lg shadow-[var(--sp-accent)]/20">
+              {t('nav.register')}
+            </button>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[var(--text-secondary)] text-sm">
-            © {new Date().getFullYear()} Strategic Pathways. All rights reserved.
-          </p>
-          <p className="text-[var(--text-secondary)] text-sm">
-            Made with ❤️ for Africa's Global Talent
-          </p>
+        <div className="pt-8 border-t border-[var(--text-primary)]/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-[var(--text-secondary)] text-sm order-2 md:order-1">
+            © {new Date().getFullYear()} {t('footer.rights')}
+          </div>
+          <div className="flex items-center gap-6 order-1 md:order-2">
+            <span className="text-[var(--text-secondary)] text-[10px] md:text-xs">
+              {t('footer.compliance')}
+            </span>
+            <div className="flex gap-4">
+              <Globe size={16} className="text-[var(--sp-accent)]" />
+              <span className="text-[var(--text-primary)] text-xs font-bold uppercase tracking-widest">
+                {i18n.language}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
