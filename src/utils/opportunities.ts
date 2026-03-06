@@ -9,33 +9,75 @@ export const MOCK_OPPORTUNITIES = [
 ];
 
 /**
- * Ranks opportunities based on a user's skills and sector interest.
+ * Ranks opportunities based on the EXACT Match Score Algorithm.
+ * Match Score = (Sector × 0.25) + (Function × 0.25) + (Geo × 0.15) + (Experience × 0.15) + (Availability × 0.10) + (Intent × 0.10)
+ * Scoring: Exact match = 1, Partial match = 0.5, No match = 0
  */
-export const rankOpportunities = (opportunities: any[], profileSkills: string[], primarySector?: string) => {
+export const rankOpportunities = (opportunities: any[], profile: any, profileSkills: string[]) => {
   const matches = opportunities.map(opp => {
     let score = 0;
     const oppText = (opp.tags.join(' ') + ' ' + opp.description + ' ' + opp.title).toLowerCase();
     
-    // Skill matching (weights heavily)
-    if (profileSkills && Array.isArray(profileSkills)) {
+    // 1. Sector Match (25%)
+    let sectorMatch = 0;
+    const profileSector = profile?.sector || profile?.primarySector || '';
+    if (profileSector) {
+      if (oppText.includes(profileSector.toLowerCase())) sectorMatch = 1;
+      else if (opp.tags.some((t: string) => t.toLowerCase() === profileSector.toLowerCase())) sectorMatch = 1;
+    }
+    score += (sectorMatch * 0.25);
+
+    // 2. Function Match (25%)
+    let functionMatch = 0;
+    if (profileSkills && Array.isArray(profileSkills) && profileSkills.length > 0) {
+      let matchedCount = 0;
       profileSkills.forEach(skill => {
-        if (oppText.includes(skill.toLowerCase())) score += 2;
-        opp.tags.forEach((tag: string) => {
-          if (tag.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(tag.toLowerCase())) score += 3;
-        });
+        if (oppText.includes(skill.toLowerCase())) matchedCount++;
       });
+      if (matchedCount >= 2) functionMatch = 1;
+      else if (matchedCount === 1) functionMatch = 0.5;
     }
+    score += (functionMatch * 0.25);
 
-    // Sector matching
-    if (primarySector) {
-      if (oppText.includes(primarySector.toLowerCase())) score += 5;
+    // 3. Geo Match (15%)
+    let geoMatch = 0;
+    const userLoc = profile?.location || profile?.countryOfResidence || '';
+    const oppLoc = opp.location?.toLowerCase() || '';
+    if (oppLoc === 'remote') {
+      geoMatch = 1;
+    } else if (userLoc) {
+      if (oppLoc.includes(userLoc.toLowerCase())) {
+        geoMatch = 1;
+      } else if (oppLoc.includes('hybrid')) {
+        geoMatch = 0.5;
+      }
     }
+    score += (geoMatch * 0.15);
 
-    return { ...opp, score };
+    // 4. Experience Match (15%)
+    let expMatch = 0;
+    if (profile?.years_of_experience) expMatch = 1; 
+    else if (profile?.experience?.length > 0) expMatch = 1;
+    else expMatch = 0.5; // Partial by default as most have basic experience
+    score += (expMatch * 0.15);
+
+    // 5. Availability Match (10%)
+    let availMatch = 0;
+    if (profile?.availability) availMatch = 1;
+    else availMatch = 0.5;
+    score += (availMatch * 0.10);
+
+    // 6. Intent Match (10%)
+    let intentMatch = 0;
+    if (profile?.bio || profile?.seeking_income) intentMatch = 1;
+    else intentMatch = 0.5;
+    score += (intentMatch * 0.10);
+
+    return { ...opp, score: score, matchPercentage: Math.round(score * 100) };
   })
   .filter(opp => opp.score > 0)
   .sort((a, b) => b.score - a.score);
 
   // If no strong matches, return the latest/general ones
-  return matches.length > 0 ? matches : opportunities.slice(0, 3);
+  return matches.length > 0 ? matches : opportunities.slice(0, 3).map(opp => ({ ...opp, matchPercentage: 50 }));
 };

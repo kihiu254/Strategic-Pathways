@@ -62,7 +62,7 @@ const UserDashboard = () => {
           skillsCount = skillsData?.length || 0;
           const userSkills = skillsData?.map(s => s.skill_name) || [];
 
-          const ranked = rankOpportunities(MOCK_OPPORTUNITIES, userSkills, profileData?.sector || profileData?.primarySector);
+          const ranked = rankOpportunities(MOCK_OPPORTUNITIES, profileData, userSkills);
           setOpportunities(ranked.slice(0, 2).map((opp: any) => ({
             ...opp,
             match: opp.score ? Math.min(99, opp.score * 10) : 80,
@@ -113,6 +113,45 @@ const UserDashboard = () => {
         <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-8">
           Welcome back, {profile?.full_name?.split(' ')[0] || 'Member'}! 👋
         </h1>
+        {/* Top-Level Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="glass-card p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center flex-shrink-0">
+              <Briefcase className="w-6 h-6 text-[var(--sp-accent)]" />
+            </div>
+            <div>
+              <p className="text-sm text-[var(--text-secondary)]">Opportunities</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">{opportunities.length || 12}</p>
+            </div>
+          </div>
+          <div className="glass-card p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+              <Users className="w-6 h-6 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-sm text-[var(--text-secondary)]">Connections</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">45</p>
+            </div>
+          </div>
+          <div className="glass-card p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+              <Calendar className="w-6 h-6 text-purple-400" />
+            </div>
+            <div>
+              <p className="text-sm text-[var(--text-secondary)]">Events</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">3</p>
+            </div>
+          </div>
+          <div className="glass-card p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
+              <Star className="w-6 h-6 text-yellow-500" />
+            </div>
+            <div>
+              <p className="text-sm text-[var(--text-secondary)]">Rating</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">4.8</p>
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
@@ -221,10 +260,95 @@ const UserDashboard = () => {
                 </p>
               </div>
             )}
+            {/* Upcoming Events */}
+            <div className="glass-card p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">Upcoming Events</h2>
+                <button 
+                  onClick={() => toast.success('Events coming soon!')}
+                  className="text-[var(--sp-accent)] hover:underline text-sm flex items-center gap-1"
+                >
+                  View all <ArrowRight size={16} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { title: 'Global Tech Summit', date: 'Oct 15, 2024', location: 'Remote', attendees: 120 },
+                  { title: 'Founder Networking Mixer', date: 'Oct 22, 2024', location: 'Nairobi', attendees: 45 }
+                ].map((event, i) => (
+                  <div key={i} className="flex flex-col md:flex-row md:items-center justify-between glass-light p-4 rounded-xl border border-white/5 hover:border-[var(--sp-accent)]/30 transition-all">
+                    <div>
+                      <h4 className="font-bold text-[var(--text-primary)] mb-1">{event.title}</h4>
+                      <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
+                        <span className="flex items-center gap-1"><Calendar size={12} /> {event.date}</span>
+                        <span className="flex items-center gap-1"><Globe size={12} /> {event.location}</span>
+                        <span className="flex items-center gap-1"><Users size={12} /> {event.attendees} attending</span>
+                      </div>
+                    </div>
+                    <button onClick={() => toast.success(`RSVP confirmed for ${event.title}`)} className="sp-btn-glass text-xs py-2 px-4 mt-3 md:mt-0 whitespace-nowrap">
+                      RSVP Now
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Collaborations (Member Matching) */}
+            <div className="glass-card p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">Recommended Collaborations</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { name: 'Sarah J.', role: 'Product Manager', match: 92, avatar: 'SJ' },
+                  { name: 'David M.', role: 'Senior Developer', match: 88, avatar: 'DM' },
+                ].map((collab, i) => (
+                  <div key={i} className="flex items-center justify-between glass-light p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[var(--sp-accent)]/20 flex items-center justify-center text-[var(--sp-accent)] font-bold text-sm border border-[var(--sp-accent)]/30">
+                        {collab.avatar}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[var(--text-primary)] text-sm">{collab.name}</h4>
+                        <p className="text-xs text-[var(--text-secondary)]">{collab.role}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                       <span className="text-xs font-bold text-green-400">{collab.match}% Match</span>
+                       <button onClick={() => toast.success(`Connection request sent to ${collab.name}`)} className="text-[var(--sp-accent)] text-xs hover:underline flex items-center gap-1">
+                         Connect <ArrowRight size={12} />
+                       </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Right Column - Sidebar */}
           <div className="space-y-10">
+            {/* Community Activation */}
+             <div className="glass-card p-6 border-t-4 border-blue-500">
+                <h4 className="font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <Heart className="text-blue-400" size={18} />
+                  Community Activation
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm text-[var(--text-primary)] line-through opacity-70">Welcome to Strategic Pathways</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-[var(--text-secondary)] flex-shrink-0" />
+                    <span className="text-sm text-[var(--text-primary)]">Member Spotlight Invitation</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-[var(--text-secondary)] flex-shrink-0" />
+                    <span className="text-sm text-[var(--text-primary)]">Introductory Call Invite</span>
+                  </div>
+                </div>
+             </div>
+
             {/* Match Score */}
             <div className="glass-card p-6">
               <div className="text-center mb-6">

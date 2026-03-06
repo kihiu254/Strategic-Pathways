@@ -1136,7 +1136,7 @@ const ProfilePage = () => {
               
               <div className="space-y-4 relative z-10">
                 {(() => {
-                  const ranked = rankOpportunities(MOCK_OPPORTUNITIES, profile.skills, profile.primarySector || profile.sector);
+                  const ranked = rankOpportunities(MOCK_OPPORTUNITIES, profile, profile.skills || []);
                   return ranked.slice(0, 2).map((opp: any) => (
                     <div key={opp.id} className="premium-glass-gold p-4 rounded-2xl border border-white/5 hover:border-[var(--sp-accent)]/30 transition-all group/item cursor-pointer" onClick={() => navigate('/opportunities')}>
                       <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1 group-hover/item:text-[var(--sp-accent)] transition-colors">{opp.title}</h4>
