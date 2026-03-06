@@ -236,7 +236,7 @@ const EditOnboardingPage = () => {
 
           <div className="glass-card p-6">
             <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Premium Details</h2>
-            <Steps.PremiumDetails register={register} control={control} />
+            <Steps.PremiumDetails register={register} control={control} errors={errors} />
           </div>
 
           <div className="glass-card p-6">
@@ -246,7 +246,7 @@ const EditOnboardingPage = () => {
 
           <div className="glass-card p-6">
             <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Income & Venture</h2>
-            <Steps.IncomeVenture register={register} />
+            <Steps.IncomeVenture register={register} errors={errors} />
           </div>
 
           <div className="glass-card p-6">
@@ -261,7 +261,7 @@ const EditOnboardingPage = () => {
 
           <div className="glass-card p-6">
             <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Community Visibility</h2>
-            <Steps.CommunityVisibility register={register} />
+            <Steps.CommunityVisibility register={register} errors={errors} />
           </div>
 
           <div className="flex gap-4">

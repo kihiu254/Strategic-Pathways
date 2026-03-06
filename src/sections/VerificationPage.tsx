@@ -111,10 +111,10 @@ const VerificationPage = () => {
       setVerificationStatus('pending');
       
       // Trigger email notification
-      if (user?.email && user?.full_name) {
+      if (user?.email && user?.user_metadata?.full_name) {
         EmailAutomationService.onVerificationDocumentUploaded(
           user.email,
-          user.full_name,
+          user.user_metadata.full_name,
           docType,
           tierName
         );
@@ -201,10 +201,10 @@ const VerificationPage = () => {
         toast.success(`Upgraded to ${nextTier}! Your documents are under review.`);
         
         // Trigger email notification
-        if (user?.email && user?.full_name) {
+        if (user?.email && user?.user_metadata?.full_name) {
           EmailAutomationService.onVerificationStatusUpdate(
             user.email,
-            user.full_name,
+            user.user_metadata.full_name,
             'tier_upgraded',
             nextTier
           );

@@ -1,0 +1,61 @@
+src/components/NotificationCenter.tsx(2,19): error TS6133: 'Check' is declared but its value is never read.
+src/components/NotificationCenter.tsx(2,38): error TS6133: 'Trash2' is declared but its value is never read.
+src/lib/emailService.ts(3,27): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(34,26): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(40,70): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(74,26): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(111,26): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(148,26): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(185,26): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(221,26): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(225,26): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/emailService.ts(269,26): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/lib/uploadUtils.ts(2,23): error TS6133: 'isDocumentFile' is declared but its value is never read.
+src/lib/uploadUtils.ts(28,31): error TS6133: 'data' is declared but its value is never read.
+src/lib/uploadUtils.ts(65,3): error TS6133: 'options' is declared but its value is never read.
+src/sections/AdminDashboard.tsx(6,15): error TS6133: 'DollarSign' is declared but its value is never read.
+src/sections/AdminDashboard.tsx(269,9): error TS6133: 'handleDownloadDoc' is declared but its value is never read.
+src/sections/AdminDashboard.tsx(292,9): error TS6133: 'getPublicUrl' is declared but its value is never read.
+src/sections/AdminOpportunitiesManager.tsx(3,31): error TS6133: 'Eye' is declared but its value is never read.
+src/sections/AdminUserDetailPage.tsx(4,20): error TS6133: 'Mail' is declared but its value is never read.
+src/sections/AdminUserDetailPage.tsx(4,26): error TS6133: 'Phone' is declared but its value is never read.
+src/sections/AdminUserDetailPage.tsx(4,33): error TS6133: 'MapPin' is declared but its value is never read.
+src/sections/EditOnboardingPage.tsx(239,14): error TS2741: Property 'errors' is missing in type '{ register: UseFormRegister<{ profileType: "Standard (MVP)" | "Premium (Verified)"; fullName: string; professionalTitle: string; email: string; linkedinUrl: string; countryOfResidence: string; nationality: string; ... 48 more ...; communityAmbassador?: "Yes" | ... 2 more ... | undefined; }>; control: Control<...>; }' but required in type 'StepProps'.
+src/sections/EditOnboardingPage.tsx(249,14): error TS2741: Property 'errors' is missing in type '{ register: UseFormRegister<{ profileType: "Standard (MVP)" | "Premium (Verified)"; fullName: string; professionalTitle: string; email: string; linkedinUrl: string; countryOfResidence: string; nationality: string; ... 48 more ...; communityAmbassador?: "Yes" | ... 2 more ... | undefined; }>; }' but required in type 'StepProps'.
+src/sections/EditOnboardingPage.tsx(264,14): error TS2741: Property 'errors' is missing in type '{ register: UseFormRegister<{ profileType: "Standard (MVP)" | "Premium (Verified)"; fullName: string; professionalTitle: string; email: string; linkedinUrl: string; countryOfResidence: string; nationality: string; ... 48 more ...; communityAmbassador?: "Yes" | ... 2 more ... | undefined; }>; }' but required in type 'StepProps'.
+src/sections/Navigation.tsx(2,70): error TS6133: 'Bell' is declared but its value is never read.
+src/sections/Navigation.tsx(24,10): error TS6133: 'isNotificationsOpen' is declared but its value is never read.
+src/sections/Navigation.tsx(24,31): error TS6133: 'setIsNotificationsOpen' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(2,20): error TS6133: 'useFieldArray' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(4,57): error TS6133: 'Award' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(4,64): error TS6133: 'Heart' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(4,71): error TS6133: 'Upload' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(4,92): error TS6133: 'Target' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(4,100): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(4,119): error TS6133: 'Plus' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(4,125): error TS6133: 'Trash2' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(4,133): error TS6133: 'Camera' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(7,1): error TS6133: 'useState' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(8,1): error TS6133: 'supabase' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps-part1.tsx(9,1): error TS6133: 'toast' is declared but its value is never read.
+src/sections/onboarding/OnboardingSteps.tsx(6,1): error TS6133: 'institutionsByCountry' is declared but its value is never read.
+src/sections/OpportunitiesPageRedesigned.tsx(6,37): error TS6133: 'Filter' is declared but its value is never read.
+src/sections/OpportunitiesPageRedesigned.tsx(7,21): error TS6133: 'Users' is declared but its value is never read.
+src/sections/OpportunitiesPageRedesigned.tsx(7,38): error TS6133: 'Bookmark' is declared but its value is never read.
+src/sections/OpportunitiesPageRedesigned.tsx(7,48): error TS6133: 'Share2' is declared but its value is never read.
+src/sections/ReferralsPage.tsx(9,9): error TS6133: 'navigate' is declared but its value is never read.
+src/sections/UserDashboard.tsx(9,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/sections/UserDashboard.tsx(9,15): error TS6133: 'Users' is declared but its value is never read.
+src/sections/UserDashboard.tsx(9,22): error TS6133: 'Calendar' is declared but its value is never read.
+src/sections/UserDashboard.tsx(9,32): error TS6133: 'Award' is declared but its value is never read.
+src/sections/UserDashboard.tsx(10,16): error TS6133: 'Clock' is declared but its value is never read.
+src/sections/UserDashboard.tsx(10,23): error TS6133: 'Star' is declared but its value is never read.
+src/sections/UserDashboard.tsx(10,46): error TS6133: 'Globe' is declared but its value is never read.
+src/sections/UserDashboard.tsx(10,53): error TS6133: 'Heart' is declared but its value is never read.
+src/sections/UserDashboard.tsx(11,3): error TS6133: 'FileText' is declared but its value is never read.
+src/sections/UserDashboard.tsx(11,31): error TS6133: 'ExternalLink' is declared but its value is never read.
+src/sections/UserDashboard.tsx(108,9): error TS6133: 'profileCompletion' is declared but its value is never read.
+src/sections/VerificationPage.tsx(114,32): error TS2339: Property 'full_name' does not exist on type 'User'.
+src/sections/VerificationPage.tsx(117,16): error TS2339: Property 'full_name' does not exist on type 'User'.
+src/sections/VerificationPage.tsx(204,34): error TS2339: Property 'full_name' does not exist on type 'User'.
+src/sections/VerificationPage.tsx(207,18): error TS2339: Property 'full_name' does not exist on type 'User'.
