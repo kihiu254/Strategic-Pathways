@@ -82,6 +82,50 @@ export default async function handler(req: any, res: any) {
         };
         break;
 
+      case 'verification_document_uploaded':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: 'Verification document uploaded successfully',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #8b5cf6 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Document Uploaded!</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Thank you, ${data.name}!</h2>
+                <p style="color: #4a5568; line-height: 1.6;">Your ${data.documentType} for ${data.tier} has been uploaded successfully. Our team will review it within 2-3 business days.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/verification" style="background: #8b5cf6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View Verification Status</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
+      case 'verification_status_update':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: `Verification status update - ${data.tier}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #f59e0b 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Verification Update!</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
+                <p style="color: #4a5568; line-height: 1.6;">Your verification status has been updated to: <strong>${data.tier}</strong></p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/verification" style="background: #f59e0b; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View Details</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
       default:
         return res.status(400).json({ error: 'Invalid email type' });
     }

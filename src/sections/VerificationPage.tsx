@@ -117,7 +117,7 @@ const VerificationPage = () => {
           user.user_metadata.full_name,
           docType,
           tierName
-        );
+        ).catch(err => console.warn('Email notification failed:', err));
       }
       
       // Refresh documents list
@@ -207,7 +207,7 @@ const VerificationPage = () => {
             user.user_metadata.full_name,
             'tier_upgraded',
             nextTier
-          );
+          ).catch(err => console.warn('Email notification failed:', err));
         }
       }
     } catch (error: any) {

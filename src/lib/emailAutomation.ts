@@ -10,9 +10,21 @@ export class EmailAutomationService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, data })
       });
-      return response.json();
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        console.warn('Empty response from email service');
+        return { success: false, error: 'Empty response' };
+      }
+      
+      return JSON.parse(text);
     } catch (error) {
       console.error('Email trigger failed:', error);
+      return { success: false, error: error.message };
     }
   }
 

@@ -1,0 +1,23 @@
+{
+  "projects": {
+    "default": "strategic-pathways-ba4ba"
+  },
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18"
+  }
+}

@@ -134,10 +134,26 @@ const ProfilePage = () => {
             userCategory: data.user_category || '',
             verificationTier: data.verification_tier || 'Tier 1 – Self-Declared',
             matchScore: data.profile_completion_percentage || 0,
-            education: Array.isArray(data.education) ? data.education : [],
-            // Experience can be a JSON array in profiles or expertise text array
-            experience: Array.isArray(data.experience_json) ? data.experience_json : [], 
-            certifications: Array.isArray(data.certifications) ? data.certifications : []
+            education: data.education && typeof data.education === 'object' && !Array.isArray(data.education) 
+              ? [{
+                  degree: data.education.level || 'Not specified',
+                  school: data.education.institutions || 'Not specified',
+                  year: data.education.country || 'Not specified',
+                  field: data.education.field || 'Not specified'
+                }] 
+              : Array.isArray(data.education) ? data.education : [],
+            // Create experience from professional data
+            experience: data.years_of_experience && data.sector 
+              ? [{
+                  role: data.professional_title || 'Professional',
+                  company: data.organisation || data.sector,
+                  period: `${data.years_of_experience} years experience`,
+                  description: data.bio || 'Professional experience'
+                }]
+              : Array.isArray(data.experience_json) ? data.experience_json : [], 
+            certifications: Array.isArray(data.certifications) ? data.certifications : 
+              (data.verification_tier && data.verification_tier !== 'Tier 1 – Self-Declared' ? 
+                [`${data.verification_tier} Verified`] : [])
           }));
         } else {
           setProfile(prev => ({
@@ -158,18 +174,39 @@ const ProfilePage = () => {
 
     const fetchSkills = async () => {
       try {
-        const { data, error } = await supabase
+        // First try to get skills from user_skills table
+        const { data: userSkillsData, error: userSkillsError } = await supabase
           .from('user_skills')
           .select('skill_name')
           .eq('user_id', user.id);
         
-        if (error) throw error;
-        if (data) {
-          setProfile(prev => ({
-            ...prev,
-            skills: data.map(s => s.skill_name)
-          }));
+        if (userSkillsError) throw userSkillsError;
+        
+        let skillsArray = [];
+        if (userSkillsData && userSkillsData.length > 0) {
+          skillsArray = userSkillsData.map(s => s.skill_name);
+        } else {
+          // Fallback to skills from profiles table
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('skills, expertise')
+            .eq('id', user.id)
+            .single();
+          
+          if (profileData) {
+            // Parse skills from text field or expertise array
+            if (profileData.skills && typeof profileData.skills === 'string') {
+              skillsArray = profileData.skills.split('\n').filter(skill => skill.trim());
+            } else if (Array.isArray(profileData.expertise)) {
+              skillsArray = profileData.expertise;
+            }
+          }
         }
+        
+        setProfile(prev => ({
+          ...prev,
+          skills: skillsArray
+        }));
       } catch (err) {
         console.error('Error fetching skills:', err);
       }

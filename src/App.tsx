@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Toaster } from 'sonner';
+import { PushNotificationService } from './lib/pushNotifications';
 import Onboarding from './sections/Onboarding';
 import Navigation from './sections/Navigation';
 import HeroSection from './sections/HeroSection';
@@ -215,6 +216,12 @@ function MainLayout() {
 }
 
 function App() {
+  useEffect(() => {
+    // Initialize Firebase push notifications
+    PushNotificationService.requestPermission();
+    PushNotificationService.setupForegroundListener();
+  }, []);
+
   return (
     <HelmetProvider>
       <Router>
