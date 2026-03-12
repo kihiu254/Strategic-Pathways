@@ -33,7 +33,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
       gsap.set(photoRef.current, { x: '-60vw', scale: 0.96, opacity: 0 });
       gsap.set(panelRef.current, { x: '60vw', opacity: 0 });
       gsap.set(labelRef.current, { y: 20, opacity: 0 });
-      gsap.set(headlineRef.current?.querySelectorAll('.word') || [], { y: 40, opacity: 0 });
+      gsap.set(headlineRef.current, { y: 40, opacity: 0 });
       gsap.set(subheadRef.current, { y: 24, opacity: 0 });
       gsap.set(ctaRef.current?.children || [], { y: 24, opacity: 0 });
 
@@ -41,13 +41,8 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
       tl.to(photoRef.current, { x: 0, scale: 1, opacity: 1, duration: 1 }, 0)
         .to(panelRef.current, { x: 0, opacity: 1, duration: 0.9 }, 0.1)
         .to(labelRef.current, { y: 0, opacity: 1, duration: 0.6 }, 0.4)
-        .to(headlineRef.current?.querySelectorAll('.word') || [], { 
-          y: 0, 
-          opacity: 1, 
-          duration: 0.7, 
-          stagger: 0.04 
-        }, 0.5)
-        .to(subheadRef.current, { y: 0, opacity: 1, duration: 0.6 }, 0.7)
+        .to(headlineRef.current, { y: 0, opacity: 1, duration: 0.7 }, 0.5)
+        .to(subheadRef.current, { y: 0, opacity: 1, duration: 0.6 }, 0.65)
         .to(ctaRef.current?.children || [], { 
           y: 0, 
           opacity: 1, 
@@ -67,10 +62,10 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
     <section 
       ref={sectionRef}
       id="hero"
-      className={`sp-section-pinned bg-[var(--bg-primary)] relative pt-32 lg:pt-48 ${className}`}
+      className={`sp-section-pinned bg-[var(--bg-primary)] relative pt-20 lg:pt-28 ${className}`}
     >
       <div className="w-full h-full flex items-start lg:items-center justify-center px-6 lg:px-12">
-        <div className="relative w-full max-w-[1400px] h-auto lg:min-h-[64vh] mt-12 lg:mt-16 flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="relative w-full max-w-[1400px] h-auto lg:min-h-[64vh] mt-6 lg:mt-8 flex flex-col lg:flex-row gap-6 lg:gap-8">
           
           {/* Left Photo Card */}
           <div 
@@ -100,24 +95,26 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
               </div>
             </div>
 
-            {/* Headline */}
-            <h1 
-              ref={headlineRef}
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-4xl 2xl:text-5xl font-bold text-[var(--text-primary)] leading-tight mb-4 lg:mb-6"
-            >
-              <span className="text-[var(--sp-accent)] block mb-2 lg:mb-4 text-2xl lg:text-4xl font-normal">Strategic Pathways</span>
-              {t('hero.title').split(' ').map((word, i) => (
-                <span key={i} className="word inline-block mr-[0.25em]">{word}</span>
-              ))}
-            </h1>
+            {/* Headline Group */}
+            <div className="mb-8 lg:mb-12">
+              <h1 
+                ref={headlineRef}
+                style={{ fontFamily: "'Inter', sans-serif" }}
+                className="text-4xl lg:text-5xl xl:text-6xl font-extrabold text-[var(--text-primary)] tracking-tight leading-[1.05] mb-6"
+              >
+                <span className="text-[var(--sp-accent)]">Strategic</span><br/>
+                <span className="opacity-95">Pathways</span>
+              </h1>
 
-            {/* Subheadline */}
-            <p 
-              ref={subheadRef}
-              className="text-base lg:text-lg text-[var(--text-secondary)] max-w-xl mb-6 lg:mb-8"
-            >
-              {t('hero.subtitle')}
-            </p>
+              {/* Mission Statement (Subheadline) */}
+              <p 
+                ref={subheadRef}
+                style={{ fontFamily: "'Inter', sans-serif" }}
+                className="text-base lg:text-lg text-[var(--text-secondary)] max-w-2xl leading-relaxed font-medium tracking-normal opacity-85"
+              >
+                {t('hero.title')}
+              </p>
+            </div>
 
             {/* CTAs */}
             <div ref={ctaRef} className="flex flex-col sm:flex-row gap-3 sm:gap-4">

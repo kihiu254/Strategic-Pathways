@@ -66,9 +66,9 @@ const AboutPage = () => {
   }, [i18n.language, t]);
 
   return (
-    <div ref={pageRef} className="min-h-screen bg-[var(--bg-primary)] pt-28 pb-20 selection:bg-[var(--sp-accent)] selection:text-[var(--text-primary)]">
+    <div ref={pageRef} className="min-h-screen bg-[var(--bg-primary)] pt-20 pb-20 selection:bg-[var(--sp-accent)] selection:text-[var(--text-primary)]">
       {/* Navigation Top Bar */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 mb-12 animate-section">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 mb-6 animate-section">
         <button 
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
@@ -85,13 +85,20 @@ const AboutPage = () => {
           <span className="sp-label text-[var(--sp-accent)] text-sm tracking-widest uppercase font-semibold">{t('about.mission.label')}</span>
           <div className="w-12 h-0.5 bg-[var(--sp-accent)]" />
         </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-[var(--text-primary)] leading-tight mb-8">
+        <h1 
+          style={{ fontFamily: "'Inter', sans-serif" }}
+          className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight leading-[1.1] mb-10 text-balance"
+        >
           {t('about.mission.headline').split(' ').map((word, i, arr) => (
-            i === arr.length - 3 ? <span key={i}>{word} <br className="hidden lg:block"/></span> : 
-            (i >= arr.length - 3 ? <span key={i} className="text-[var(--sp-accent)] relative inline-block group">{word} {i === arr.length - 1 ? '' : ' '}</span> : <span key={i}>{word} </span>)
+            i >= arr.length - 3 
+              ? <span key={i} className="text-[var(--sp-accent)]">{word} </span>
+              : <span key={i}>{word} </span>
           ))}
         </h1>
-        <p className="text-lg lg:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed">
+        <p 
+          style={{ fontFamily: "'Inter', sans-serif" }}
+          className="text-base lg:text-xl text-[var(--text-secondary)] max-w-4xl mx-auto leading-relaxed font-medium opacity-85"
+        >
           {t('about.mission.body')}
         </p>
       </section>
