@@ -3,7 +3,7 @@ import SEO from '../components/SEO';
 
 const TermsOfServicePage = () => {
   return (
-    <LegalLayout title="Terms of Service" lastUpdated="February 23, 2024">
+    <LegalLayout title="Terms of Service" lastUpdated="February 23, 2026">
       <SEO title="Terms of Service" description="Terms of Service for the Strategic Pathways platform." />
       
       <div className="space-y-8 text-[var(--text-secondary)] leading-relaxed">
@@ -17,7 +17,7 @@ const TermsOfServicePage = () => {
         <section>
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">2. The Platform Service</h2>
           <p>
-            Strategic Pathways is a talent execution and venture-building platform. We provide a space for globally trained professionals and institutional partners to collaborate on projects. We are not a job board or a social network; we are an impact-driven ecosystem.
+            Strategic Pathways is a talent execution and venture-building platform. We provide a space for globally trained professionals and institutional partners to collaborate on projects, ventures, and initiatives. We are not a job board or a social network; we are an impact-driven ecosystem.
           </p>
         </section>
 

@@ -1,4 +1,4 @@
-import type { UseFormRegister, FieldErrors, Control } from 'react-hook-form';
+import type { UseFormRegister, FieldErrors, Control, UseFormSetValue } from 'react-hook-form';
 import { useWatch, useFieldArray } from 'react-hook-form';
 import type { OnboardingData } from './schema';
 import { User, Mail, Phone, Linkedin, Globe, Briefcase, Award, Heart, Upload, Zap, Shield, Target, TrendingUp, Check, Plus, Trash2, Camera } from 'lucide-react';
@@ -12,6 +12,8 @@ interface StepProps {
   register: UseFormRegister<OnboardingData>;
   errors: FieldErrors<OnboardingData>;
   control?: Control<OnboardingData>;
+  setValue?: UseFormSetValue<OnboardingData>;
+  readOnlyFields?: string[];
 }
 
 export const ProfileTypeSelection = ({ register, errors }: StepProps) => (
@@ -19,20 +21,26 @@ export const ProfileTypeSelection = ({ register, errors }: StepProps) => (
     <div className="max-w-xl mx-auto space-y-4">
       <h3 className="text-xl font-bold text-[var(--text-primary)]">Select your profile type</h3>
       <p className="text-[var(--text-secondary)] text-sm mb-8">
-        Choose the Standard flow for a quick 5-minute setup, or the Premium flow for high-value consulting opportunities and verification.
+        Choose how you want to participate on the platform. The Standard flow enables fast onboarding. The Premium flow provides verification and access to higher-value professional opportunities.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <label className="cursor-pointer group relative">
-          <input type="radio" value="Standard (MVP)" {...register('profileType')} className="sr-only peer" />
+          <input type="radio" value="Standard Member" {...register('profileType')} className="sr-only peer" />
           <div className="p-8 rounded-3xl border border-[var(--sp-accent)]/20 transition-all peer-checked:bg-[var(--sp-accent)]/10 peer-checked:border-[var(--sp-accent)] hover:bg-white/5 flex flex-col items-center h-full">
             <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
               <Zap size={32} className="text-[var(--sp-accent)]" />
             </div>
-            <div className="font-bold text-xl text-[var(--text-primary)] mb-2">Standard MVP</div>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Lean & Fast. Manual matching support. Perfect for early traction.
+            <div className="font-bold text-xl text-[var(--text-primary)] mb-2">Standard Member</div>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">
+              Fast setup. Ideal for professionals exploring the platform.
             </p>
+            <ul className="text-[10px] text-[var(--text-secondary)] space-y-1 text-left">
+              <li className="flex items-start gap-2"><Check size={12} className="text-[var(--sp-accent)] mt-0.5" />5-minute onboarding</li>
+              <li className="flex items-start gap-2"><Check size={12} className="text-[var(--sp-accent)] mt-0.5" />Standard profile visibility</li>
+              <li className="flex items-start gap-2"><Check size={12} className="text-[var(--sp-accent)] mt-0.5" />Access to curated opportunities</li>
+              <li className="flex items-start gap-2"><Check size={12} className="text-[var(--sp-accent)] mt-0.5" />Manual matching support</li>
+            </ul>
             <div className="mt-auto pt-6 text-[var(--sp-accent)] text-xs font-bold opacity-0 peer-checked:opacity-100 transition-opacity flex items-center gap-1">
                SELECTED <Check size={14} />
             </div>
@@ -48,10 +56,16 @@ export const ProfileTypeSelection = ({ register, errors }: StepProps) => (
             <div className="w-16 h-16 rounded-2xl bg-[var(--sp-accent)]/20 flex items-center justify-center mb-6 border border-[var(--sp-accent)]/30 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(200,159,94,0.1)]">
               <Shield size={32} className="text-[var(--sp-accent)]" />
             </div>
-            <div className="font-bold text-xl text-[var(--text-primary)] mb-2">Premium Verified</div>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Institutional Ready. High-value matching. Verified Professional badge.
+            <div className="font-bold text-xl text-[var(--text-primary)] mb-2">Premium Verified Member</div>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">
+              For professionals seeking verified status and high-value collaborations.
             </p>
+            <ul className="text-[10px] text-[var(--text-secondary)] space-y-1 text-left">
+              <li className="flex items-start gap-2"><Check size={12} className="text-[var(--sp-accent)] mt-0.5" />Verified Professional badge</li>
+              <li className="flex items-start gap-2"><Check size={12} className="text-[var(--sp-accent)] mt-0.5" />Priority matching for consulting opportunities</li>
+              <li className="flex items-start gap-2"><Check size={12} className="text-[var(--sp-accent)] mt-0.5" />Enhanced profile visibility</li>
+              <li className="flex items-start gap-2"><Check size={12} className="text-[var(--sp-accent)] mt-0.5" />Institutional credibility for partnerships</li>
+            </ul>
              <div className="mt-auto pt-6 text-[var(--sp-accent)] text-xs font-bold opacity-0 peer-checked:opacity-100 transition-opacity flex items-center gap-1">
                SELECTED <Check size={14} />
             </div>
@@ -61,12 +75,15 @@ export const ProfileTypeSelection = ({ register, errors }: StepProps) => (
           </div>
         </label>
       </div>
+      <p className="text-[10px] text-[var(--text-secondary)] italic">
+        Your professional data is imported securely from LinkedIn. Strategic Pathways does not post or share information without your permission.
+      </p>
       {errors.profileType && <p className="text-red-400 text-xs mt-4">{errors.profileType.message}</p>}
     </div>
   </div>
 );
 
-export const BasicInfo = ({ register, errors }: StepProps) => (
+export const BasicInfo = ({ register, errors, readOnlyFields }: StepProps) => (
   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-2">
@@ -74,8 +91,9 @@ export const BasicInfo = ({ register, errors }: StepProps) => (
         <div className="relative">
           <input
             {...register('fullName')}
-            className="input-glass w-full pl-10"
+            className={`input-glass w-full pl-10 ${readOnlyFields?.includes('fullName') ? 'opacity-50 cursor-not-allowed' : ''}`}
             placeholder="Enter your full name"
+            readOnly={readOnlyFields?.includes('fullName')}
           />
           <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sp-accent)]" />
         </div>
@@ -100,8 +118,9 @@ export const BasicInfo = ({ register, errors }: StepProps) => (
         <div className="relative">
           <input
             {...register('email')}
-            className="input-glass w-full pl-10"
+            className={`input-glass w-full pl-10 ${readOnlyFields?.includes('email') ? 'opacity-50 cursor-not-allowed' : ''}`}
             placeholder="your@email.com"
+            readOnly={readOnlyFields?.includes('email')}
           />
           <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sp-accent)]" />
         </div>
@@ -116,7 +135,7 @@ export const BasicInfo = ({ register, errors }: StepProps) => (
             className="input-glass w-32 appearance-none"
           >
             {countries.map(country => (
-              <option key={country.code} value={country.code}>
+              <option key={`${country.code}-${country.name}`} value={country.code}>
                 {country.code}
               </option>
             ))}
@@ -133,7 +152,7 @@ export const BasicInfo = ({ register, errors }: StepProps) => (
       </div>
 
       <div className="space-y-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">LinkedIn Profile URL</label>
+        <label className="text-[var(--text-secondary)] text-sm block ml-1">LinkedIn Profile URL (Optional)</label>
         <div className="relative">
           <input
             {...register('linkedinUrl')}
@@ -142,6 +161,7 @@ export const BasicInfo = ({ register, errors }: StepProps) => (
           />
           <Linkedin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sp-accent)]" />
         </div>
+        <p className="text-[10px] text-[var(--text-secondary)] ml-1 italic">Providing a LinkedIn profile acts as a strong trust signal for partners and verification.</p>
         {errors.linkedinUrl && <p className="text-red-400 text-xs mt-1">{errors.linkedinUrl.message}</p>}
       </div>
 
@@ -192,7 +212,7 @@ export const BasicInfo = ({ register, errors }: StepProps) => (
   </div>
 );
 
-export const Education = ({ register, errors }: StepProps) => (
+export const Education = ({ register, errors, readOnlyFields }: StepProps) => (
   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-2">
@@ -238,7 +258,7 @@ export const Education = ({ register, errors }: StepProps) => (
       </div>
 
       <div className="space-y-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">Other Countries Worked In</label>
+        <label className="text-[var(--text-secondary)] text-sm block ml-1">Other Countries Worked In (Optional)</label>
         <input
           {...register('otherCountriesWorked')}
           className="input-glass w-full"
@@ -282,6 +302,17 @@ export const ProfessionalExperience = ({ register, errors, control }: StepProps)
           </select>
         </div>
 
+        {useWatch({ control, name: 'primarySector' }) === 'Other' && (
+          <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
+            <label className="text-[var(--text-secondary)] text-sm block ml-1">Specify Other Sector</label>
+            <input
+              {...register('sectorOther' as any)}
+              className="input-glass w-full"
+              placeholder="Enter your sector..."
+            />
+          </div>
+        )}
+
         <div className="space-y-2 md:col-span-2">
           <label className="text-[var(--text-secondary)] text-sm block ml-1">
             Functional Expertise (Select up to 5)
@@ -322,6 +353,7 @@ export const ProfessionalExperience = ({ register, errors, control }: StepProps)
             <option value="Entrepreneur">Entrepreneur</option>
             <option value="Consultant">Consultant</option>
             <option value="In Transition">In Transition</option>
+            <option value="Unemployed">Unemployed</option>
             <option value="Other">Other</option>
           </select>
         </div>
@@ -374,7 +406,7 @@ export const AreasOfInterest = ({ register, errors }: StepProps) => (
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-2">
-        <label className="text-[var(--text-secondary)] text-sm block ml-1">Availability for Projects</label>
+        <label className="text-[var(--text-secondary)] text-sm block ml-1">Availability</label>
         <select {...register('availability')} className="input-glass w-full appearance-none">
           <option value="5 hours/week">5 hours/week</option>
           <option value="5–10 hours/week">5–10 hours/week</option>
@@ -668,16 +700,19 @@ export const UserCategorySelection = ({ register, errors }: StepProps) => (
   </div>
 );
 
-export const VerificationCredits = ({ register, errors, control }: StepProps) => {
+export const VerificationCredits = ({ register, errors, control, setValue }: StepProps) => {
   const userCategory = useWatch({ control, name: 'userCategory' });
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploaded, setUploaded] = useState<Record<string, boolean>>({});
 
-  const handleFileUpload = async (file: File, fieldName: string, setValue: any) => {
+  const handleFileUpload = async (file: File, fieldName: string) => {
     setUploading(prev => ({ ...prev, [fieldName]: true }));
+    setUploaded(prev => ({ ...prev, [fieldName]: false }));
     try {
       const result = await uploadFile(file, 'verification');
-      setValue(fieldName, result.url);
+      setValue?.(fieldName as any, result.url, { shouldValidate: true, shouldDirty: true });
       toast.success('File uploaded successfully!');
+      setUploaded(prev => ({ ...prev, [fieldName]: true }));
     } catch (error: any) {
       toast.error('Upload failed: ' + error.message);
     } finally {
@@ -685,15 +720,23 @@ export const VerificationCredits = ({ register, errors, control }: StepProps) =>
     }
   };
 
-  const renderUploadField = (name: keyof OnboardingData, label: string, description: string, setValue: any) => (
+  const renderUploadField = (name: keyof OnboardingData, label: string, description: string) => {
+    const currentValue = (control as any)?._formValues?.[name] as string | undefined;
+    const { onChange, ...rest } = register(name as any);
+    return (
     <div className="space-y-2 mb-4 text-left">
       <label className="text-[var(--text-secondary)] text-sm block ml-1 font-medium">{label}</label>
       <div className="relative group">
         <input
-          {...(register(name as any))}
-          className="input-glass w-full pl-10 pr-24 h-12 flex items-center"
-          placeholder="Enter document URL (e.g. Google Drive/Dropbox)"
-        />
+          {...rest}
+            className="input-glass w-full pl-10 pr-24 h-12 flex items-center"
+            placeholder="Enter document URL (e.g. Google Drive/Dropbox)"
+            defaultValue={currentValue || ''}
+            onChange={(e) => {
+              onChange(e);
+              setUploaded(prev => ({ ...prev, [name as string]: false }));
+            }}
+          />
         <Upload size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sp-accent)]" />
         <label className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer">
           <input
@@ -702,7 +745,7 @@ export const VerificationCredits = ({ register, errors, control }: StepProps) =>
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) handleFileUpload(file, name as string, setValue);
+              if (file) handleFileUpload(file, name as string);
             }}
           />
           <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/20 transition-all text-xs font-medium">
@@ -710,31 +753,32 @@ export const VerificationCredits = ({ register, errors, control }: StepProps) =>
               <div className="w-3 h-3 border-2 border-[var(--sp-accent)]/30 border-t-[var(--sp-accent)] rounded-full animate-spin" />
             ) : (
               <>
-                <Camera size={14} />
-                Upload
+                <Camera size={14} /><span className="hidden sm:inline">Upload</span>
               </>
             )}
           </div>
         </label>
       </div>
+      {uploaded[name as string] && (
+        <p className="text-[10px] text-green-400 ml-1 font-semibold">Upload</p>
+      )}
       <p className="text-[10px] text-[var(--text-secondary)] ml-1 italic">{description}</p>
     </div>
-  );
+  );};
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="p-6 bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/20 rounded-2xl">
-        <Upload size={32} className="mx-auto text-[var(--sp-accent)] mb-4" />
-        <h4 className="text-[var(--text-primary)] font-semibold mb-2 text-center">Verification Documents</h4>
+        <h4 className="text-[var(--text-primary)] font-semibold mb-2 text-center">Document Uploads</h4>
         <p className="text-[var(--text-secondary)] text-sm mb-6 text-center">
-          Please provide links to your verification documents. You can use secure cloud storage links (ensure they are accessible to our admin).
+          Please provide secure cloud storage links (e.g. Google Drive/Dropbox) to the required documents below. Ensure they are accessible to our admin team.
         </p>
 
         <div className="space-y-4">
           {/* Identity Proof (Required for all) */}
           {renderUploadField(
             'identityProofUrl', 
-            'Identity & Passport Proof', 
+            'Identity & Passport Proof *', 
             'Kenyan passport (ID page) or National ID to confirm nationality.',
             control?._formValues ? (name: string, value: any) => control._formValues[name] = value : () => {}
           )}
@@ -743,7 +787,7 @@ export const VerificationCredits = ({ register, errors, control }: StepProps) =>
           {userCategory === 'Study-Abroad Returnee (Recent Graduate)' && (
             renderUploadField(
               'academicProofUrl', 
-              'Academic Verification', 
+              'Academic Verification *', 
               'Degree certificate, transcript, or graduation letter.',
               control?._formValues ? (name: string, value: any) => control._formValues[name] = value : () => {}
             )

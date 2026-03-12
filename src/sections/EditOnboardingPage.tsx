@@ -1,24 +1,70 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, ChevronLeft, ChevronRight, Check, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { onboardingSchema, type OnboardingData } from './onboarding/schema';
 import * as Steps from './onboarding/OnboardingSteps';
 
+const getSteps = () => [
+  { id: 'profileType', title: 'Profile Type', component: Steps.ProfileTypeSelection },
+  { id: 'basic', title: 'Basic Information', component: Steps.BasicInfo },
+  { id: 'education', title: 'Education & Global', component: Steps.Education },
+  { id: 'experience', title: 'Professional Experience', component: Steps.ProfessionalExperience },
+  { id: 'interest', title: 'Areas of Interest', component: Steps.AreasOfInterest },
+  { id: 'premium', title: 'Recommended: Professional Details', component: Steps.PremiumDetails },
+  { id: 'contribution', title: 'Contribution & Value', component: Steps.ContributionValue },
+  { id: 'income', title: 'Income & Venture', component: Steps.IncomeVenture },
+  { id: 'category', title: 'User Category', component: Steps.UserCategorySelection },
+  { id: 'verification', title: 'Verification Documents', component: Steps.VerificationCredits },
+  { id: 'visibility', title: 'Community Visibility', component: Steps.CommunityVisibility },
+];
+
+const getFieldsForStepId = (stepId: string) => {
+  switch (stepId) {
+    case 'profileType': return ['profileType'];
+    case 'basic': return ['fullName', 'professionalTitle', 'email', 'linkedinUrl', 'websiteUrl', 'countryOfResidence', 'nationality'];
+    case 'education': return ['highestEducation', 'studyCountry', 'institutions', 'fieldOfStudy'];
+    case 'experience': return ['yearsOfExperience', 'primarySector', 'functionalExpertise', 'employmentStatus', 'bio'];
+    case 'interest': return ['engagementTypes', 'availability', 'preferredFormat'];
+    case 'premium': return ['keyAchievements', 'industrySubSpecialization', 'compensationExpectation', 'preferredProjectType'];
+    case 'contribution': return ['specificSkills', 'passionateProblems', 'sdgAlignment'];
+    case 'income': return ['seekingIncome', 'ventureInterest', 'investorInterest'];
+    case 'category': return ['userCategory'];
+    case 'verification': return ['consentToVerification', 'identityProofUrl', 'academicProofUrl', 'employmentProofUrl', 'residencyProofUrl', 'professionalProofUrl'];
+    case 'visibility': return ['openToSpotlight', 'wouldLikeToMentor', 'communityAmbassador'];
+    default: return [];
+  }
+};
+
 const EditOnboardingPage = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDraftSaving, setIsDraftSaving] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const { register, handleSubmit, control, formState: { errors }, reset } = useForm<OnboardingData>({
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+    trigger,
+    setValue,
+  } = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     mode: 'onChange'
   });
+
+  const profileType = useWatch({ control, name: 'profileType' }) || 'Standard Member';
+  const steps = getSteps();
+  const ActiveComponent = steps[currentStep].component as any;
+  const progress = Math.round(((currentStep + 1) / steps.length) * 100);
 
   useEffect(() => {
     if (!user) {
@@ -38,7 +84,7 @@ const EditOnboardingPage = () => {
 
         if (data) {
           const formData: Partial<OnboardingData> = {
-            profileType: data.profile_type || 'Standard (MVP)',
+            profileType: data.profile_type || 'Standard Member',
             fullName: data.full_name || '',
             professionalTitle: data.professional_title || '',
             email: data.email || '',
@@ -102,74 +148,98 @@ const EditOnboardingPage = () => {
     fetchOnboardingData();
   }, [user, navigate, reset]);
 
-  const onSubmit = async (data: OnboardingData) => {
-    if (!user) return;
+  const normalize = (v?: string | null) => {
+    if (v === undefined || v === null) return null;
+    if (typeof v === 'string') {
+      const trimmed = v.trim();
+      return trimmed === '' ? null : trimmed;
+    }
+    return v as any;
+  };
 
-    setIsSaving(true);
+  const normalizeRange = (v?: string | null) => {
+    const val = normalize(v);
+    if (!val) return val;
+    return val.replace('–', '-');
+  };
+
+  const persistProfile = async (data: OnboardingData) => {
+    if (!user) throw new Error('Not authenticated');
+
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user.id,
           profile_type: data.profileType,
-          full_name: data.fullName,
-          professional_title: data.professionalTitle,
+          full_name: normalize(data.fullName),
+          professional_title: normalize(data.professionalTitle),
           email: data.email,
-          phone: data.phone,
+          phone: normalize(data.phone),
           country_code: data.countryCode,
-          linkedin_url: data.linkedinUrl,
-          website_url: data.websiteUrl,
-          location: data.countryOfResidence,
-          nationality: data.nationality,
+          linkedin_url: normalize(data.linkedinUrl),
+          website_url: normalize(data.websiteUrl),
+          location: normalize(data.countryOfResidence),
+          nationality: normalize(data.nationality),
           education: {
-            level: data.highestEducation,
-            country: data.studyCountry,
-            institutions: data.institutions,
-            field: data.fieldOfStudy,
-            other_countries: data.otherCountriesWorked,
-            languages: data.languagesSpoken
+            level: normalize(data.highestEducation),
+            country: normalize(data.studyCountry),
+            institutions: normalize(data.institutions),
+            field: normalize(data.fieldOfStudy),
+            other_countries: normalize(data.otherCountriesWorked),
+            languages: data.languagesSpoken || []
           },
-          years_of_experience: data.yearsOfExperience,
+          years_of_experience: normalizeRange(data.yearsOfExperience),
           sector: data.primarySector,
           expertise: data.functionalExpertise,
           employment_status: data.employmentStatus,
-          organisation: data.currentOrganisation,
-          bio: data.bio,
+          organisation: normalize(data.currentOrganisation),
+          bio: normalize(data.bio),
           engagement_types: data.engagementTypes,
           availability: data.availability,
           preferred_format: data.preferredFormat,
-          skills: data.specificSkills,
-          passions: data.passionateProblems,
+          skills: normalize(data.specificSkills),
+          passions: normalize(data.passionateProblems),
           worked_with_smes: data.workedWithSmes,
-          sme_experience: data.smeDescription,
+          sme_experience: normalize(data.smeDescription),
           cross_sector: data.crossSectorCollaboration,
           seeking_income: data.seekingIncome,
           venture_interest: data.ventureInterest,
           investor_interest: data.investorInterest,
           user_category: data.userCategory,
           verification_docs: {
-            identity_proof: data.identityProofUrl,
-            academic_proof: data.academicProofUrl,
-            employment_proof: data.employmentProofUrl,
-            residency_proof: data.residencyProofUrl,
-            professional_proof: data.professionalProofUrl
+            identity_proof: normalize(data.identityProofUrl),
+            academic_proof: normalize(data.academicProofUrl),
+            employment_proof: normalize(data.employmentProofUrl),
+            residency_proof: normalize(data.residencyProofUrl),
+            professional_proof: normalize(data.professionalProofUrl)
           },
-          professional_references: data.references,
+          professional_references: normalize(data.references),
           visibility_settings: {
             spotlight: data.openToSpotlight,
             mentor: data.wouldLikeToMentor,
             ambassador: data.communityAmbassador
           },
-          key_achievements: data.keyAchievements,
-          industry_sub_spec: data.industrySubSpecialization,
+          key_achievements: normalize(data.keyAchievements),
+          industry_sub_spec: normalize(data.industrySubSpecialization),
           compensation_expectation: data.compensationExpectation,
           preferred_project_types: data.preferredProjectType,
-          sdg_alignment: data.sdgAlignment,
+          sdg_alignment: data.sdgAlignment || [],
           updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        }, { onConflict: 'id' });
 
       if (error) throw error;
+    } catch (error: any) {
+      throw error;
+    }
+  };
 
+  const onSubmit = async (data: OnboardingData) => {
+    if (!user) return;
+
+    setIsSaving(true);
+    try {
+      await persistProfile(data);
       toast.success('Profile updated successfully!');
       navigate('/profile');
     } catch (error: any) {
@@ -177,6 +247,21 @@ const EditOnboardingPage = () => {
       toast.error('Failed to update profile: ' + error.message);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const saveDraft = async () => {
+    if (!user) return;
+    setIsDraftSaving(true);
+    try {
+      const data = (await trigger()) ? undefined : undefined; // no-op to satisfy type
+      const payload = (control as any)._formValues as OnboardingData;
+      await persistProfile(payload);
+      toast.success('Draft saved');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save draft');
+    } finally {
+      setIsDraftSaving(false);
     }
   };
 
@@ -204,91 +289,79 @@ const EditOnboardingPage = () => {
             Edit Your Profile
           </h1>
           <p className="text-[var(--text-secondary)]">
-            Update your onboarding information and keep your profile current
+            Update your onboarding information. Progress is saved on completion.
           </p>
+          <div className="mt-4 w-full bg-white/5 h-2 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[var(--sp-accent)]/60 to-[var(--sp-accent)] transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] uppercase tracking-[0.15em] text-[var(--text-secondary)] mt-2">
+            <span>Step {currentStep + 1} / {steps.length}</span>
+            <span>{steps[currentStep].title}</span>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Profile Type</h2>
-            <Steps.ProfileTypeSelection register={register} errors={errors} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Basic Information</h2>
-            <Steps.BasicInfo register={register} errors={errors} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Education</h2>
-            <Steps.Education register={register} errors={errors} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Professional Experience</h2>
-            <Steps.ProfessionalExperience register={register} errors={errors} control={control} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Areas of Interest</h2>
-            <Steps.AreasOfInterest register={register} errors={errors} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Premium Details</h2>
-            <Steps.PremiumDetails register={register} control={control} errors={errors} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Contribution & Value</h2>
-            <Steps.ContributionValue register={register} errors={errors} control={control} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Income & Venture</h2>
-            <Steps.IncomeVenture register={register} errors={errors} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">User Category</h2>
-            <Steps.UserCategorySelection register={register} errors={errors} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Verification Documents</h2>
-            <Steps.VerificationCredits register={register} errors={errors} control={control} />
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Community Visibility</h2>
-            <Steps.CommunityVisibility register={register} errors={errors} />
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="sp-btn-primary flex-1 flex items-center justify-center gap-2"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Saving...
-                </>
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">{steps[currentStep].title}</h2>
+            <ActiveComponent
+              register={register}
+              errors={errors}
+              control={control}
+              setValue={setValue}
+              readOnlyFields={['fullName', 'email']}
+            />
+            <div className="mt-8 flex justify-between gap-4 pt-6 border-t border-white/10">
+              <button
+                type="button"
+                disabled={currentStep === 0}
+                onClick={() => {
+                  setCurrentStep((s) => Math.max(0, s - 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="sp-btn-glass flex items-center gap-2 disabled:opacity-40"
+              >
+                <ChevronLeft size={18} /> Back
+              </button>
+              {currentStep < steps.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const fields = getFieldsForStepId(steps[currentStep].id);
+                    const ok = await trigger(fields as any);
+                    if (ok) {
+                      setCurrentStep((s) => Math.min(steps.length - 1, s + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                      toast.error('Please fix the errors before continuing.');
+                    }
+                  }}
+                  className="sp-btn-primary flex items-center gap-2"
+                >
+                  Next <ChevronRight size={18} />
+                </button>
               ) : (
-                <>
-                  <Save size={18} />
-                  Save Changes
-                </>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="sp-btn-primary flex items-center gap-2"
+                >
+                  {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </button>
               )}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/profile')}
-              className="sp-btn-glass"
-            >
-              Cancel
-            </button>
+              <button
+                type="button"
+                disabled={isDraftSaving}
+                onClick={saveDraft}
+                className="sp-btn-glass flex items-center gap-2"
+              >
+                {isDraftSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {isDraftSaving ? 'Saving…' : 'Save Draft'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

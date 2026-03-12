@@ -84,10 +84,10 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
 
   const navLinks = [
     { label: t('nav.about'), path: '/concept-note' },
-    { label: t('footer.howItWorks'), path: '/how-it-works' },
-    { label: t('footer.successStories'), path: '/success-stories' },
+    { label: t('nav.howItWorks'), path: '/how-it-works' }, 
     { label: t('nav.opportunities'), path: '/opportunities' },
-    { label: t('footer.contact'), path: '/contact' },
+    { label: t('nav.impact'), path: '/impact' },
+    { label: t('nav.contact'), path: '/contact' },
   ];
 
   return (
@@ -99,9 +99,9 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
             : 'bg-transparent py-5'
         }`}
       >
-        <div className="w-full px-6 lg:px-12 flex items-center">
+        <div className="w-full px-6 lg:px-12 flex items-center justify-between">
           {/* Logo - Left */}
-          <div className="flex-none">
+          <div className="flex-none flex flex-col items-start lg:items-center leading-tight">
             <button 
               onClick={() => navigate('/')}
               className="flex items-center gap-3 group"
@@ -111,9 +111,12 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                 alt="Strategic Pathways" 
                 width={160}
                 height={40}
-                className="h-10 w-auto object-contain transform scale-150 lg:scale-[1.75] origin-left"
+                className="h-8 lg:h-10 w-auto object-contain transform scale-125 lg:scale-[1.75] origin-left"
               />
             </button>
+            <span className="lg:hidden text-[9px] font-bold text-[var(--sp-accent)] mt-1.5 tracking-[0.15em] uppercase whitespace-nowrap opacity-80">
+              Kenya Talent Network
+            </span>
           </div>
 
           {/* Desktop Navigation Links (Centered) */}
@@ -231,7 +234,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden text-[var(--text-primary)] p-2 glass-light rounded-lg"
+            className="lg:hidden text-[var(--text-primary)] p-2 ml-auto glass-light rounded-lg relative z-[101]"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

@@ -24,12 +24,12 @@ export const ProfileTypeSelection = ({ register, errors }: StepProps) => (
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <label className="cursor-pointer group relative">
-          <input type="radio" value="Standard (MVP)" {...register('profileType')} className="sr-only peer" />
+          <input type="radio" value="Standard Member" {...register('profileType')} className="sr-only peer" />
           <div className="p-8 rounded-3xl border border-[var(--sp-accent)]/20 transition-all peer-checked:bg-[var(--sp-accent)]/10 peer-checked:border-[var(--sp-accent)] hover:bg-white/5 flex flex-col items-center h-full">
             <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
               <Zap size={32} className="text-[var(--sp-accent)]" />
             </div>
-            <div className="font-bold text-xl text-[var(--text-primary)] mb-2">Standard MVP</div>
+            <div className="font-bold text-xl text-[var(--text-primary)] mb-2">Standard Member</div>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
               Lean & Fast. Manual matching support. Perfect for early traction.
             </p>

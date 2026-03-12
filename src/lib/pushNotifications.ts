@@ -2,6 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { getToken, onMessage } from 'firebase/messaging';
 import { messaging } from './firebase';
+import { toast } from 'sonner';
 
 export class PushNotificationService {
   static async requestPermission() {
@@ -23,25 +24,25 @@ export class PushNotificationService {
 
   static async saveTokenToDatabase(token: string) {
     const { supabase } = await import('./supabase');
-    const user = supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (user) {
-      await supabase
-        .from('profiles')
-        .update({ fcm_token: token })
-        .eq('id', (await user).data.user?.id);
+    if (user?.id) {
+      console.warn("Skipping FCM token save: 'fcm_token' column missing in profiles table");
+      // await supabase
+      //   .from('profiles')
+      //   .update({ fcm_token: token })
+      //   .eq('id', user.id);
     }
   }
 
   static setupForegroundListener() {
     onMessage(messaging, (payload) => {
-      const { toast } = require('sonner');
       
       toast.success(payload.notification?.title || 'New notification', {
         description: payload.notification?.body,
-        action: payload.data?.url ? {
+        action: payload.data && payload.data.url ? {
           label: 'View',
-          onClick: () => window.open(payload.data.url, '_blank')
+          onClick: () => window.open(payload.data?.url, '_blank')
         } : undefined
       });
     });

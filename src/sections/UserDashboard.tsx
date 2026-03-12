@@ -8,7 +8,7 @@ import { rankOpportunities, MOCK_OPPORTUNITIES } from '../utils/opportunities';
 import { 
   TrendingUp, Users, Calendar, Award, Target, Briefcase, 
   CheckCircle, Clock, Star, ArrowRight, Zap, Globe, Heart, Gift, Copy, Share2,
-  FileText, Settings, Upload, ExternalLink, Shield
+  FileText, Settings, Upload, ExternalLink, Shield, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -43,7 +43,8 @@ const UserDashboard = () => {
       setProfile(profileData);
 
       const refCode = user?.id?.substring(0, 8) || 'demo';
-      setReferralLink(`https://strategicpathways.co.ke/signup?ref=${refCode}`);
+      const origin = window.location.origin;
+      setReferralLink(`${origin}/signup?ref=${refCode}`);
 
       // Calculate dynamic match score
       let hasCV = false;
@@ -161,31 +162,49 @@ const UserDashboard = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-[var(--text-primary)]">Recommended for You</h2>
                 <button 
-                  onClick={() => navigate('/opportunities')}
+                  onClick={() => (['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) ? navigate('/pricing') : navigate('/opportunities')}
                   className="text-[var(--sp-accent)] hover:underline text-sm flex items-center gap-1"
                 >
-                  View all matches <ArrowRight size={16} />
+                  {(['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) ? 'Upgrade to view all' : 'View all matches'} <ArrowRight size={16} />
                 </button>
               </div>
               <div className="space-y-6">
-                {opportunities.map(opp => (
-                  <div 
-                    key={opp.id} 
-                    className="glass-light p-6 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
-                    onClick={() => navigate('/opportunities')}
-                  >
-                    <h3 className="font-bold text-[var(--text-primary)] mb-2">{opp.title}</h3>
-                    <p className="text-sm text-[var(--text-secondary)] mb-4">{opp.org}</p>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="px-3 py-1 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-xs font-medium">
-                        {opp.sector}
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium">
-                        {opp.type}
-                      </span>
-                    </div>
+                {(['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center glass-light rounded-xl border border-white/5">
+                    <Shield size={40} className="text-[var(--sp-accent)]/20 mb-3" />
+                    <p className="text-sm font-bold text-[var(--text-primary)] mb-1">Premium Feature</p>
+                    <p className="text-xs text-[var(--text-secondary)] max-w-[250px] mb-4">Upgrade to Premium to view personalized opportunities matched to your profile.</p>
+                    <button onClick={() => navigate('/pricing')} className="sp-btn-primary py-2 px-6 text-sm">Upgrade to Premium</button>
                   </div>
-                ))}
+                ) : opportunities.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center glass-light rounded-xl border border-[var(--sp-accent)]/20 border-dashed">
+                    <div className="w-16 h-16 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center mb-4">
+                       <Target size={32} className="text-[var(--sp-accent)]" />
+                    </div>
+                    <p className="text-lg font-bold text-[var(--text-primary)] mb-2">No Matches Yet</p>
+                    <p className="text-sm text-[var(--text-secondary)] max-w-[300px] mb-6">Unlock your first recommendation by adding at least 3 relevant skills to your profile.</p>
+                    <button onClick={() => navigate('/profile/edit')} className="sp-btn-primary py-2 px-6">Optimize Profile</button>
+                  </div>
+                ) : (
+                  opportunities.map(opp => (
+                    <div 
+                      key={opp.id} 
+                      className="glass-light p-6 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
+                      onClick={() => navigate('/opportunities')}
+                    >
+                      <h3 className="font-bold text-[var(--text-primary)] mb-2">{opp.title}</h3>
+                      <p className="text-sm text-[var(--text-secondary)] mb-4">{opp.org}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-3 py-1 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-xs font-medium">
+                          {opp.sector}
+                        </span>
+                        <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium">
+                          {opp.type}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -237,14 +256,15 @@ const UserDashboard = () => {
                 </h4>
                 <div className="space-y-3">
                   {actionItems.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between glass-light p-4 rounded-xl transition-all hover:bg-white/5">
-                      <div>
-                         <p className="font-medium text-[var(--text-primary)] text-sm">{item.title}</p>
-                         <p className="text-xs text-[var(--sp-accent)] font-bold mt-1">+{item.reward}% Match Score</p>
+                    <div key={i} className="flex items-center justify-between glass-light p-4 rounded-xl transition-all hover:bg-white/5 cursor-pointer group" onClick={() => navigate(item.actionPath)}>
+                      <div className="flex items-center gap-4">
+                        <div className="w-5 h-5 rounded-full border-2 border-[var(--text-secondary)] flex-shrink-0 group-hover:border-[var(--sp-accent)] transition-colors" />
+                        <div>
+                           <p className="font-medium text-[var(--text-primary)] text-sm group-hover:text-[var(--sp-accent)] transition-colors">{item.title}</p>
+                           <p className="text-xs text-[var(--sp-accent)] font-bold mt-1">+{item.reward}% Match Score</p>
+                        </div>
                       </div>
-                      <button onClick={() => navigate(item.actionPath)} className="sp-btn-glass text-xs py-1.5 px-3 rounded-lg border border-[var(--sp-accent)]/30 hover:bg-[var(--sp-accent)]/10 text-[var(--sp-accent)]">
-                        Do it now
-                      </button>
+                      <ChevronRight size={18} className="text-[var(--text-secondary)] group-hover:text-[var(--sp-accent)] group-hover:translate-x-1 transition-all" />
                     </div>
                   ))}
                 </div>
@@ -357,15 +377,15 @@ const UserDashboard = () => {
               </div>
               <div className="space-y-3">
                 {[
-                  { label: 'Sector Match (25%)', value: matchScores?.sectorMatch || 0, max: 25 },
-                  { label: 'Functional Skill (25%)', value: matchScores?.functionalSkill || 0, max: 25 },
-                  { label: 'Geo Relevance (15%)', value: matchScores?.geoRelevance || 0, max: 15 },
-                  { label: 'Experience Prep (15%)', value: matchScores?.experiencePrep || 0, max: 15 },
-                  { label: 'Intent Overlay (20%)', value: matchScores?.intentOverlay || 0, max: 20 }
+                  { label: 'Sector Match (25%)', value: matchScores?.sectorMatch || 0, max: 25, tip: 'Based on your primary sector alignment with our network.' },
+                  { label: 'Functional Skill (25%)', value: matchScores?.functionalSkill || 0, max: 25, tip: 'Reflects the depth and verify-status of your professional skills.' },
+                  { label: 'Geo Relevance (15%)', value: matchScores?.geoRelevance || 0, max: 15, tip: 'Measures your location readiness and remote preferences.' },
+                  { label: 'Experience Prep (15%)', value: matchScores?.experiencePrep || 0, max: 15, tip: 'Evaluates your years of experience and past projects.' },
+                  { label: 'Intent Overlay (20%)', value: matchScores?.intentOverlay || 0, max: 20, tip: 'Your engagement style matching the market demand.' }
                 ].map((item, i) => (
-                  <div key={i}>
+                  <div key={i} className="group relative" title={item.tip}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-[var(--text-secondary)]">{item.label}</span>
+                      <span className="text-[var(--text-secondary)] border-b border-dashed border-white/20 cursor-help">{item.label}</span>
                       <span className="text-[var(--text-primary)] font-bold">{Math.round((item.value / item.max) * 100)}%</span>
                     </div>
                     <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">

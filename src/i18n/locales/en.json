@@ -1,58 +1,59 @@
 {
   "nav": {
     "about": "About",
-    "howItWorks": "How it Works",
+    "howItWorks": "Pathway",
     "pricing": "Pricing",
     "audience": "For Professionals",
     "opportunities": "Opportunities",
     "impact": "Impact",
+    "contact": "Contact",
     "login": "Login",
     "register": "Register"
   },
   "hero": {
-    "title": "Where Global Skills Come Full Circle",
-    "subtitle": "A talent execution and venture-building platform mobilising study-abroad returnees into impactful local projects that foster sustainable brain circulation.",
-    "cta": "Explore Opportunities",
-    "secondary": "Learn More"
+    "title": "A talent execution and venture-building platform mobilising globally trained professionals into collaborative projects, ventures, and initiatives that foster sustainable brain circulation.",
+    "subtitle": "",
+    "cta": "Free to Join! Vetted Membership",
+    "secondary": "Explore Opportunities"
   },
   "value": {
     "title": "Why Strategic Pathways?",
     "outcomeLabel": "Member Outcomes",
     "headline": "Real work. Real growth. Real impact.",
     "benefits": {
-      "projects": "Access to vetted consulting projects and research partnerships.",
+      "projects": "Access to collaborative projects, ventures, and initiatives.",
       "mentorship": "Mentorship, peer learning, and leadership development.",
-      "profile": "A credible profile that counties, NGOs, and donors trust."
+      "profile": "A credible profile trusted by county governments and development partners."
     },
     "cta": "See how it works"
   },
   "audience": {
-    "headline": "Built for returnees. Open to institutions.",
+    "headline": "Built for Professionals. Open to Partners",
     "caption": "If you're working on Kenya's development, you belong here.",
     "returnees": "Study-abroad returnees & diaspora experts",
     "institutions": "Counties · Universities · NGOs · Donors"
   },
   "howItWorks": {
     "headline": "How membership works",
-    "subheadline": "A simple, credible path from application to opportunity.",
+    "subheadline": "A simple and credible path from joining to opportunity",
     "steps": [
       {
-        "title": "Apply & verify",
+        "title": "Join & Verify",
         "description": "Share your background. We review for fit and credibility."
       },
       {
-        "title": "Connect & collaborate",
+        "title": "Connect & Collaborate",
         "description": "Join circles, attend briefings, and meet partners."
       },
       {
-        "title": "Win work & grow",
+        "title": "Win, Work & Grow",
         "description": "Bid on projects, join teams, and track your impact."
       }
     ]
   },
   "impact": {
     "headline": "Impact that scales.",
-    "label": "Pilot Targets (Year 1)",
+    "label": "Success Stories",
     "stats": {
       "professionals": "Professionals onboarded",
       "partners": "Institutional partners",
@@ -78,6 +79,8 @@
       "email": "Email",
       "location": "Location",
       "locationVal": "Nairobi, Kenya · Remote across counties",
+      "phone": "Phone/WhatsApp",
+      "phoneVal": "+254 712 275 470",
       "responseTime": "Response Time",
       "responseTimeVal": "We respond within 2 business days.",
       "name": "Name",
@@ -99,29 +102,29 @@
   },
   "pricing": {
     "headline": "Membership that fits.",
-    "subheadline": "Start free. Upgrade when you're ready to bid on projects.",
+    "subheadline": "Start free. Upgrade when you are ready to win, work and grow.",
     "recommended": "Recommended",
     "tiers": {
       "community": {
         "name": "Community",
         "price": "Free",
-        "description": "3 features",
+        "description": "Core profile features/Community access/Learning & insights",
         "features": ["Profile listing", "Monthly newsletter", "Event invites"],
         "cta": "Join free"
       },
       "professional": {
         "name": "Professional",
-        "price": "only $100",
-        "period": "/year (or $10/month)",
-        "description": "6 features",
-        "features": ["Everything in Community", "Project alerts + early access", "Partner introductions", "Credibility badge"],
+        "price": "$100/year",
+        "period": "(or $10/month)",
+        "description": "Advanced professional profile/Opportunity access/Collaboration tools/Income opportunities/Professional development/Analytics & personal insights",
+        "features": ["Everything in Community", "Project alerts + early access", "Partner introductions", "Credibility badge", "Direct messaging to partners", "Access to impact analytics"],
         "cta": "Choose Professional"
       },
       "firm": {
-        "name": "Firm",
+        "name": "Partners",
         "price": "Custom",
-        "description": "8 features",
-        "features": ["Team onboarding", "Dedicated account support", "Co-branded opportunities"],
+        "description": "Talent access/Opportunity posting/Team assembly/Project execution support/Branding & visibility/Ecosystem intelligence/Custom programs",
+        "features": ["Team onboarding", "Dedicated account support", "Co-branded opportunities", "Custom integration pipeline", "Bespoke analytics reports", "Priority program placement", "Quarterly strategy review"],
         "cta": "Contact us"
       }
     },
@@ -200,6 +203,7 @@
       "projects": "Projects",
       "applications": "Applications",
       "analytics": "Analytics",
+      "admins": "Admins",
       "settings": "Settings"
     },
     "stats": {
@@ -268,28 +272,32 @@
     }
   },
   "footer": {
-    "brandDesc": "Connecting globally trained African professionals with opportunities for impact. Transforming brain drain into brain circulation.",
+    "brandDesc": "Connecting globally trained professionals into collaborative projects, ventures, and initiatives that foster sustainable brain circulation.",
+    "tagline": "Where Global Skills Come Full Circle",
     "platform": "Platform",
     "opportunities": "Opportunities",
     "profile": "Profile",
     "verification": "Verification",
     "about": "About",
-    "company": "Company",
-    "howItWorks": "How It Works",
-    "successStories": "Success Stories",
+    "company": "Platform",
+    "howItWorks": "Pathway",
+    "successStories": "Impact",
     "careers": "Careers",
     "contact": "Contact",
     "resources": "Resources",
     "blog": "Blog",
     "helpCenter": "Help Center",
     "community": "Community",
+    "explore": "Explore",
+    "legal": "Legal",
+    "partners": "Partner Program",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "cookies": "Cookie Policy",
     "connect": "Ready to make an impact?",
-    "madeWith": "Connecting Africa's Global Talent with Local Impact.",
+    "madeWith": "Where Global Skills Come Full Circle",
     "rights": "Strategic Pathways. All rights reserved.",
-    "compliance": "A platform for professionals, consultancy, and business opportunities in Kenya."
+    "compliance": "A talent execution and venture-building platform mobilising globally trained professionals into collaborative projects, ventures, and initiatives that foster sustainable brain circulation."
   },
   "common": {
     "dashboard": "Dashboard",
@@ -489,3 +497,4 @@
     }
   }
 }
+

@@ -100,6 +100,7 @@ const LoginPage = () => {
   }, [session, navigate, setSession, setUser]);
 
   const [loading, setLoading] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [accountExists, setAccountExists] = useState<boolean | null>(null);
@@ -142,7 +143,7 @@ const LoginPage = () => {
 
   const checkAccountExists = async () => {
     if (!formData.email) return;
-    setLoading(true);
+    setIsCheckingEmail(true);
     try {
       const { data } = await supabase.rpc('check_user_exists', { user_email: formData.email });
       const exists = data || false;
@@ -155,33 +156,45 @@ const LoginPage = () => {
       setAccountExists(false);
       setIsSignUp(true);
     } finally {
-      setLoading(false);
+      setIsCheckingEmail(false);
     }
   };
 
   const handleSendToken = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
-    if (isSignUp && !formData.name) {
-      toast.error('Please enter your full name');
-      return;
-    }
+    if (!formData.email) return;
 
     setLoading(true);
     try {
+      // Ensure account existence is checked if not already known
+      let currentIsSignUp = isSignUp;
+      if (accountExists === null) {
+        const { data } = await supabase.rpc('check_user_exists', { user_email: formData.email });
+        const exists = data || false;
+        setAccountExists(exists);
+        currentIsSignUp = !exists;
+        setIsSignUp(currentIsSignUp);
+      }
+
+      if (currentIsSignUp && !formData.name) {
+        toast.error('Please enter your full name');
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email: formData.email,
         options: {
           emailRedirectTo: `${window.location.origin}/profile`,
-          shouldCreateUser: isSignUp,
-          data: isSignUp ? { full_name: formData.name } : undefined
+          shouldCreateUser: currentIsSignUp,
+          data: currentIsSignUp ? { full_name: formData.name } : undefined
         }
       });
 
       if (error) throw error;
       
       setOtpSent(true);
-      toast.success(isSignUp ? t('auth.toast.sentVerify') : t('auth.toast.sentLogin'));
+      toast.success(currentIsSignUp ? t('auth.toast.sentVerify') : t('auth.toast.sentLogin'));
     } catch (error: any) {
       toast.error(error.message || 'Failed to send code.');
     } finally {
@@ -441,16 +454,13 @@ const LoginPage = () => {
             </div>
           )}
           
-          {!otpSent && accountExists !== null && (
+          {!otpSent && (
             <div className="mt-6 text-center text-[var(--text-secondary)] text-sm">
               {isSignUp ? "Already have an account? " : "Don't have an account? "}
               <button
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setAccountExists(null);
-                  setFormData({ ...formData, name: '' });
-                }}
+                onClick={() => navigate(isSignUp ? '/login' : '/signup')}
                 className="text-[var(--sp-accent)] font-medium hover:text-[var(--text-primary)] transition-colors"
+                type="button"
               >
                 {isSignUp ? t('auth.login.logIn') : t('auth.login.signUp')}
               </button>

@@ -15,25 +15,26 @@ export class ComprehensiveNotificationService {
     // Get user details
     const { data: profile } = await supabase
       .from('profiles')
-      .select('email, full_name, fcm_token, notification_preferences')
+      .select('email, full_name')
       .eq('id', userId)
       .single();
 
     if (!profile) return;
 
-    const preferences = profile.notification_preferences || {
+    const preferences = {
       in_app: true,
       email: true,
-      push: true
+      push: false
     };
 
     // 1. In-app notification (always send)
     await NotificationService.createNotification(userId, title, message, type, data);
 
     // 2. Push notification (if enabled and token exists)
-    if (preferences.push && profile.fcm_token) {
+    // Disabled locally until fcm_token column is added
+    if (preferences.push && false) {
       await PushNotificationService.sendPushNotification(
-        profile.fcm_token,
+        'mock-token',
         title,
         message,
         data

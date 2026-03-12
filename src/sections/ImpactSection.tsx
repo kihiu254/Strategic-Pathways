@@ -79,12 +79,12 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
       className={`sp-section-pinned bg-[var(--bg-primary)] ${className}`}
     >
       <div className="w-full h-full flex items-center justify-center px-6 lg:px-12">
-        <div className="relative w-full max-w-[1400px] h-[64vh] flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="relative w-full max-w-[1400px] h-auto lg:h-[64vh] flex flex-col lg:flex-row gap-6 lg:gap-8 py-12 lg:py-0">
           
           {/* Left Photo Card */}
           <div 
             ref={photoRef}
-            className="sp-card w-full lg:w-[38vw] h-[30vh] lg:h-full relative"
+            className="sp-card w-full lg:w-[38vw] h-[40vh] lg:h-full relative"
           >
             <img 
               src="/images/impact_mentorship.jpg" 

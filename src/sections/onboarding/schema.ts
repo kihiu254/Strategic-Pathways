@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const onboardingSchema = z.object({
   // Step 0: Profile Type
-  profileType: z.enum(['Standard (MVP)', 'Premium (Verified)']),
+  profileType: z.enum(['Standard Member', 'Premium (Verified)']),
 
   // SECTION 1: Basic Information
   fullName: z.string().min(2, 'Full name is required'),
@@ -16,13 +16,34 @@ export const onboardingSchema = z.object({
   nationality: z.string().min(2, 'Nationality is required'),
 
   // SECTION 2: Education & Global Exposure
-  highestEducation: z.string().min(1, 'Education level is required').optional(),
-  educationOther: z.string().optional(),
-  studyCountry: z.string().min(2, 'Country of study is required').optional(),
-  institutions: z.string().min(2, 'Institution name is required').optional(),
-  institutionOther: z.string().optional(),
-  fieldOfStudy: z.string().min(2, 'Field of study is required').optional(),
-  otherCountriesWorked: z.array(z.string()).optional(),
+  highestEducation: z.preprocess(
+    (v) => typeof v === 'string' && v.trim() === '' ? undefined : v,
+    z.string().min(1, 'Education level is required').optional()
+  ),
+  educationOther: z.preprocess(
+    (v) => typeof v === 'string' && v.trim() === '' ? undefined : v,
+    z.string().optional()
+  ),
+  studyCountry: z.preprocess(
+    (v) => typeof v === 'string' && v.trim() === '' ? undefined : v,
+    z.string().min(2, 'Country of study is required').optional()
+  ),
+  institutions: z.preprocess(
+    (v) => typeof v === 'string' && v.trim() === '' ? undefined : v,
+    z.string().min(2, 'Institution name is required').optional()
+  ),
+  institutionOther: z.preprocess(
+    (v) => typeof v === 'string' && v.trim() === '' ? undefined : v,
+    z.string().optional()
+  ),
+  fieldOfStudy: z.preprocess(
+    (v) => typeof v === 'string' && v.trim() === '' ? undefined : v,
+    z.string().min(2, 'Field of study is required').optional()
+  ),
+  otherCountriesWorked: z.preprocess(
+    (v) => typeof v === 'string' && v.trim() === '' ? undefined : v,
+    z.string().optional()
+  ),
   
   // Premium-only Global Info
   countriesWorkedIn: z.array(z.string()).optional(),
@@ -37,9 +58,13 @@ export const onboardingSchema = z.object({
     'Technology', 'Finance', 'Health', 'Policy & Governance', 'Education', 
     'Development', 'Entrepreneurship', 'Energy', 'Agriculture', 'Creative Industries', 'Other'
   ]),
+  sectorOther: z.preprocess(
+    (v) => typeof v === 'string' && v.trim() === '' ? undefined : v,
+    z.string().optional()
+  ),
   functionalExpertise: z.array(z.string()).min(1, 'Select at least one expertise').max(5, 'Select up to 5'),
   employmentStatus: z.enum([
-    'Employed (Full-time)', 'Employed (Part-time)', 'Entrepreneur', 'Consultant', 'In Transition', 'Other'
+    'Employed (Full-time)', 'Employed (Part-time)', 'Entrepreneur', 'Consultant', 'In Transition', 'Unemployed', 'Other'
   ]),
   currentOrganisation: z.string().optional(),
   bio: z.string().min(50, 'Bio must be at least 50 words').max(2000),
@@ -84,8 +109,8 @@ export const onboardingSchema = z.object({
   ]),
   
   // Document Uploads (URLs stored after upload)
-  academicProofUrl: z.string().optional(),
-  identityProofUrl: z.string().optional(),
+  academicProofUrl: z.string().min(1, 'Academic verification is required'),
+  identityProofUrl: z.string().min(1, 'Identity verification is required'),
   employmentProofUrl: z.string().optional(),
   residencyProofUrl: z.string().optional(),
   professionalProofUrl: z.string().optional(),
@@ -99,6 +124,57 @@ export const onboardingSchema = z.object({
   openToSpotlight: z.boolean(),
   wouldLikeToMentor: z.boolean(),
   communityAmbassador: z.enum(['Yes', 'Maybe', 'No']).optional(),
+}).superRefine((data, ctx) => {
+  // Identity proof always required
+  if (!data.identityProofUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Identity verification is required',
+      path: ['identityProofUrl'],
+    });
+  }
+
+  // Category-based document requirements
+  if (data.userCategory === 'Study-Abroad Returnee (Recent Graduate)' && !data.academicProofUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Academic verification is required for study-abroad returnees',
+      path: ['academicProofUrl'],
+    });
+  }
+
+  if (data.userCategory === 'Diaspora Returnee (Professional)') {
+    if (!data.employmentProofUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Employment verification is required for diaspora returnees',
+        path: ['employmentProofUrl'],
+      });
+    }
+    if (!data.residencyProofUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Residency proof is required for diaspora returnees',
+        path: ['residencyProofUrl'],
+      });
+    }
+  }
+
+  if (data.userCategory === 'Diaspora Expert (Still Abroad)' && !data.professionalProofUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Professional proof is required for diaspora experts',
+      path: ['professionalProofUrl'],
+    });
+  }
+
+  if (!data.consentToVerification) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Consent is required to proceed with verification',
+      path: ['consentToVerification'],
+    });
+  }
 });
 
 export type OnboardingData = z.infer<typeof onboardingSchema>;

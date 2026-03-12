@@ -12,7 +12,6 @@ import ValueSection from './sections/ValueSection';
 import AudienceSection from './sections/AudienceSection';
 import HowItWorksSection from './sections/HowItWorksSection';
 import ImpactSection from './sections/ImpactSection';
-import OpportunitiesSection from './sections/OpportunitiesSection';
 import PricingSection from './sections/PricingSection';
 import ContactSection from './sections/ContactSection';
 import Footer from './sections/Footer';
@@ -40,8 +39,8 @@ const SitemapPage = lazy(() => import('./sections/SitemapPage'));
 const TermsOfServicePage = lazy(() => import('./sections/TermsOfServicePage'));
 const CookiePolicyPage = lazy(() => import('./sections/CookiePolicyPage'));
 const HowItWorksPage = lazy(() => import('./sections/HowItWorksPage'));
-const SuccessStoriesPage = lazy(() => import('./sections/SuccessStoriesPage'));
 const CareersPage = lazy(() => import('./sections/CareersPage'));
+const SuccessStoriesPage = lazy(() => import('./sections/SuccessStoriesPage'));
 const ContactPage = lazy(() => import('./sections/ContactPage'));
 const HelpCenterPage = lazy(() => import('./sections/HelpCenterPage'));
 const PrivacyPolicyPage = lazy(() => import('./sections/PrivacyPolicyPage'));
@@ -60,12 +59,15 @@ function HomeContent() {
       <AudienceSection />
       <HowItWorksSection />
       <ImpactSection />
-      <OpportunitiesSection />
       <PricingSection />
       <ContactSection />
     </main>
   );
 }
+
+import ScrollToTop from './components/ScrollToTop';
+
+// ... (existing code)
 
 function MainLayout() {
   const mainRef = useRef<HTMLDivElement>(null);
@@ -142,6 +144,7 @@ function MainLayout() {
 
   return (
     <div ref={mainRef} className="relative">
+      <ScrollToTop />
       <AnimatedCursor />
       <Toaster 
         position="top-right" 
@@ -174,43 +177,46 @@ function MainLayout() {
           
           {/* Page Routing with Suspense for Lazy Loading */}
           <Suspense fallback={<div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center text-[var(--sp-accent)]">Loading...</div>}>
-            <Routes>
-              <Route element={<AuthLayout />}>
-                <Route path="/" element={<HomeContent />} />
-                <Route path="/concept-note" element={<ConceptNotePage />} />
-                <Route path="/opportunities" element={<OpportunitiesPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route path="/dashboard" element={<UserDashboard />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/profile/edit" element={<EditOnboardingPage />} />
-                <Route path="/onboarding" element={<OnboardingFlow />} />
-                <Route path="/verification" element={<VerificationPage />} />
-                <Route path="/referrals" element={<ReferralsPage />} />
-                <Route path="/sitemap" element={<SitemapPage />} />
-                <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                <Route path="/terms" element={<TermsOfServicePage />} />
-                <Route path="/cookies" element={<CookiePolicyPage />} />
-                <Route path="/how-it-works" element={<HowItWorksPage />} />
-                <Route path="/success-stories" element={<SuccessStoriesPage />} />
-                <Route path="/careers" element={<CareersPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/help-center" element={<HelpCenterPage />} />
-                <Route path="/pricing" element={<PricingPage />} />
-                
-                {/* Protected Admin Route */}
-                <Route element={<AdminRoute />}>
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/user/:userId" element={<AdminUserDetailPage />} />
-                </Route>
-              </Route>
-            </Routes>
+            <div className="flex flex-col min-h-screen">
+              <main className="flex-grow">
+                <Routes>
+                  <Route element={<AuthLayout />}>
+                    <Route path="/" element={<HomeContent />} />
+                    <Route path="/concept-note" element={<ConceptNotePage />} />
+                    <Route path="/opportunities" element={<OpportunitiesPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
+                    <Route path="/dashboard" element={<UserDashboard />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/profile/edit" element={<EditOnboardingPage />} />
+                    <Route path="/onboarding" element={<OnboardingFlow />} />
+                    <Route path="/verification" element={<VerificationPage />} />
+                    <Route path="/referrals" element={<ReferralsPage />} />
+                    <Route path="/sitemap" element={<SitemapPage />} />
+                    <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                    <Route path="/terms" element={<TermsOfServicePage />} />
+                    <Route path="/cookies" element={<CookiePolicyPage />} />
+                    <Route path="/how-it-works" element={<HowItWorksPage />} />
+                    <Route path="/careers" element={<CareersPage />} />
+                    <Route path="/impact" element={<SuccessStoriesPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/help-center" element={<HelpCenterPage />} />
+                    <Route path="/pricing" element={<PricingPage />} />
+                    
+                    {/* Protected Admin Route */}
+                    <Route element={<AdminRoute />}>
+                      <Route path="/admin" element={<AdminDashboard />} />
+                      <Route path="/admin/user/:userId" element={<AdminUserDetailPage />} />
+                    </Route>
+                  </Route>
+                </Routes>
+              </main>
+              {/* Hide footer on admin page, dashboard, and opportunities page */}
+              {location.pathname !== '/admin' && location.pathname !== '/dashboard' && location.pathname !== '/opportunities' && <Footer />}
+            </div>
           </Suspense>
         </>
       )}
-
-      {/* Hide footer on admin page, dashboard, and opportunities page */}
-      {location.pathname !== '/admin' && location.pathname !== '/dashboard' && location.pathname !== '/opportunities' && <Footer />}
     </div>
   );
 }

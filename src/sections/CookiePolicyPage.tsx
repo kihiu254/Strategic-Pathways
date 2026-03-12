@@ -3,7 +3,7 @@ import SEO from '../components/SEO';
 
 const CookiePolicyPage = () => {
   return (
-    <LegalLayout title="Cookie Policy" lastUpdated="February 23, 2024">
+    <LegalLayout title="Cookie Policy" lastUpdated="February 23, 2026">
       <SEO title="Cookie Policy" description="Detailed information about how Strategic Pathways uses cookies and manages consent mode v2." />
       
       <div className="space-y-8 text-[var(--text-secondary)] leading-relaxed">

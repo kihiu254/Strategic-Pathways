@@ -88,7 +88,7 @@ const ProfilePage = () => {
     memberSince: '',
     tier: 'Community',
     avatar_url: '',
-    profileType: 'Standard (MVP)',
+    profileType: 'Standard Member',
     userCategory: '',
     verificationTier: 'Tier 1 – Self-Declared',
     matchScore: 0,
@@ -130,7 +130,7 @@ const ProfilePage = () => {
             title: data.role === 'admin' ? t('profilePage.status.admin') : t('profilePage.status.professional'),
             memberSince: monthYear,
             avatar_url: data.avatar_url || '',
-            profileType: data.profile_type || 'Standard (MVP)',
+            profileType: data.profile_type || 'Standard Member',
             userCategory: data.user_category || '',
             verificationTier: data.verification_tier || 'Tier 1 – Self-Declared',
             matchScore: data.profile_completion_percentage || 0,
@@ -1172,24 +1172,35 @@ const ProfilePage = () => {
               </h3>
               
               <div className="space-y-4 relative z-10">
-                {(() => {
-                  const ranked = rankOpportunities(MOCK_OPPORTUNITIES, profile, profile.skills || []);
-                  return ranked.slice(0, 2).map((opp: any) => (
-                    <div key={opp.id} className="premium-glass-gold p-4 rounded-2xl border border-white/5 hover:border-[var(--sp-accent)]/30 transition-all group/item cursor-pointer" onClick={() => navigate('/opportunities')}>
-                      <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1 group-hover/item:text-[var(--sp-accent)] transition-colors">{opp.title}</h4>
-                      <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider mb-2">{opp.org}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {opp.tags.map((tag: string) => (
-                          <span key={tag} className="text-[8px] font-bold px-2 py-0.5 rounded bg-white/5 border border-white/5 text-[var(--text-secondary)] uppercase tracking-widest">{tag}</span>
-                        ))}
+                {(profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Shield size={40} className="text-[var(--sp-accent)]/20 mb-3" />
+                    <p className="text-sm font-bold text-[var(--text-primary)] mb-1">Premium Feature</p>
+                    <p className="text-[10px] text-[var(--text-secondary)] max-w-[180px]">Upgrade to view personalized opportunities matched to your profile.</p>
+                  </div>
+                ) : (
+                  (() => {
+                    const ranked = rankOpportunities(MOCK_OPPORTUNITIES, profile, profile.skills || []);
+                    return ranked.slice(0, 2).map((opp: any) => (
+                      <div key={opp.id} className="premium-glass-gold p-4 rounded-2xl border border-white/5 hover:border-[var(--sp-accent)]/30 transition-all group/item cursor-pointer" onClick={() => navigate('/opportunities')}>
+                        <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1 group-hover/item:text-[var(--sp-accent)] transition-colors">{opp.title}</h4>
+                        <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider mb-2">{opp.org}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {opp.tags.map((tag: string) => (
+                            <span key={tag} className="text-[8px] font-bold px-2 py-0.5 rounded bg-white/5 border border-white/5 text-[var(--text-secondary)] uppercase tracking-widest">{tag}</span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ));
-                })()}
+                    ));
+                  })()
+                )}
               </div>
 
-              <button onClick={() => navigate('/opportunities')} className="w-full mt-6 py-3 rounded-2xl bg-[var(--sp-accent)] text-[var(--text-inverse)] font-bold text-xs uppercase tracking-widest shadow-lg shadow-[var(--sp-accent)]/20 hover:scale-[1.02] active:scale-95 transition-all">
-                {t('profilePage.labels.viewMatches')}
+              <button 
+                onClick={() => (profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) ? navigate('/pricing') : navigate('/opportunities')} 
+                className="w-full mt-6 py-3 rounded-2xl bg-[var(--sp-accent)] text-[var(--text-inverse)] font-bold text-xs uppercase tracking-widest shadow-lg shadow-[var(--sp-accent)]/20 hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                {(profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) ? 'Upgrade to Unlock' : t('profilePage.labels.viewMatches')}
               </button>
             </div>
 
@@ -1201,10 +1212,10 @@ const ProfilePage = () => {
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { icon: FileText, label: 'Update CV', color: 'bg-blue-500/10 text-blue-400', action: () => document.getElementById('cv-upload')?.click() },
+                  { icon: FileText, label: 'Update CV', color: 'bg-blue-500/10 text-blue-400', action: () => { setActiveTab('documents'); setTimeout(() => document.getElementById('cv-upload')?.click(), 100); } },
                   { icon: Share2, label: 'Share Profile', color: 'bg-purple-500/10 text-purple-400', action: () => handleShareDocument('profile') },
                   { icon: Search, label: 'Find Work', color: 'bg-green-500/10 text-green-400', action: () => navigate('/opportunities') },
-                  { icon: Settings, label: 'Settings', color: 'bg-orange-500/10 text-orange-400', action: () => setActiveTab('experience') },
+                  { icon: Settings, label: 'Edit Profile', color: 'bg-orange-500/10 text-orange-400', action: () => navigate('/profile/edit') },
                 ].map((action, i) => (
                   <button key={i} onClick={action.action} className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[var(--sp-accent)]/20 hover:bg-white/[0.05] transition-all group">
                     <div className={`p-2 rounded-xl mb-2 ${action.color} group-hover:scale-110 transition-transform`}>
@@ -1322,7 +1333,7 @@ const ProfilePage = () => {
                 ))}
               </div>
 
-              {profile.profileType === 'Standard (MVP)' && (
+              {(profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) && (
                 <div className="mt-8 p-4 rounded-xl bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/20">
                   <p className="text-[10px] text-[var(--sp-accent)] font-bold mb-2 uppercase flex items-center gap-1">
                     <Star size={10} /> Premium Unlock

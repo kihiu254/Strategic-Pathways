@@ -48,6 +48,15 @@ const AdminUserDetailPage = () => {
       if (error) throw error;
       toast.success('User approved successfully!');
       setUserData({ ...userData, verification_status: 'approved' });
+      
+      await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'verification_update',
+          data: { email: userData.email, name: userData.full_name, status: 'approved' }
+        })
+      }).catch(err => console.error("Failed to send email", err));
     } catch (error: any) {
       toast.error('Failed to approve user');
     }
@@ -63,6 +72,15 @@ const AdminUserDetailPage = () => {
       if (error) throw error;
       toast.error('User rejected');
       setUserData({ ...userData, verification_status: 'rejected' });
+      
+      await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'verification_update',
+          data: { email: userData.email, name: userData.full_name, status: 'rejected' }
+        })
+      }).catch(err => console.error("Failed to send email", err));
     } catch (error: any) {
       toast.error('Failed to reject user');
     }

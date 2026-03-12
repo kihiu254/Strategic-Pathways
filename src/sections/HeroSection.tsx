@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Building2 } from 'lucide-react';
+import { ArrowRight, Building2, Target } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -67,15 +67,15 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
     <section 
       ref={sectionRef}
       id="hero"
-      className={`sp-section-pinned bg-[var(--bg-primary)] ${className}`}
+      className={`sp-section-pinned bg-[var(--bg-primary)] relative pt-32 lg:pt-48 ${className}`}
     >
-      <div className="w-full h-full flex items-center justify-center px-6 lg:px-12">
-        <div className="relative w-full max-w-[1400px] h-[64vh] flex flex-col lg:flex-row gap-6 lg:gap-8">
+      <div className="w-full h-full flex items-start lg:items-center justify-center px-6 lg:px-12">
+        <div className="relative w-full max-w-[1400px] h-auto lg:min-h-[64vh] mt-12 lg:mt-16 flex flex-col lg:flex-row gap-6 lg:gap-8">
           
           {/* Left Photo Card */}
           <div 
             ref={photoRef}
-            className="sp-card w-full lg:w-[34vw] h-[30vh] lg:h-full relative"
+            className="sp-card w-full lg:w-[45vw] h-[30vh] lg:h-full relative"
           >
             <img 
               src="/images/hero_collaboration.jpg" 
@@ -90,7 +90,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
           {/* Right Typographic Panel */}
           <div 
             ref={panelRef}
-            className="glass-panel w-full lg:w-[48vw] h-auto lg:h-full flex flex-col justify-center p-6 lg:p-10"
+            className="glass-panel w-full lg:w-[50vw] h-auto lg:h-full flex flex-col justify-center p-6 lg:p-10"
           >
             {/* Label */}
             <div ref={labelRef} className="mb-4 lg:mb-6">
@@ -103,7 +103,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
             {/* Headline */}
             <h1 
               ref={headlineRef}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-[var(--text-primary)] leading-tight mb-4 lg:mb-6"
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-4xl 2xl:text-5xl font-bold text-[var(--text-primary)] leading-tight mb-4 lg:mb-6"
             >
               <span className="text-[var(--sp-accent)] block mb-2 lg:mb-4 text-2xl lg:text-4xl font-normal">Strategic Pathways</span>
               {t('hero.title').split(' ').map((word, i) => (
@@ -123,7 +123,7 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
             <div ref={ctaRef} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               {session ? (
                 <button 
-                  onClick={() => navigate('/profile')}
+                  onClick={() => navigate('/dashboard')}
                   className="sp-btn-primary flex items-center justify-center gap-2"
                 >
                   {t('common.dashboard')}
@@ -131,20 +131,20 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
                 </button>
               ) : (
                 <button 
-                  onClick={() => navigate('/pricing')}
+                  onClick={() => navigate('/signup')}
                   className="sp-btn-primary flex items-center justify-center gap-2"
                 >
                   {t('hero.cta')}
                   <ArrowRight size={18} />
                 </button>
               )}
-              <button 
-                onClick={() => navigate('/opportunities')}
-                className="sp-btn-secondary flex items-center justify-center gap-2"
+              <a 
+                href="#pricing"
+                className="sp-btn-glass flex items-center justify-center gap-2"
               >
-                <Building2 size={18} />
+                <Target size={18} />
                 {t('hero.secondary')}
-              </button>
+              </a>
             </div>
 
             {/* Microcopy */}

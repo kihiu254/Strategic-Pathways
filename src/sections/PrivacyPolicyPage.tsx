@@ -3,7 +3,7 @@ import SEO from '../components/SEO';
 
 const PrivacyPolicyPage = () => {
   return (
-    <LegalLayout title="Privacy Policy" lastUpdated="February 23, 2024">
+    <LegalLayout title="Privacy Policy" lastUpdated="February 23, 2026">
       <SEO title="Privacy Policy" description="Privacy Policy for Strategic Pathways. Compliant with the Kenya Data Protection Act, 2019." />
       
       <div className="space-y-8 text-[var(--text-secondary)] leading-relaxed">
@@ -68,7 +68,7 @@ const PrivacyPolicyPage = () => {
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">7. Contact Us</h2>
           <p>
             If you have any questions about this Privacy Policy or our data practices, please contact our Data Protection Officer at: 
-            <a href="mailto:joinstrategicpathways@gmail.com" className="text-[var(--sp-accent)] underline ml-1">joinstrategicpathways@gmail.com</a>
+            <a href="mailto:hello@joinstrategicpathways.com" className="text-[var(--sp-accent)] underline ml-1">hello@joinstrategicpathways.com</a>
           </p>
         </section>
       </div>

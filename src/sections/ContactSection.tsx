@@ -2,12 +2,13 @@ import { useRef, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Mail, MapPin, Clock, Send, Linkedin, Twitter, Instagram, Facebook, Youtube, MessageCircle, Share2 } from 'lucide-react';
+import { Mail, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
+import SocialIcon from '../components/SocialIcon';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -113,7 +114,10 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
         await fetch('/api/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({
+            type: 'partner_inquiry',
+            data: formData
+          })
         });
       } catch (emailError) {
         console.error('Failed to dispatch email:', emailError);
@@ -154,7 +158,21 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                 </div>
                 <div>
                   <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.email')}</p>
-                  <p className="text-[var(--text-primary)]">joinstrategicpathways@gmail.com</p>
+                  <a href="mailto:hello@joinstrategicpathways.com" className="text-[var(--text-primary)] hover:text-[var(--sp-accent)] transition-colors">
+                    hello@joinstrategicpathways.com
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 text-[var(--sp-accent)]" />
+                </div>
+                <div>
+                  <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.phone')}</p>
+                  <a href="https://wa.me/254712275470" target="_blank" rel="noopener noreferrer" className="text-[var(--text-primary)] hover:text-[var(--sp-accent)] transition-colors">
+                    +254 712 275 470
+                  </a>
                 </div>
               </div>
 
@@ -180,75 +198,32 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
             </div>
 
             {/* Follow Us */}
-            <div className="mt-4 pt-6 border-t border-[var(--sp-accent)]/10">
-              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">{t('contact.follow')}</h3>
-              <p className="text-[var(--text-secondary)] mb-8 leading-relaxed">
-                {t('contact.followSub')}
-              </p>
+              <div className="mt-4 pt-6 border-t border-[var(--sp-accent)]/10">
+                <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">{t('contact.follow')}</h3>
+                <p className="text-[var(--text-secondary)] mb-8 leading-relaxed">
+                  {t('contact.followSub')}
+                </p>
               <div className="flex flex-wrap gap-3">
-                <a 
-                  href="https://www.linkedin.com/company/join-strategicpathways/" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                  title="LinkedIn"
-                >
-                  <Linkedin size={18} />
-                </a>
-                <a 
-                  href="https://x.com/SPathways_" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                  title="X (Twitter)"
-                >
-                  <Twitter size={18} />
-                </a>
-                <a 
-                  href="https://www.instagram.com/joinstrategicpathways/" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                  title="Instagram"
-                >
-                  <Instagram size={18} />
-                </a>
-                <a 
-                  href="https://www.tiktok.com/@joinstrategicpathways" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                  title="TikTok"
-                >
-                  <Share2 size={18} />
-                </a>
-                <a 
-                  href="https://www.facebook.com/profile.php?id=61588643401308" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                  title="Facebook"
-                >
-                  <Facebook size={18} />
-                </a>
-                <a 
-                  href="https://www.threads.com/@joinstrategicpathways" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                  title="Threads"
-                >
-                  <MessageCircle size={18} />
-                </a>
-                <a 
-                  href="https://www.youtube.com/@joinstrategicpathways" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                  title="YouTube"
-                >
-                  <Youtube size={18} />
-                </a>
+                {[
+                  { name: 'LinkedIn', url: 'https://www.linkedin.com/company/join-strategicpathways/' },
+                  { name: 'X', url: 'https://x.com/SPathways_' },
+                  { name: 'Instagram', url: 'https://www.instagram.com/joinstrategicpathways/' },
+                  { name: 'TikTok', url: 'https://www.tiktok.com/@joinstrategicpathways' },
+                  { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61588643401308' },
+                  { name: 'Threads', url: 'https://www.threads.net/@joinstrategicpathways' },
+                  { name: 'YouTube', url: 'https://www.youtube.com/@joinstrategicpathways' }
+                ].map((social) => (
+                  <a 
+                    key={social.name}
+                    href={social.url} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
+                    title={social.name}
+                  >
+                    <SocialIcon platform={social.name} size={18} />
+                  </a>
+                ))}
               </div>
             </div>
           </div>

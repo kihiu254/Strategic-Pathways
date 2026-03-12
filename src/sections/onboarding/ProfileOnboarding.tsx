@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
@@ -14,13 +14,14 @@ import { ChevronRight, ChevronLeft, Check, Star } from 'lucide-react';
 import SEO from '../../components/SEO';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
+import { calculateProfileCompletion } from '../../utils/profileScoring';
 
 const getSteps = (profileType: string) => {
   const baseSteps = [
     { id: 'profileType', title: 'Profile Type', component: ProfileTypeSelection },
   ];
 
-  if (profileType === 'Standard (MVP)') {
+  if (profileType === 'Standard Member') {
     return [
       ...baseSteps,
       { id: 'basic', title: 'Basic Info', component: BasicInfo },
@@ -38,7 +39,7 @@ const getSteps = (profileType: string) => {
     { id: 'education', title: 'Education & Global', component: Education },
     { id: 'experience', title: 'Professional Experience', component: ProfessionalExperience },
     { id: 'interest', title: 'Areas of Interest', component: AreasOfInterest },
-    { id: 'premium', title: 'Premium Details', component: PremiumDetails },
+    { id: 'premium', title: 'Recommended: Professional Details', component: PremiumDetails },
     { id: 'contribution', title: 'Contribution & Value', component: ContributionValue },
     { id: 'income', title: 'Income & Venture', component: IncomeVenture },
     { id: 'verification', title: 'Verification', component: VerificationCredits },
@@ -52,6 +53,17 @@ const ProfileOnboarding = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
 
+  const loadDraft = () => {
+    try {
+      if (!user?.id) return null;
+      const draft = localStorage.getItem(`onboarding_draft_${user.id}`);
+      if (draft) return JSON.parse(draft) as Partial<OnboardingData>;
+    } catch (e) {
+      console.error('Failed to load draft:', e);
+    }
+    return null;
+  };
+
   const {
     register,
     handleSubmit,
@@ -61,8 +73,8 @@ const ProfileOnboarding = () => {
   } = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     mode: 'onChange',
-    defaultValues: {
-      profileType: 'Standard (MVP)',
+    defaultValues: loadDraft() || {
+      profileType: 'Standard Member',
       email: user?.email || '',
       fullName: user?.user_metadata?.full_name || '',
       professionalTitle: '',
@@ -88,6 +100,17 @@ const ProfileOnboarding = () => {
 
   const profileType = useWatch({ control, name: 'profileType' });
   const steps = getSteps(profileType);
+  const allFormData = useWatch({ control });
+
+  // Auto-save draft
+  useEffect(() => {
+    if (user?.id && allFormData) {
+      const timer = setTimeout(() => {
+        localStorage.setItem(`onboarding_draft_${user.id}`, JSON.stringify(allFormData));
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [allFormData, user?.id]);
 
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStepId(steps[currentStep].id);
@@ -114,35 +137,6 @@ const ProfileOnboarding = () => {
     setIsSubmitting(true);
     try {
       if (!user) throw new Error('Not authenticated');
-
-      // Calculate completion percentage based on filled fields
-      const calculateCompletion = () => {
-        let filledFields = 0;
-        const totalFields = 20;
-        
-        if (data.fullName) filledFields++;
-        if (data.professionalTitle) filledFields++;
-        if (data.email) filledFields++;
-        if (data.phone) filledFields++;
-        if (data.linkedinUrl) filledFields++;
-        if (data.countryOfResidence) filledFields++;
-        if (data.nationality) filledFields++;
-        if (data.bio) filledFields++;
-        if (data.highestEducation) filledFields++;
-        if (data.yearsOfExperience) filledFields++;
-        if (data.primarySector) filledFields++;
-        if (data.functionalExpertise?.length) filledFields++;
-        if (data.employmentStatus) filledFields++;
-        if (data.engagementTypes?.length) filledFields++;
-        if (data.availability) filledFields++;
-        if (data.specificSkills) filledFields++;
-        if (data.passionateProblems) filledFields++;
-        if (data.seekingIncome) filledFields++;
-        if (data.ventureInterest) filledFields++;
-        if (data.websiteUrl) filledFields++;
-        
-        return Math.round((filledFields / totalFields) * 100);
-      };
 
       const { error } = await supabase
         .from('profiles')
@@ -205,12 +199,13 @@ const ProfileOnboarding = () => {
           compensation_expectation: data.compensationExpectation,
           sdg_alignment: data.sdgAlignment,
           onboarding_completed: true,
-          profile_completion_percentage: calculateCompletion(),
+          profile_completion_percentage: calculateProfileCompletion(data),
           updated_at: new Date().toISOString(),
         });
 
       if (error) throw error;
 
+      localStorage.removeItem(`onboarding_draft_${user.id}`);
       toast.success('Onboarding complete! Welcome to the network.');
       navigate('/profile');
     } catch (error: any) {
@@ -285,7 +280,12 @@ const ProfileOnboarding = () => {
               <div className="h-px w-full bg-gradient-to-r from-[var(--sp-accent)]/30 to-transparent" />
             </div>
 
-            <ActiveComponent register={register} errors={errors} control={control} />
+            <ActiveComponent 
+              register={register} 
+              errors={errors} 
+              control={control} 
+              readOnlyFields={['email', ...(user?.user_metadata?.full_name ? ['fullName'] : [])]}
+            />
 
             <div className="mt-12 flex justify-between gap-4 pt-8 border-t border-[var(--sp-accent)]/10">
               <button

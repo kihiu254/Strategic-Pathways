@@ -38,10 +38,38 @@ const OpportunitiesPageRedesigned = () => {
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   useEffect(() => {
     fetchOpportunities();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    } else {
+      setIsProfileLoading(false);
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('tier, profile_type')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
 
   useEffect(() => {
     filterOpportunities();
@@ -93,11 +121,28 @@ const OpportunitiesPageRedesigned = () => {
       navigate('/login');
       return;
     }
+
+    if (['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) {
+      toast.error('Upgrade to Premium to apply for opportunities', {
+        action: {
+          label: 'Upgrade',
+          onClick: () => navigate('/pricing')
+        }
+      });
+      return;
+    }
+
     setSelectedOpp(opp);
   };
 
   const submitApplication = async () => {
     if (!user || !selectedOpp) return;
+
+    if (['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) {
+      toast.error('Upgrade to Premium to apply');
+      navigate('/pricing');
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -135,166 +180,194 @@ const OpportunitiesPageRedesigned = () => {
     <div className="min-h-screen bg-[var(--bg-primary)] pt-24 pb-12">
       <SEO title="Opportunities" />
 
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-4">
-            Discover Opportunities
-          </h1>
-          <p className="text-lg text-[var(--text-secondary)]">
-            Connect with high-impact projects and organizations across Kenya
-          </p>
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-24 -left-32 w-80 h-80 rounded-full bg-[var(--sp-accent)]/10 blur-[140px]" />
+          <div className="absolute bottom-0 right-0 w-[420px] h-[320px] rounded-full bg-[#0b2a3c]/40 blur-[160px]" />
         </div>
 
-        {/* Search & Filters */}
-        <div className="glass-card p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative md:col-span-3">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={20} />
-              <input
-                type="text"
-                placeholder="Search opportunities..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="input-glass w-full pl-12 pr-4 py-3"
-              />
-            </div>
-
-            <select
-              value={selectedSector}
-              onChange={(e) => setSelectedSector(e.target.value)}
-              className="input-glass px-4 py-3"
-            >
-              {sectors.map(sector => (
-                <option key={sector} value={sector}>{sector}</option>
-              ))}
-            </select>
-
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="input-glass px-4 py-3"
-            >
-              {types.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedSector('All');
-                setSelectedType('All');
-              }}
-              className="sp-btn-glass"
-            >
-              Clear Filters
-            </button>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="glass-card p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--sp-accent)]">{opportunities.length}</div>
-            <div className="text-sm text-[var(--text-secondary)]">Active Opportunities</div>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--sp-accent)]">{new Set(opportunities.map(o => o.organization)).size}</div>
-            <div className="text-sm text-[var(--text-secondary)]">Organizations</div>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--sp-accent)]">{new Set(opportunities.map(o => o.sector)).size}</div>
-            <div className="text-sm text-[var(--text-secondary)]">Sectors</div>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <div className="text-2xl font-bold text-[var(--sp-accent)]">{filteredOpps.length}</div>
-            <div className="text-sm text-[var(--text-secondary)]">Matches</div>
-          </div>
-        </div>
-
-        {/* Opportunities Grid */}
-        <div className="space-y-6">
-          {filteredOpps.map((opp) => (
-            <div key={opp.id} className="glass-card p-6 hover:border-[var(--sp-accent)]/30 transition-all group">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-bold text-[var(--text-primary)] group-hover:text-[var(--sp-accent)] transition-colors">
-                      {opp.title}
-                    </h3>
-                    {opp.match_score && (
-                      <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-bold flex items-center gap-1">
-                        <Star size={12} className="fill-green-400" />
-                        {opp.match_score}% Match
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
-                    <Building2 size={16} />
-                    <span className="font-medium">{opp.organization}</span>
-                  </div>
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Hero */}
+          <div className="glass-card p-8 lg:p-10 rounded-3xl border border-white/10 mb-8 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/0 to-white/0" />
+            <div className="relative flex flex-col lg:flex-row lg:items-center gap-6">
+              <div className="flex-1 space-y-3">
+                <p className="sp-label">Opportunities</p>
+                <h1 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] leading-tight">
+                  Discover vetted projects shaping Kenya’s impact economy.
+                </h1>
+                <p className="text-[var(--text-secondary)] max-w-2xl">
+                  Apply to consulting, advisory, and venture-building roles curated for globally trained professionals. Premium members get priority matching and early access.
+                </p>
+                <div className="flex flex-wrap gap-3 text-sm">
+                  <span className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-[var(--text-secondary)]">
+                    {opportunities.length} active opportunities
+                  </span>
+                  <span className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-[var(--text-secondary)]">
+                    {new Set(opportunities.map(o => o.organization)).size} organizations
+                  </span>
+                  <span className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-[var(--text-secondary)]">
+                    {new Set(opportunities.map(o => o.sector)).size} sectors
+                  </span>
                 </div>
+              </div>
+              <div className="flex gap-3">
                 <button
-                  onClick={() => handleApply(opp)}
-                  className="sp-btn-primary flex items-center gap-2"
+                  onClick={() => navigate('/pricing')}
+                  className="sp-btn-primary px-6 py-3 whitespace-nowrap"
                 >
-                  Apply <ArrowRight size={16} />
+                  Upgrade for early access
+                </button>
+                <button
+                  onClick={() => navigate('/contact')}
+                  className="sp-btn-glass px-6 py-3 whitespace-nowrap"
+                >
+                  Partner with us
                 </button>
               </div>
+            </div>
+          </div>
 
-              <p className="text-[var(--text-secondary)] mb-4 line-clamp-2">
-                {opp.description}
-              </p>
-
-              <div className="flex flex-wrap gap-3 mb-4">
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-sm">
-                  <MapPin size={14} className="text-[var(--sp-accent)]" />
-                  {opp.location}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Filters */}
+            <aside className="lg:col-span-1">
+              <div className="glass-card p-6 rounded-3xl border border-white/10 sticky top-28">
+                <div className="flex items-center gap-2 mb-4">
+                  <Filter size={16} className="text-[var(--sp-accent)]" />
+                  <h3 className="text-[var(--text-primary)] font-semibold">Refine search</h3>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-sm">
-                  <Briefcase size={14} className="text-[var(--sp-accent)]" />
-                  {opp.type}
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-sm">
-                  <Clock size={14} className="text-[var(--sp-accent)]" />
-                  {opp.duration}
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-sm">
-                  <DollarSign size={14} className="text-[var(--sp-accent)]" />
-                  {opp.compensation}
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-sm">
-                  <Calendar size={14} className="text-[var(--sp-accent)]" />
-                  Deadline: {new Date(opp.deadline).toLocaleDateString()}
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search by title or org"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="input-glass w-full pl-10 pr-3 py-3"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[12px] text-[var(--text-secondary)] mb-2 uppercase tracking-[0.2em]">Sector</p>
+                    <div className="space-y-2">
+                      {sectors.map(sector => (
+                        <button
+                          key={sector}
+                          onClick={() => setSelectedSector(sector)}
+                          className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
+                            selectedSector === sector
+                              ? 'border-[var(--sp-accent)] text-[var(--text-primary)] bg-[var(--sp-accent)]/10'
+                              : 'border-white/10 text-[var(--text-secondary)] hover:border-[var(--sp-accent)]/40'
+                          }`}
+                        >
+                          {sector}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[12px] text-[var(--text-secondary)] mb-2 uppercase tracking-[0.2em]">Type</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {types.map(type => (
+                        <button
+                          key={type}
+                          onClick={() => setSelectedType(type)}
+                          className={`px-3 py-2 rounded-lg border text-sm transition-colors ${
+                            selectedType === type
+                              ? 'border-[var(--sp-accent)] text-[var(--text-primary)] bg-[var(--sp-accent)]/10'
+                              : 'border-white/10 text-[var(--text-secondary)] hover:border-[var(--sp-accent)]/40'
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedSector('All');
+                      setSelectedType('All');
+                    }}
+                    className="sp-btn-glass w-full"
+                  >
+                    Clear filters
+                  </button>
                 </div>
               </div>
+            </aside>
 
-              <div className="flex flex-wrap gap-2">
-                {opp.tags.map(tag => (
-                  <span key={tag} className="px-2 py-1 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-xs">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+            {/* Opportunities */}
+            <section className="lg:col-span-3 space-y-4">
+              {filteredOpps.length === 0 && (
+                <div className="glass-card p-12 text-center rounded-3xl border border-white/10">
+                  <p className="text-[var(--text-secondary)] mb-4">No opportunities found matching your criteria</p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedSector('All');
+                      setSelectedType('All');
+                    }}
+                    className="sp-btn-primary"
+                  >
+                    Reset filters
+                  </button>
+                </div>
+              )}
 
-          {filteredOpps.length === 0 && (
-            <div className="glass-card p-12 text-center">
-              <p className="text-[var(--text-secondary)] mb-4">No opportunities found matching your criteria</p>
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedSector('All');
-                  setSelectedType('All');
-                }}
-                className="sp-btn-primary"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
+              {filteredOpps.map((opp) => (
+                <div key={opp.id} className="glass-card rounded-3xl border border-white/10 p-6 hover:border-[var(--sp-accent)]/40 transition-all group">
+                  <div className="flex flex-col md:flex-row md:items-start gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-bold text-[var(--text-primary)] group-hover:text-[var(--sp-accent)] transition-colors">
+                          {opp.title}
+                        </h3>
+                        {opp.match_score && (
+                          <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-bold flex items-center gap-1">
+                            <Star size={12} className="fill-green-400" />
+                            {opp.match_score}% Match
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-[var(--text-secondary)] mb-3 text-sm">
+                        <span className="flex items-center gap-2"><Building2 size={14} className="text-[var(--sp-accent)]" />{opp.organization}</span>
+                        <span className="flex items-center gap-2"><MapPin size={14} className="text-[var(--sp-accent)]" />{opp.location}</span>
+                        <span className="flex items-center gap-2"><Briefcase size={14} className="text-[var(--sp-accent)]" />{opp.type}</span>
+                        <span className="flex items-center gap-2"><Clock size={14} className="text-[var(--sp-accent)]" />{opp.duration}</span>
+                        <span className="flex items-center gap-2"><DollarSign size={14} className="text-[var(--sp-accent)]" />{opp.compensation}</span>
+                        <span className="flex items-center gap-2"><Calendar size={14} className="text-[var(--sp-accent)]" />Deadline: {new Date(opp.deadline).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-[var(--text-secondary)] mb-4">
+                        {opp.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {opp.tags.map(tag => (
+                          <span key={tag} className="px-2 py-1 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-xs">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3 w-full md:w-auto">
+                      <button
+                        onClick={() => handleApply(opp)}
+                        className="sp-btn-primary flex items-center justify-center gap-2 w-full"
+                      >
+                        Apply <ArrowRight size={16} />
+                      </button>
+                      <button
+                        onClick={() => setSelectedOpp(opp)}
+                        className="sp-btn-glass flex items-center justify-center gap-2 w-full"
+                      >
+                        View details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </section>
+          </div>
         </div>
       </div>
 

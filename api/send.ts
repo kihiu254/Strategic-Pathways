@@ -126,6 +126,30 @@ export default async function handler(req: any, res: any) {
         };
         break;
 
+      case 'partner_inquiry':
+        emailData = {
+          from: fromEmail,
+          to: 'hello@joinstrategicpathways.com',
+          subject: `New Inquiry: ${data.name} - ${data.organization || 'Individual'}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: #0b2a3c; padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">New Partner/Join Inquiry</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0;">
+                <p><strong>Name:</strong> ${data.name}</p>
+                <p><strong>Email:</strong> ${data.email}</p>
+                <p><strong>Organization:</strong> ${data.organization || 'N/A'}</p>
+                <p><strong>Message:</strong></p>
+                <div style="background: #f7fafc; padding: 20px; border-radius: 8px; font-style: italic;">
+                  ${data.message}
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
       default:
         return res.status(400).json({ error: 'Invalid email type' });
     }

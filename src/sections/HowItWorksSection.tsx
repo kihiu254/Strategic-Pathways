@@ -101,6 +101,7 @@ const HowItWorksSection = ({ className = '' }: HowItWorksSectionProps) => {
   return (
     <section 
       ref={sectionRef}
+      id="pathway"
       className={`relative bg-[var(--bg-primary)]/5 py-20 lg:py-28 overflow-hidden ${className}`}
     >
       <div className="w-full px-6 lg:px-12">

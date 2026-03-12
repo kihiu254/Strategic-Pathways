@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, Briefcase, FileText, Settings, 
   TrendingUp, DollarSign, CheckCircle,
   X, Plus, Search, Filter,
-  BarChart3, Star, Edit2, Trash2, Eye, User,
+  BarChart3, Star, Edit2, Trash2, Eye, User, Copy,
   Maximize2, Minimize2, Loader2, Download, ExternalLink,
   Shield, Globe, GraduationCap
 } from 'lucide-react';
@@ -13,6 +13,11 @@ import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 
 import AdminOpportunitiesManager from './AdminOpportunitiesManager';
+
+const safeParse = (val: string | null) => {
+  if (!val) return null;
+  try { return JSON.parse(val); } catch { return null; }
+};
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -25,10 +30,19 @@ const AdminDashboard = () => {
   const [recentApplications, setRecentApplications] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [auditLog, setAuditLog] = useState<any[]>([]);
+  const [selectedApplications, setSelectedApplications] = useState<string[]>([]);
+  const [memberNotes, setMemberNotes] = useState<Record<string, { note: string; owner: string }>>({});
   const [editingTier, setEditingTier] = useState<string | null>(null);
   const [viewingDocs, setViewingDocs] = useState<any | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [showAddAdmin, setShowAddAdmin] = useState(false);
+  const [showPromoteList, setShowPromoteList] = useState(false);
+  const [promoteSearch, setPromoteSearch] = useState('');
+  const [newAdmin, setNewAdmin] = useState({ email: '', full_name: '', password: '' });
   const [newMember, setNewMember] = useState({
     email: '',
     full_name: '',
@@ -94,10 +108,12 @@ const AdminDashboard = () => {
           const applications = appsData
             .filter(app => {
               // Check if verification_docs has actual content
-              const docs = app.verification_docs;
+              let docs = app.verification_docs;
+              if (typeof docs === 'string') {
+                try { docs = JSON.parse(docs); } catch { return false; }
+              }
               if (!docs || typeof docs !== 'object') return false;
-              // Check if any document URL exists
-              return Object.values(docs).some(val => val && val !== '');
+              return Object.values(docs as Record<string, any>).some(val => val && val !== '');
             })
             .map(app => ({
               id: app.id,
@@ -106,7 +122,7 @@ const AdminDashboard = () => {
               type: 'Onboarding Verification',
               status: app.verification_status || 'pending',
               date: new Date(app.created_at).toLocaleDateString(),
-              docs: app.verification_docs
+              docs: typeof app.verification_docs === 'string' ? safeParse(app.verification_docs) : app.verification_docs
             }));
           
           setRecentApplications(applications);
@@ -121,19 +137,25 @@ const AdminDashboard = () => {
           .limit(20);
         
         if (membersData) {
-          const membersWithProjects = await Promise.all(
-            membersData.map(async (m) => {
-              const { count: projectCount } = await supabase
-                .from('user_projects')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', m.id);
-              
-              return {
+          const memberIds = membersData.map(m => m.id);
+          const { data: allProjects } = await supabase
+            .from('user_projects')
+            .select('user_id')
+            .in('user_id', memberIds);
+
+          const projectCounts = allProjects?.reduce((acc: any, p) => {
+            acc[p.user_id] = (acc[p.user_id] || 0) + 1;
+            return acc;
+          }, {}) || {};
+
+          const membersWithProjects = membersData.map((m) => {
+            const docs = typeof m.verification_docs === 'string' ? safeParse(m.verification_docs) : m.verification_docs;
+            return {
                 id: m.id,
                 name: m.full_name || 'Unnamed',
                 email: m.email,
                 tier: m.tier || 'Community',
-                projects: projectCount || 0,
+                projects: projectCounts[m.id] || 0,
                 rating: m.rating || 0,
                 status: m.verification_status || 'pending',
                 joined: new Date(m.created_at).toLocaleDateString(),
@@ -144,11 +166,32 @@ const AdminDashboard = () => {
                 expertise: m.expertise,
                 yearsOfExperience: m.years_of_experience,
                 connections: m.connections || 0,
-                onboardingCompleted: m.onboarding_completed
-              };
-            })
-          );
+                onboardingCompleted: m.onboarding_completed,
+                docs
+          }});
           setMembers(membersWithProjects);
+          // Flag potential duplicates (same name, different emails)
+          const dupes: any[] = [];
+          const nameMap = new Map<string, string>();
+          membersWithProjects.forEach((m) => {
+            const key = (m.name || '').trim().toLowerCase();
+            if (!key) return;
+            if (nameMap.has(key) && nameMap.get(key) !== m.email) {
+              dupes.push(m);
+            } else {
+              nameMap.set(key, m.email);
+            }
+          });
+          setDuplicateCandidates(dupes);
+        }
+
+        // Fetch Admins
+        const { data: adminsData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'admin');
+        if (adminsData) {
+          setAdmins(adminsData);
         }
 
         // Fetch Projects
@@ -179,24 +222,39 @@ const AdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = async (id: string, email?: string, name?: string) => {
     try {
       const { error } = await supabase
         .from('profiles')
         .update({ 
           verification_status: 'approved',
-          verification_tier: 'Tier 2 – Verified Professional'
+          verification_tier: 'Tier 2 â€“ Verified Professional'
         })
         .eq('id', id);
       if (error) throw error;
       setRecentApplications(prev => prev.map(app => app.id === id ? { ...app, status: 'approved' } : app));
+      logAction('approve_application', { id, email, name });
       toast.success('Application approved successfully!');
+      
+      // Trigger Email Notification
+      const appEmail = email || recentApplications.find(a => a.id === id)?.email;
+      const appName = name || recentApplications.find(a => a.id === id)?.name || 'Member';
+      if (appEmail) {
+        await fetch('/api/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'verification_update',
+            data: { email: appEmail, name: appName, status: 'approved' }
+          })
+        }).catch(err => console.error("Failed to send email", err));
+      }
     } catch (error) {
       toast.error('Failed to approve application');
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (id: string, email?: string, name?: string) => {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -205,9 +263,169 @@ const AdminDashboard = () => {
       if (error) throw error;
       setRecentApplications(prev => prev.map(app => app.id === id ? { ...app, status: 'rejected' } : app));
       toast.error('Application rejected');
+      logAction('reject_application', { id, email, name });
+      
+      // Trigger Email Notification
+      const appEmail = email || recentApplications.find(a => a.id === id)?.email;
+      const appName = name || recentApplications.find(a => a.id === id)?.name || 'Member';
+      if (appEmail) {
+        await fetch('/api/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'verification_update',
+            data: { email: appEmail, name: appName, status: 'rejected' }
+          })
+        }).catch(err => console.error("Failed to send email", err));
+      }
     } catch (error) {
       toast.error('Failed to reject application');
     }
+  };
+
+  const updateMemberState = (id: string, patch: Record<string, any>) => {
+    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+  };
+
+  const logAction = (action: string, meta: Record<string, any>) => {
+    const entry = { action, meta, at: new Date().toISOString() };
+    setAuditLog((prev) => [entry, ...prev].slice(0, 200));
+    console.debug('[ADMIN AUDIT]', entry);
+  };
+
+  const handleSetTier = async (id: string, tier: 'Community' | 'Professional' | 'Firm') => {
+    try {
+      const { error } = await supabase.from('profiles').update({ tier }).eq('id', id);
+      if (error) throw error;
+      updateMemberState(id, { tier });
+      toast.success(`Tier updated to ${tier}`);
+      logAction('set_tier', { id, tier });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update tier');
+    }
+  };
+
+  const handleAssignBadge = async (id: string, type: 'verified' | 'premium') => {
+    try {
+      if (type === 'verified') {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ verification_status: 'approved', verification_tier: 'Tier 2 â€“ Verified Professional' })
+          .eq('id', id);
+        if (error) throw error;
+        updateMemberState(id, { verification_status: 'approved', verification_tier: 'Tier 2 â€“ Verified Professional' });
+        toast.success('Verified badge assigned');
+        logAction('assign_verified', { id });
+      } else {
+        await handleSetTier(id, 'Professional');
+        logAction('assign_premium', { id });
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to assign badge');
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedApplications.length === 0) return;
+    try {
+      await Promise.all(selectedApplications.map(id => handleApprove(id)));
+      toast.success(`Bulk approved ${selectedApplications.length} profiles!`);
+      setSelectedApplications([]);
+      logAction('bulk_approve', { count: selectedApplications.length });
+    } catch (e: any) {
+      toast.error('Bulk approve failed: ' + e.message);
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedApplications.length === 0) return;
+    try {
+      await Promise.all(selectedApplications.map(id => handleReject(id)));
+      toast.success(`Bulk rejected ${selectedApplications.length} profiles!`);
+      setSelectedApplications([]);
+      logAction('bulk_reject', { count: selectedApplications.length });
+    } catch (e: any) {
+      toast.error('Bulk reject failed: ' + e.message);
+    }
+  };
+
+  const handleSuspendMember = async (id: string, status: 'under_review' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ verification_status: status })
+        .eq('id', id);
+      if (error) throw error;
+      updateMemberState(id, { verification_status: status });
+      toast.success(`Account ${status === 'rejected' ? 'terminated' : 'suspended for review'}`);
+      logAction(status === 'rejected' ? 'terminate' : 'suspend', { id, status });
+    } catch (error: any) {
+      toast.error(error.message || `Failed to update status`);
+    }
+  };
+
+  const handleFlagDuplicate = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ verification_status: 'under_review' })
+        .eq('id', id);
+      if (error) throw error;
+      updateMemberState(id, { verification_status: 'under_review' });
+      toast.success('Profile flagged for duplicate review');
+      logAction('flag_duplicate', { id });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to flag duplicate');
+    }
+  };
+
+  const handleDeleteMember = async (id: string) => {
+    try {
+      const { error } = await supabase.from('profiles').delete().eq('id', id);
+      if (error) throw error;
+      setMembers((prev) => prev.filter((m) => m.id !== id));
+      toast.success('Profile deleted');
+      logAction('delete_member', { id });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete profile');
+    }
+  };
+
+  const mergeProfiles = async (primaryId: string, duplicateId: string) => {
+    try {
+      const primary = members.find(m => m.id === primaryId);
+      const duplicate = members.find(m => m.id === duplicateId);
+      if (!primary || !duplicate) throw new Error('Profiles not found');
+
+      const merged: Record<string, any> = {};
+      ['full_name','professional_title','phone','linkedin_url','website_url','sector','userCategory','verification_docs','bio'].forEach(key => {
+        if (!primary[key] && duplicate[key]) merged[key] = duplicate[key];
+      });
+
+      if (Object.keys(merged).length > 0) {
+        const { error } = await supabase.from('profiles').update(merged).eq('id', primaryId);
+        if (error) throw error;
+      }
+
+      const { error: delErr } = await supabase.from('profiles').delete().eq('id', duplicateId);
+      if (delErr) throw delErr;
+
+      setMembers(prev => prev.filter(m => m.id !== duplicateId).map(m => m.id === primaryId ? { ...m, ...merged } : m));
+      toast.success('Profiles merged');
+      logAction('merge_profiles', { primaryId, duplicateId });
+    } catch (error: any) {
+      toast.error(error.message || 'Merge failed');
+    }
+  };
+
+  const handleNote = (id: string) => {
+    const existing = memberNotes[id]?.note || '';
+    const note = window.prompt('Add/update admin note', existing) ?? '';
+    const owner = memberNotes[id]?.owner || '';
+    const newOwner = window.prompt('Assign owner (optional)', owner) ?? owner;
+    setMemberNotes(prev => ({ ...prev, [id]: { note, owner: newOwner } }));
+    logAction('note', { id, note, owner: newOwner });
+    toast.success('Note saved (local)');
   };
 
   const handleSaveTier = (tierName: string) => {
@@ -262,6 +480,72 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleAddAdmin = async () => {
+    if (!newAdmin.email || !newAdmin.full_name) {
+      toast.error('Email and full name are required');
+      return;
+    }
+
+    try {
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: newAdmin.email,
+        password: newAdmin.password || Math.random().toString(36).slice(-12) + 'A1!',
+        options: {
+          data: {
+            full_name: newAdmin.full_name
+          }
+        }
+      });
+
+      if (signUpError) throw signUpError;
+
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            email: newAdmin.email,
+            full_name: newAdmin.full_name,
+            role: 'admin',
+            created_at: new Date().toISOString()
+          });
+
+        if (profileError) throw profileError;
+
+        toast.success('Admin added successfully!');
+        setShowAddAdmin(false);
+        setNewAdmin({ email: '', full_name: '', password: '' });
+        
+        window.location.reload();
+      }
+    } catch (error: any) {
+      console.error('Error adding admin:', error);
+      toast.error('Failed to add admin: ' + error.message);
+    }
+  };
+
+  const handleMakeAdmin = async (id: string, email: string) => {
+    try {
+      const { error } = await supabase.from('profiles').update({ role: 'admin' }).eq('id', id);
+      if (error) throw error;
+      toast.success(`${email} granted admin rights`);
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to make admin');
+    }
+  };
+
+  const handleRemoveAdmin = async (id: string) => {
+    try {
+      const { error } = await supabase.from('profiles').update({ role: 'user' }).eq('id', id);
+      if (error) throw error;
+      toast.success('Admin rights removed');
+      setAdmins(prev => prev.filter(a => a.id !== id));
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove admin');
+    }
+  };
+
   const handleViewDocs = (app: any) => {
     setViewingDocs(app);
   };
@@ -302,6 +586,7 @@ const AdminDashboard = () => {
       approved: 'bg-green-500/20 text-green-400',
       under_review: 'bg-blue-500/20 text-blue-400',
       rejected: 'bg-red-500/20 text-red-400',
+      duplicate: 'bg-purple-500/20 text-purple-300',
       active: 'bg-green-500/20 text-green-400',
       completed: 'bg-[var(--sp-accent)]/20 text-[var(--sp-accent)]',
       planning: 'bg-purple-500/20 text-purple-400',
@@ -310,14 +595,15 @@ const AdminDashboard = () => {
   };
 
   const sidebarItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'members', label: 'Members', icon: Users },
-    { id: 'projects', label: 'Projects', icon: Briefcase },
+    { id: 'overview', label: t('dashboard.sections.overview'), icon: LayoutDashboard },
+    { id: 'members', label: t('dashboard.sections.members'), icon: Users },
+    { id: 'projects', label: t('dashboard.sections.projects'), icon: Briefcase },
     { id: 'opportunities', label: 'Opportunities', icon: Briefcase },
-    { id: 'applications', label: 'Applications', icon: FileText },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+    { id: 'applications', label: t('dashboard.sections.applications'), icon: FileText },
+    { id: 'analytics', label: t('dashboard.sections.analytics'), icon: TrendingUp },
+    { id: 'admins', label: t('dashboard.sections.admins'), icon: Shield },
     { id: 'profile', label: 'My Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'settings', label: t('dashboard.sections.settings'), icon: Settings },
   ];
 
   if (isLoading) {
@@ -352,7 +638,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 mt-4">
+        <nav className="flex-1 p-4 space-y-2 mt-4 overflow-y-auto">
           {[
             { id: 'overview', icon: LayoutDashboard, label: t('dashboard.sections.overview') },
             { id: 'members', icon: Users, label: t('dashboard.sections.members') },
@@ -360,6 +646,7 @@ const AdminDashboard = () => {
             { id: 'opportunities', icon: Briefcase, label: 'Opportunities' },
             { id: 'applications', icon: FileText, label: t('dashboard.sections.applications') },
             { id: 'analytics', icon: BarChart3, label: t('dashboard.sections.analytics') },
+            { id: 'admins', icon: Shield, label: t('dashboard.sections.admins') },
             { id: 'profile', icon: User, label: 'My Profile' },
             { id: 'settings', icon: Settings, label: t('dashboard.sections.settings') },
           ].map((item) => (
@@ -400,7 +687,7 @@ const AdminDashboard = () => {
 
       {/* Mobile Navigation */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 glass border-t border-white/10 z-50">
-        <div className="flex justify-around p-2">
+        <div className="flex justify-around p-2 overflow-x-auto">
           {[
             { id: 'overview', icon: LayoutDashboard },
             { id: 'members', icon: Users },
@@ -408,6 +695,7 @@ const AdminDashboard = () => {
             { id: 'opportunities', icon: Briefcase },
             { id: 'applications', icon: FileText },
             { id: 'analytics', icon: BarChart3 },
+            { id: 'admins', icon: Shield },
             { id: 'profile', icon: User },
             { id: 'settings', icon: Settings },
           ].map((item) => (
@@ -598,11 +886,38 @@ const AdminDashboard = () => {
                     {t('dashboard.recentApps.viewAll')}
                   </button>
                 </div>
+                <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                  <div className="flex items-center gap-4">
+                     <span className="text-sm font-medium text-[var(--text-secondary)]">{selectedApplications.length} selected</span>
+                     <button 
+                       disabled={selectedApplications.length === 0}
+                       onClick={handleBulkApprove}
+                       className="sp-btn-glass text-xs py-1.5 px-3 disabled:opacity-30 hover:bg-green-500 hover:text-white"
+                     >
+                       Bulk Approve
+                     </button>
+                     <button 
+                       disabled={selectedApplications.length === 0}
+                       onClick={handleBulkReject}
+                       className="sp-btn-glass text-xs py-1.5 px-3 disabled:opacity-30 hover:bg-red-500 hover:text-white"
+                     >
+                       Bulk Reject
+                     </button>
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead className="bg-white/[0.02] text-[var(--text-secondary)] text-[10px] uppercase tracking-[0.2em] font-bold">
                       <tr>
-                        <th className="px-8 py-5">{t('dashboard.recentApps.name')}</th>
+                        <th className="px-6 py-5 w-12">
+                          <input 
+                            type="checkbox" 
+                            className="rounded border-white/20 bg-transparent text-[var(--sp-accent)] focus:ring-[var(--sp-accent)] cursor-pointer"
+                            onChange={(e) => setSelectedApplications(e.target.checked ? recentApplications.map(a => a.id) : [])} 
+                            checked={selectedApplications.length > 0 && selectedApplications.length === recentApplications.length} 
+                          />
+                        </th>
+                        <th className="px-4 py-5">{t('dashboard.recentApps.name')}</th>
                         <th className="px-8 py-5">{t('dashboard.recentApps.type')}</th>
                         <th className="px-8 py-5">{t('dashboard.recentApps.date')}</th>
                         <th className="px-8 py-5">{t('dashboard.recentApps.status')}</th>
@@ -612,7 +927,18 @@ const AdminDashboard = () => {
                     <tbody className="divide-y divide-white/[0.03]">
                       {recentApplications.map((app) => (
                         <tr key={app.id} className="group hover:bg-white/[0.02] transition-colors">
-                          <td className="px-8 py-5">
+                          <td className="px-6 py-5 w-12 text-center">
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-white/20 bg-transparent text-[var(--sp-accent)] focus:ring-[var(--sp-accent)] cursor-pointer"
+                              checked={selectedApplications.includes(app.id)} 
+                              onChange={(e) => {
+                                 if (e.target.checked) setSelectedApplications(prev => [...prev, app.id]);
+                                 else setSelectedApplications(prev => prev.filter(id => id !== app.id));
+                              }} 
+                            />
+                          </td>
+                          <td className="px-4 py-5">
                             <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center shadow-lg shadow-[var(--sp-accent)]/10 group-hover:scale-110 transition-transform">
                                 <span className="text-[var(--text-inverse)] font-bold">{app.name.charAt(0)}</span>
@@ -664,6 +990,24 @@ const AdminDashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">Recent Admin Actions</h3>
+                  <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-[0.2em]">Last 5</span>
+                </div>
+                <div className="space-y-2">
+                  {auditLog.slice(0,5).map((entry, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm glass-light p-3 rounded-xl">
+                      <span className="text-[var(--text-primary)] font-medium">{entry.action}</span>
+                      <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">{new Date(entry.at).toLocaleString()}</span>
+                    </div>
+                  ))}
+                  {auditLog.length === 0 && (
+                    <p className="text-[var(--text-secondary)] text-sm">No admin actions yet.</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -820,6 +1164,16 @@ const AdminDashboard = () => {
                           </td>
                           <td className="px-8 py-5">
                             <div className="flex justify-end gap-2 pr-4">
+                              <select
+                                value={member.tier || 'Community'}
+                                onChange={(e) => handleSetTier(member.id, e.target.value as 'Community' | 'Professional' | 'Firm')}
+                                className="input-glass text-[10px] px-2 py-2"
+                                title="Override tier"
+                              >
+                                <option value="Community">Community</option>
+                                <option value="Professional">Professional</option>
+                                <option value="Firm">Firm</option>
+                              </select>
                               <button 
                                 onClick={() => navigate(`/admin/user/${member.id}`)}
                                 className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-[var(--sp-accent)] hover:text-[var(--text-inverse)] transition-all"
@@ -827,12 +1181,60 @@ const AdminDashboard = () => {
                               >
                                 <Eye size={16} />
                               </button>
-                              <button className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-blue-500 hover:text-white transition-all">
-                                <Edit2 size={16} />
+                              <button 
+                                onClick={() => handleViewDocs({ id: member.id, name: member.name, email: member.email, docs: member.docs || {} })}
+                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-purple-500 hover:text-white transition-all"
+                                title="View Documents"
+                              >
+                                <FileText size={16} />
                               </button>
-                              <button className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-red-500 hover:text-white transition-all">
-                                <Trash2 size={16} />
+                              <button 
+                                onClick={() => handleAssignBadge(member.id, 'verified')}
+                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-green-500 hover:text-white transition-all"
+                            title="Assign Verified"
+                          >
+                                <Shield size={16} />
                               </button>
+                              <button 
+                                onClick={() => handleAssignBadge(member.id, 'premium')}
+                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-yellow-500 hover:text-white transition-all"
+                                title="Upgrade to Premium"
+                              >
+                                <Star size={16} />
+                              </button>
+                          <button 
+                            onClick={() => handleFlagDuplicate(member.id)}
+                            className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-purple-500 hover:text-white transition-all"
+                            title="Flag duplicate"
+                          >
+                            <Copy size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleNote(member.id)}
+                            className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-teal-500 hover:text-white transition-all"
+                            title="Add note / assign owner"
+                          >
+                            <FileText size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleSuspendMember(member.id, 'under_review')}
+                            className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-orange-500 hover:text-white transition-all"
+                            title="Suspend"
+                          >
+                                <X size={16} />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteMember(member.id)}
+                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-red-500 hover:text-white transition-all"
+                                title="Delete profile"
+                              >
+                              <Trash2 size={16} />
+                            </button>
+                            {memberNotes[member.id]?.note && (
+                              <span className="text-[10px] text-[var(--text-secondary)] px-2 py-1 rounded bg-white/5">
+                                Note: {memberNotes[member.id].owner || 'Unassigned'}
+                              </span>
+                            )}
                             </div>
                           </td>
                         </tr>
@@ -841,6 +1243,51 @@ const AdminDashboard = () => {
                   </table>
                 </div>
               </div>
+
+              {duplicateCandidates.length > 0 && (
+                <div className="glass-card p-6 border border-purple-500/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">Potential Duplicates</h3>
+                    <span className="text-[10px] px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 font-bold uppercase tracking-wider">
+                      {duplicateCandidates.length} flagged
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {duplicateCandidates.map((dupe) => (
+                      <div key={dupe.id} className="flex items-center justify-between glass-light p-3 rounded-xl">
+                        <div>
+                          <p className="text-sm text-[var(--text-primary)] font-semibold">{dupe.name}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">{dupe.email}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => {
+                              const primary = members.find(m => m.name?.toLowerCase() === dupe.name?.toLowerCase() && m.id !== dupe.id);
+                              if (primary) mergeProfiles(primary.id, dupe.id);
+                              else toast.error('No primary profile found to merge into');
+                            }}
+                            className="sp-btn-primary text-xs"
+                          >
+                            Merge into primary
+                          </button>
+                          <button 
+                            onClick={() => handleFlagDuplicate(dupe.id)}
+                            className="sp-btn-glass text-xs"
+                          >
+                            Flag
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteMember(dupe.id)}
+                            className="sp-btn-glass text-xs"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -925,7 +1372,7 @@ const AdminDashboard = () => {
           {/* Applications Section */}
           {activeSection === 'applications' && (
             <div className="space-y-6">
-              <div className=" flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 <div className="relative">
                   <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                   <input 
@@ -940,51 +1387,61 @@ const AdminDashboard = () => {
                   <option value="approved">{t('dashboard.buttons.approve')}d</option>
                   <option value="rejected">{t('dashboard.buttons.reject')}ed</option>
                 </select>
+                {selectedApplications.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => selectedApplications.forEach(id => handleApprove(id))} className="sp-btn-primary text-xs">
+                      Approve selected ({selectedApplications.length})
+                    </button>
+                    <button onClick={() => selectedApplications.forEach(id => handleReject(id))} className="sp-btn-glass text-xs">
+                      Reject selected
+                    </button>
+                    <button onClick={() => selectedApplications.forEach(id => handleSuspendMember(id, 'under_review'))} className="sp-btn-glass text-xs">
+                      Mark under review
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="glass-card p-6">
                 <div className="space-y-4">
                   {recentApplications.map((app) => (
-                    <div key={app.id} className="glass-light rounded-xl p-4  flex items-center justify-between">
-                      <div className=" flex items-center gap-4">
+                    <div key={app.id} className="glass-light rounded-xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <input 
+                          type="checkbox"
+                          className="accent-[var(--sp-accent)]"
+                          checked={selectedApplications.includes(app.id)}
+                          onChange={(e) => {
+                            setSelectedApplications(prev => e.target.checked ? [...prev, app.id] : prev.filter(id => id !== app.id));
+                          }}
+                        />
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center">
                           <span className="text-[var(--text-inverse)] font-semibold">{app.name.charAt(0)}</span>
                         </div>
                         <div>
-                          <h4 className="text-[var(--text-primary)]  font-medium">{app.name}</h4>
-                          <p className="text-[var(--text-secondary)] text-sm">{app.email}  �  {app.type}</p>
+                          <h4 className="text-[var(--text-primary)] font-medium">{app.name}</h4>
+                          <p className="text-[var(--text-secondary)] text-sm">{app.email} · {app.type}</p>
                         </div>
                       </div>
-                      <div className=" flex items-center gap-4">
+                      <div className="flex items-center gap-4">
                         <span className="text-[var(--text-secondary)] text-sm">{app.date}</span>
+                        <span className="text-[10px] px-2 py-1 rounded-full bg-white/5 text-[var(--text-secondary)]">
+                          {Math.max(0, Math.round((Date.now() - new Date(app.date).getTime()) / 86400000))}d old
+                        </span>
                         <span className={`px-3 py-1 rounded-full text-xs ${getStatusBadge(app.status)}`}>
                           {app.status.replace('_', ' ')}
                         </span>
-                        <div className=" flex gap-2">
-                          <button 
-                            onClick={() => navigate(`/admin/user/${app.id}`)}
-                            className="p-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-                            title="View Full Profile"
-                          >
+                        <div className="flex gap-2">
+                          <button onClick={() => navigate(`/admin/user/${app.id}`)} className="p-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30" title="View Full Profile">
                             <User size={18} />
                           </button>
-                          <button 
-                            onClick={() => handleViewDocs(app)}
-                            className="p-2 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30"
-                            title="View Documents"
-                          >
+                          <button onClick={() => handleViewDocs(app)} className="p-2 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30" title="View Documents">
                             <Eye size={18} />
                           </button>
-                          <button 
-                            onClick={() => handleApprove(app.id)}
-                            className="p-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30"
-                          >
+                          <button onClick={() => handleApprove(app.id)} className="p-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30">
                             <CheckCircle size={18} />
                           </button>
-                          <button 
-                            onClick={() => handleReject(app.id)}
-                            className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                          >
+                          <button onClick={() => handleReject(app.id)} className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30">
                             <X size={18} />
                           </button>
                         </div>
@@ -995,7 +1452,6 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
-
           {/* Analytics Section */}
           {activeSection === 'analytics' && (
             <div className="space-y-6">
@@ -1131,6 +1587,203 @@ const AdminDashboard = () => {
             </div>
           )}
 
+          {/* Admins Section */}
+          {activeSection === 'admins' && (
+            <div className="space-y-4 lg:space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-auto">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+                    <input 
+                      type="text"
+                      placeholder="Search admins..."
+                      className="input-glass pl-10 pr-4 py-2 w-full sm:w-64 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button 
+                    onClick={() => setShowPromoteList(!showPromoteList)}
+                    className={`sp-btn-glass flex items-center gap-2 text-sm justify-center flex-1 sm:flex-none ${showPromoteList ? 'bg-[var(--sp-accent)]/10 text-[var(--sp-accent)]' : ''}`}
+                  >
+                    <Star size={14} />
+                    {showPromoteList ? 'Close Selection' : 'Promote Existing'}
+                  </button>
+                  <button 
+                    onClick={() => setShowAddAdmin(true)}
+                    className="sp-btn-primary flex items-center gap-2 text-sm justify-center flex-1 sm:flex-none"
+                  >
+                    <Plus size={14} />
+                    Add New Admin
+                  </button>
+                </div>
+              </div>
+
+              {showPromoteList && (
+                <div className="glass-card p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-[var(--text-primary)]">Select Member to Promote</h3>
+                    <div className="relative">
+                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+                      <input 
+                        type="text"
+                        placeholder="Search members..."
+                        value={promoteSearch}
+                        onChange={(e) => setPromoteSearch(e.target.value)}
+                        className="input-glass pl-9 pr-4 py-1.5 text-xs w-64"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                    {members
+                      .filter(m => 
+                        !admins.some(a => a.id === m.id) && 
+                        (m.name.toLowerCase().includes(promoteSearch.toLowerCase()) || 
+                         m.email.toLowerCase().includes(promoteSearch.toLowerCase()))
+                      )
+                      .map((member) => (
+                        <div key={member.id} className="flex items-center justify-between p-3 glass-light rounded-xl hover:bg-white/5 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center">
+                              <span className="text-[var(--text-inverse)] text-xs font-bold">{member.name.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-[var(--text-primary)]">{member.name}</p>
+                              <p className="text-[10px] text-[var(--text-secondary)]">{member.email}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleMakeAdmin(member.id, member.email)}
+                            className="sp-btn-primary text-[10px] py-1 px-3"
+                          >
+                            Make Admin
+                          </button>
+                        </div>
+                      ))}
+                    {members.filter(m => !admins.some(a => a.id === m.id)).length === 0 && (
+                      <p className="text-center text-[var(--text-secondary)] text-sm py-4">No eligible members found.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {showAddAdmin && (
+                <div className="glass-card p-6">
+                  <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Add New Admin</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[var(--text-secondary)] text-sm block mb-2">Email *</label>
+                        <input
+                          type="email"
+                          value={newAdmin.email}
+                          onChange={(e) => setNewAdmin({...newAdmin, email: e.target.value})}
+                          className="input-glass w-full"
+                          placeholder="admin@example.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[var(--text-secondary)] text-sm block mb-2">Full Name *</label>
+                        <input
+                          type="text"
+                          value={newAdmin.full_name}
+                          onChange={(e) => setNewAdmin({...newAdmin, full_name: e.target.value})}
+                          className="input-glass w-full"
+                          placeholder="Admin User"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[var(--text-secondary)] text-sm block mb-2">Temporary Password (optional)</label>
+                        <input
+                          type="text"
+                          value={newAdmin.password}
+                          onChange={(e) => setNewAdmin({...newAdmin, password: e.target.value})}
+                          className="input-glass w-full"
+                          placeholder="Leave blank to auto-generate"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      <button onClick={handleAddAdmin} className="sp-btn-primary">
+                        Create Admin Account
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setShowAddAdmin(false);
+                          setNewAdmin({ email: '', full_name: '', password: '' });
+                        }} 
+                        className="sp-btn-glass"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="premium-glass rounded-[32px] border border-white/5 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-white/[0.02] text-[var(--text-secondary)] text-[10px] uppercase tracking-[0.2em] font-bold">
+                      <tr>
+                        <th className="px-8 py-5 whitespace-nowrap">Admin Profile</th>
+                        <th className="px-8 py-5 whitespace-nowrap">Role</th>
+                        <th className="px-8 py-5 whitespace-nowrap">Joined</th>
+                        <th className="px-8 py-5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.03]">
+                      {admins.map((admin) => (
+                        <tr key={admin.id} className="group hover:bg-white/[0.02] transition-colors">
+                          <td className="px-8 py-5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--sp-accent)] to-[#8B7355] flex items-center justify-center shadow-lg shadow-[var(--sp-accent)]/20 group-hover:scale-110 transition-transform">
+                                <span className="text-[var(--text-inverse)] font-bold">
+                                  {admin.full_name ? admin.full_name.charAt(0) : admin.email.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--sp-accent)] transition-colors truncate">{admin.full_name || 'Admin User'}</p>
+                                <p className="text-[10px] text-[var(--text-secondary)] opacity-60 font-medium tracking-tight uppercase truncate">{admin.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-5">
+                            <span className="text-xs font-semibold px-3 py-1 bg-[var(--sp-accent)]/20 text-[var(--sp-accent)] rounded-lg">
+                              {admin.role.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="px-8 py-5 text-xs text-[var(--text-secondary)] font-medium">
+                            {new Date(admin.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-8 py-5">
+                            <div className="flex justify-end gap-2 pr-4">
+                              <button 
+                                onClick={() => handleRemoveAdmin(admin.id)}
+                                className="p-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                title="Revoke Admin Access"
+                              >
+                                  <X size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {admins.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-8 py-8 text-center text-[var(--text-secondary)] text-sm">
+                            No admins found. Add one above.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Settings Section */}
           {activeSection === 'settings' && (
             <div className="max-w-2xl space-y-6">
@@ -1150,7 +1803,7 @@ const AdminDashboard = () => {
                     <select className="input-glass w-full px-4 py-2">
                       <option value="KES">Kenyan Shilling (KSh)</option>
                       <option value="USD">US Dollar ($)</option>
-                      <option value="EUR">Euro (€)</option>
+                      <option value="EUR">Euro (â‚¬)</option>
                     </select>
                   </div>
                 </div>
@@ -1195,7 +1848,7 @@ const AdminDashboard = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="text-[var(--text-primary)] font-medium">{tier.name}</h4>
-                            <p className="text-[var(--text-secondary)] text-sm">{tier.features} features – {tier.price}</p>
+                            <p className="text-[var(--text-secondary)] text-sm">{tier.features} features â€“ {tier.price}</p>
                           </div>
                           <button onClick={() => setEditingTier(tier.name)} className="sp-btn-glass text-sm">Edit</button>
                         </div>
@@ -1310,3 +1963,5 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+

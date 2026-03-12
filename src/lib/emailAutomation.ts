@@ -24,7 +24,7 @@ export class EmailAutomationService {
       return JSON.parse(text);
     } catch (error) {
       console.error('Email trigger failed:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
