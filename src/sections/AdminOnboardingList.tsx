@@ -146,9 +146,17 @@ const AdminOnboardingList = () => {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <div className="px-6 py-6 flex items-center justify-between border-b border-white/10">
-        <div>
-          <h1 className="text-2xl font-bold">Onboarding Records</h1>
-          <p className="text-sm text-[var(--text-secondary)]">All submitted onboarding data for admin review.</p>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => window.history.back()}
+            className="sp-btn-glass px-3 py-2 flex items-center gap-2 text-sm"
+          >
+            <span className="rotate-180">➜</span> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold">Onboarding Records</h1>
+            <p className="text-sm text-[var(--text-secondary)]">All submitted onboarding data for admin review.</p>
+          </div>
         </div>
         <div className="flex gap-3 items-center">
           <div className="relative">
