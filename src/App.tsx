@@ -25,6 +25,7 @@ import { CookieBanner } from './components/CookieBanner';
 const AdminDashboard = lazy(() => import('./sections/AdminDashboard'));
 const UserDashboard = lazy(() => import('./sections/UserDashboard'));
 const AdminUserDetailPage = lazy(() => import('./sections/AdminUserDetailPage'));
+const AdminOnboardingList = lazy(() => import('./sections/AdminOnboardingList'));
 const ConceptNotePage = lazy(() => import('./sections/ConceptNotePage'));
 const ProfilePage = lazy(() => import('./sections/ProfilePage'));
 const EditOnboardingPage = lazy(() => import('./sections/EditOnboardingPage'));
@@ -207,6 +208,7 @@ function MainLayout() {
                     <Route element={<AdminRoute />}>
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="/admin/user/:userId" element={<AdminUserDetailPage />} />
+                      <Route path="/admin/onboarding" element={<AdminOnboardingList />} />
                     </Route>
                   </Route>
                 </Routes>
