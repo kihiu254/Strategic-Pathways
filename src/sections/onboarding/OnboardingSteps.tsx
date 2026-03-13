@@ -309,6 +309,16 @@ export const EducationEnhanced = ({ register, errors, control }: StepProps) => {
               <option value="Other">Other</option>
             </select>
             {errors.highestEducation && <p className="text-red-400 text-xs">{errors.highestEducation.message}</p>}
+            {useWatch({ control, name: 'highestEducation' }) === 'Other' && (
+              <div className="pt-2">
+                <label className="text-[var(--text-secondary)] text-sm block ml-1">Specify other education</label>
+                <input
+                  {...register('educationOther')}
+                  className="input-glass w-full"
+                  placeholder="e.g. Postgraduate diploma, Fellowship"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
