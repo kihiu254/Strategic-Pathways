@@ -16,44 +16,10 @@ export const uploadFile = async (
   file: File,
   folder: 'verification' | 'profiles' | 'opportunities'
 ): Promise<UploadResult> => {
-  if (isImageFile(file)) {
-    // 1. Get ImageKit auth params from our backend
-    const authResponse = await fetch(`${window.location.origin}/api/imagekit-auth`);
-    if (!authResponse.ok) throw new Error('Failed to get ImageKit authentication');
-    const { token, expire, signature } = await authResponse.json();
-
-    // 2. Upload to ImageKit
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('fileName', `${folder}_${Date.now()}_${file.name}`);
-    formData.append('token', token);
-    formData.append('expire', expire);
-    formData.append('signature', signature);
-    formData.append('publicKey', imagekitConfig.publicKey);
-    formData.append('folder', `/${folder}`);
-
-    const uploadResponse = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!uploadResponse.ok) {
-      const errorData = await uploadResponse.json();
-      throw new Error(errorData.message || 'ImageKit upload failed');
-    }
-
-    const ikData = await uploadResponse.json();
-
-    return {
-      url: ikData.url,
-      path: ikData.filePath,
-      bucket: 'imagekit'
-    };
-  } else {
-    // Documents remain in Supabase
+  // Helper: upload to Supabase bucket (used for docs and fallback for images)
+  const uploadToSupabase = async (bucket: string) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const bucket = STORAGE_BUCKETS.VERIFICATION_DOCS;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
@@ -73,7 +39,53 @@ export const uploadFile = async (
       path: fileName,
       bucket
     };
+  };
+
+  if (isImageFile(file)) {
+    // Try ImageKit first (only if config exists)
+    if (imagekitConfig.publicKey && imagekitConfig.authenticationEndpoint) {
+      try {
+        const authResponse = await fetch(`${window.location.origin}${imagekitConfig.authenticationEndpoint}`);
+        if (!authResponse.ok) throw new Error('Failed to get ImageKit authentication');
+        const { token, expire, signature } = await authResponse.json();
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileName', `${folder}_${Date.now()}_${file.name}`);
+        formData.append('token', token);
+        formData.append('expire', expire);
+        formData.append('signature', signature);
+        formData.append('publicKey', imagekitConfig.publicKey);
+        formData.append('folder', `/${folder}`);
+
+        const uploadResponse = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json().catch(() => ({}));
+          throw new Error(errorData.message || `ImageKit upload failed (${uploadResponse.status})`);
+        }
+
+        const ikData = await uploadResponse.json();
+
+        return {
+          url: ikData.url,
+          path: ikData.filePath,
+          bucket: 'imagekit'
+        };
+      } catch (err) {
+        console.warn('ImageKit upload failed, falling back to Supabase:', err);
+      }
+    }
+
+    // Fallback to Supabase profile-images bucket
+    return uploadToSupabase(STORAGE_BUCKETS.PROFILE_IMAGES);
   }
+
+  // Documents (non-images) remain in Supabase verification bucket
+  return uploadToSupabase(STORAGE_BUCKETS.VERIFICATION_DOCS);
 };
 
 /**
