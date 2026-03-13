@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   LayoutDashboard, Users, Briefcase, FileText, Settings, 
@@ -7,7 +7,7 @@ import {
   X, Plus, Search, Filter,
   BarChart3, Star, Edit2, Trash2, Eye, User, Copy,
   Maximize2, Minimize2, Loader2, Download, ExternalLink,
-  Shield, Globe, GraduationCap
+  Shield, Globe, GraduationCap, ClipboardList
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
@@ -703,6 +703,7 @@ const AdminDashboard = () => {
     { id: 'projects', label: t('dashboard.sections.projects'), icon: Briefcase },
     { id: 'opportunities', label: 'Opportunities', icon: Briefcase },
     { id: 'applications', label: t('dashboard.sections.applications'), icon: FileText },
+    { id: 'onboarding', label: 'Onboarding Records', icon: ClipboardList },
     { id: 'analytics', label: t('dashboard.sections.analytics'), icon: TrendingUp },
     { id: 'admins', label: t('dashboard.sections.admins'), icon: Shield },
     { id: 'profile', label: 'My Profile', icon: User },
@@ -743,19 +744,17 @@ const AdminDashboard = () => {
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 mt-4 overflow-y-auto">
           {[
-            { id: 'overview', icon: LayoutDashboard, label: t('dashboard.sections.overview') },
-            { id: 'members', icon: Users, label: t('dashboard.sections.members') },
-            { id: 'projects', icon: Briefcase, label: t('dashboard.sections.projects') },
-            { id: 'opportunities', icon: Briefcase, label: 'Opportunities' },
-            { id: 'applications', icon: FileText, label: t('dashboard.sections.applications') },
-            { id: 'analytics', icon: BarChart3, label: t('dashboard.sections.analytics') },
-            { id: 'admins', icon: Shield, label: t('dashboard.sections.admins') },
-            { id: 'profile', icon: User, label: 'My Profile' },
-            { id: 'settings', icon: Settings, label: t('dashboard.sections.settings') },
+            ...sidebarItems,
           ].map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveSection(item.id)}
+              onClick={() => {
+                if (item.id === 'onboarding') {
+                  navigate('/admin/onboarding');
+                  return;
+                }
+                setActiveSection(item.id);
+              }}
               className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 relative group overflow-hidden ${
                 activeSection === item.id
                   ? 'text-[var(--text-inverse)] font-bold'
@@ -791,20 +790,16 @@ const AdminDashboard = () => {
       {/* Mobile Navigation */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 glass border-t border-white/10 z-50">
         <div className="flex justify-around p-2 overflow-x-auto">
-          {[
-            { id: 'overview', icon: LayoutDashboard },
-            { id: 'members', icon: Users },
-            { id: 'projects', icon: Briefcase },
-            { id: 'opportunities', icon: Briefcase },
-            { id: 'applications', icon: FileText },
-            { id: 'analytics', icon: BarChart3 },
-            { id: 'admins', icon: Shield },
-            { id: 'profile', icon: User },
-            { id: 'settings', icon: Settings },
-          ].map((item) => (
+          {sidebarItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveSection(item.id)}
+              onClick={() => {
+                if (item.id === 'onboarding') {
+                  navigate('/admin/onboarding');
+                  return;
+                }
+                setActiveSection(item.id);
+              }}
               className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
                 activeSection === item.id
                   ? 'bg-[var(--sp-accent)]/20 text-[var(--sp-accent)]'
@@ -1471,6 +1466,9 @@ const AdminDashboard = () => {
           {activeSection === 'opportunities' && (
             <AdminOpportunitiesManager />
           )}
+
+          {/* Onboarding Records: redirect to dedicated page */}
+          {activeSection === 'onboarding' && <Navigate to="/admin/onboarding" replace />}
 
           {/* Applications Section */}
           {activeSection === 'applications' && (
