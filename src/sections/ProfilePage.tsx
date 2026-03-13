@@ -235,23 +235,25 @@ const ProfilePage = () => {
 
     const fetchActivities = async () => {
       try {
-        // Fetch recent verification documents as activities
-        const { data: verificationData } = await supabase
-          .from('verification_documents')
-          .select('document_type, created_at, status')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(5);
+        const activities: any[] = [];
 
-        const activities = [];
-        
-        if (verificationData) {
-          activities.push(...verificationData.map(v => ({
-            action: 'Submitted verification',
-            target: v.document_type,
-            time: new Date(v.created_at).toLocaleDateString(),
-            type: 'verification'
-          })));
+        // Verification uploads are stored on the profile record (verification_docs JSON)
+        const { data: profileDocs } = await supabase
+          .from('profiles')
+          .select('verification_docs')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileDocs?.verification_docs && typeof profileDocs.verification_docs === 'object') {
+          Object.entries(profileDocs.verification_docs).forEach(([key, value]: [string, any]) => {
+            if (!value) return;
+            activities.push({
+              action: 'Submitted verification',
+              target: key.replace(/_/g, ' '),
+              time: value.uploaded_at || new Date().toISOString(),
+              type: 'verification'
+            });
+          });
         }
 
         // Fetch recent projects as activities
@@ -266,12 +268,11 @@ const ProfilePage = () => {
           activities.push(...projectData.map(p => ({
             action: p.is_current ? 'Started project' : 'Completed project',
             target: p.project_title,
-            time: new Date(p.created_at).toLocaleDateString(),
+            time: p.created_at,
             type: 'project'
           })));
         }
 
-        // Sort by date
         activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         setActivities(activities.slice(0, 10));
       } catch (err) {

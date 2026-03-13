@@ -313,6 +313,20 @@ const AdminDashboard = () => {
           'approved', 
           'Tier 2 – Verified Professional'
         ).catch(err => console.error("Failed to send email", err));
+
+        // Create In-App Notification
+        const appIdForNotif = id; // This might be profiles.id or verification_documents.id
+        let targetUserId = id; if (appSource !== 'profile') { const { data: appData } = await supabase.from('verification_documents').select('user_id').eq('id', id).single(); targetUserId = appData?.user_id; }
+
+        if (targetUserId) {
+          await supabase.from('notifications').insert({
+            user_id: targetUserId,
+            title: 'Verification Approved 🎉',
+            message: 'Your verification has been approved. You are now a Verified Professional!',
+            type: 'success',
+            read: false
+          });
+        }
       }
     } catch (error) {
       toast.error('Failed to approve');
@@ -353,6 +367,19 @@ const AdminDashboard = () => {
           'Tier 2 – Verified Professional',
           reason
         ).catch(err => console.error("Failed to send email", err));
+
+        // Create In-App Notification
+        let targetUserId = id; if (appSource !== 'profile') { const { data: appData } = await supabase.from('verification_documents').select('user_id').eq('id', id).single(); targetUserId = appData?.user_id; }
+
+        if (targetUserId) {
+          await supabase.from('notifications').insert({
+            user_id: targetUserId,
+            title: 'Verification Update',
+            message: `Your verification requires attention. Reason: ${reason}`,
+            type: 'warning',
+            read: false
+          });
+        }
       }
     } catch (error) {
       toast.error('Failed to reject');
@@ -2039,5 +2066,5 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
-
+
+

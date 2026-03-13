@@ -19,31 +19,46 @@ const LoginPage = () => {
       const searchParams = new URLSearchParams(window.location.search);
       
       if (hashParams.get('access_token') || searchParams.get('code')) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setSession(session);
-          setUser(session.user);
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
           
-          // Sync profile and redirect
           try {
-            const metadata = session.user.user_metadata;
-            if (metadata?.full_name || metadata?.avatar_url || metadata?.picture) {
-              await supabase.from('profiles').upsert({
-                id: session.user.id,
-                full_name: metadata.full_name || metadata.name,
-                avatar_url: metadata.avatar_url || metadata.picture,
-                email: session.user.email,
-                updated_at: new Date().toISOString()
-              });
+            // Sync profile safely
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id, avatar_url, full_name')
+              .eq('id', currentSession.user.id)
+              .single();
+
+            const metadata = currentSession.user.user_metadata;
+            const profileData: any = {
+              id: currentSession.user.id,
+              email: currentSession.user.email,
+              updated_at: new Date().toISOString()
+            };
+
+            // Only set full_name and avatar_url if they don't exist yet
+            if (!existingProfile?.full_name && (metadata.full_name || metadata.name)) {
+              profileData.full_name = metadata.full_name || metadata.name;
+            }
+            if (!existingProfile?.avatar_url && (metadata.avatar_url || metadata.picture)) {
+              profileData.avatar_url = metadata.avatar_url || metadata.picture;
+            }
+
+            // Only sync if there's new data or if profile doesn't exist
+            if (!existingProfile || Object.keys(profileData).length > 3) {
+              await supabase.from('profiles').upsert(profileData);
             }
 
             const { data: profile } = await supabase
               .from('profiles')
               .select('onboarding_completed')
-              .eq('id', session.user.id)
+              .eq('id', currentSession.user.id)
               .single();
 
-            if (session.user.email?.includes('admin') || session.user.email?.includes('joinstrategicpathways')) {
+            if (currentSession.user.email?.includes('admin') || currentSession.user.email?.includes('joinstrategicpathways')) {
               navigate('/admin');
             } else if (profile?.onboarding_completed) {
               navigate('/profile');
@@ -62,15 +77,28 @@ const LoginPage = () => {
       if (session) {
         const syncProfile = async () => {
           try {
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id, avatar_url, full_name')
+              .eq('id', session.user.id)
+              .single();
+
             const metadata = session.user.user_metadata;
-            if (metadata?.full_name || metadata?.avatar_url || metadata?.picture) {
-              await supabase.from('profiles').upsert({
-                id: session.user.id,
-                full_name: metadata.full_name || metadata.name,
-                avatar_url: metadata.avatar_url || metadata.picture,
-                email: session.user.email,
-                updated_at: new Date().toISOString()
-              });
+            const profileData: any = {
+              id: session.user.id,
+              email: session.user.email,
+              updated_at: new Date().toISOString()
+            };
+
+            if (!existingProfile?.full_name && (metadata.full_name || metadata.name)) {
+              profileData.full_name = metadata.full_name || metadata.name;
+            }
+            if (!existingProfile?.avatar_url && (metadata.avatar_url || metadata.picture)) {
+              profileData.avatar_url = metadata.avatar_url || metadata.picture;
+            }
+
+            if (!existingProfile || Object.keys(profileData).length > 3) {
+              await supabase.from('profiles').upsert(profileData);
             }
 
             const { data: profile } = await supabase

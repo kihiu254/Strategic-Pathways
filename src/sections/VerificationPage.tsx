@@ -7,12 +7,13 @@ import { useAuthStore } from '../store/authStore';
 import { EmailAutomationService } from '../lib/emailAutomation';
 
 interface UploadedDocument {
-  id: string;
+  key: string;
   document_type: string;
   document_category: string;
   file_url: string;
+  storage_path?: string;
   status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
+  uploaded_at: string;
 }
 
 const VerificationPage = () => {
@@ -23,6 +24,18 @@ const VerificationPage = () => {
   const [currentTier, setCurrentTier] = useState('Tier 1 – Self-Declared');
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
+  const normalizeDocs = (docs: any, fallbackTier: string) => {
+    if (!docs || typeof docs !== 'object') return [] as UploadedDocument[];
+    return Object.entries(docs).map(([key, value]: [string, any]) => ({
+      key,
+      document_type: value?.document_type || key.replace(/_/g, ' '),
+      document_category: value?.document_category || value?.category || fallbackTier,
+      file_url: value?.url || value?.file_url || value,
+      storage_path: value?.storage_path,
+      status: value?.status || 'pending',
+      uploaded_at: value?.uploaded_at || new Date().toISOString(),
+    }));
+  };
 
   useEffect(() => {
     if (!user) {
@@ -36,7 +49,7 @@ const VerificationPage = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('verification_tier, verification_status')
+        .select('verification_tier, verification_status, verification_docs')
         .eq('id', user?.id)
         .single();
 
@@ -44,17 +57,9 @@ const VerificationPage = () => {
       if (data) {
         setCurrentTier(data.verification_tier || 'Tier 1 – Self-Declared');
         setVerificationStatus(data.verification_status);
+        setUploadedDocuments(normalizeDocs(data.verification_docs, data.verification_tier));
       }
 
-      // Fetch uploaded documents
-      const { data: documents, error: docsError } = await supabase
-        .from('verification_documents')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (docsError) throw docsError;
-      setUploadedDocuments(documents || []);
     } catch (err) {
       console.error('Error fetching verification:', err);
     } finally {
@@ -73,7 +78,8 @@ const VerificationPage = () => {
 
     setUploading(true);
     try {
-      const filePath = `${user?.id}/verification/${docType}_${Date.now()}_${file.name}`;
+      const docKey = docType.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'document';
+      const filePath = `${user?.id}/verification/${docKey}_${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('verification-documents')
         .upload(filePath, file);
@@ -85,30 +91,41 @@ const VerificationPage = () => {
         .from('verification-documents')
         .getPublicUrl(filePath);
 
-      // Create document record
-      const { error: docError } = await supabase
-        .from('verification_documents')
-        .insert({
-          user_id: user?.id,
-          document_type: docType,
-          document_category: tierName,
-          file_url: urlData.publicUrl,
-          status: 'pending'
-        });
+      // Merge into profile.verification_docs JSON
+      const { data: existingDocs } = await supabase
+        .from('profiles')
+        .select('verification_docs')
+        .eq('id', user?.id)
+        .maybeSingle();
 
-      if (docError) throw docError;
+      const verificationDocs =
+        existingDocs?.verification_docs && typeof existingDocs.verification_docs === 'object'
+          ? { ...existingDocs.verification_docs }
+          : {};
 
-      // Update profile verification status
-      await supabase
+      verificationDocs[docKey] = {
+        document_type: docType,
+        document_category: tierName,
+        url: urlData.publicUrl,
+        storage_path: filePath,
+        status: 'pending',
+        uploaded_at: new Date().toISOString(),
+      };
+
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
+          verification_docs: verificationDocs,
           verification_status: 'pending',
           updated_at: new Date().toISOString()
         })
         .eq('id', user?.id);
 
+      if (profileError) throw profileError;
+
       toast.success('Document uploaded successfully! Verification pending.');
       setVerificationStatus('pending');
+      setUploadedDocuments(normalizeDocs(verificationDocs, tierName));
       
       // Trigger email notification
       if (user?.email && user?.user_metadata?.full_name) {
@@ -130,12 +147,17 @@ const VerificationPage = () => {
     }
   };
 
-  const handleDeleteDocument = async (documentId: string, filePath: string) => {
+  const handleDeleteDocument = async (documentKey: string, filePath: string) => {
     try {
       // Extract file path from URL
       const pathParts = filePath.split('/');
       const fileName = pathParts[pathParts.length - 1];
-      const fullPath = `${user?.id}/verification/${fileName}`;
+      const cleanPath = filePath.includes('/object/public/')
+        ? (filePath.split('/object/public/')[1]?.replace('verification-documents/', '') || filePath)
+        : filePath;
+      const fullPath = cleanPath.startsWith(`${user?.id}/`)
+        ? cleanPath
+        : `${user?.id}/verification/${fileName}`;
 
       // Delete from storage
       const { error: storageError } = await supabase.storage
@@ -144,16 +166,33 @@ const VerificationPage = () => {
 
       if (storageError) console.warn('Storage deletion failed:', storageError);
 
-      // Delete document record
-      const { error: dbError } = await supabase
-        .from('verification_documents')
-        .delete()
-        .eq('id', documentId);
+      // Remove from profile JSON
+      const { data: existingDocs, error: docFetchError } = await supabase
+        .from('profiles')
+        .select('verification_docs')
+        .eq('id', user?.id)
+        .maybeSingle();
+      if (docFetchError) throw docFetchError;
 
-      if (dbError) throw dbError;
+      const verificationDocs =
+        existingDocs?.verification_docs && typeof existingDocs.verification_docs === 'object'
+          ? { ...existingDocs.verification_docs }
+          : {};
 
+      delete verificationDocs[documentKey];
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          verification_docs: Object.keys(verificationDocs).length ? verificationDocs : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user?.id);
+
+      if (updateError) throw updateError;
+
+      setUploadedDocuments(normalizeDocs(verificationDocs, currentTier));
       toast.success('Document deleted successfully');
-      fetchVerificationStatus();
     } catch (error: any) {
       toast.error('Failed to delete document: ' + error.message);
     }
@@ -432,7 +471,7 @@ const VerificationPage = () => {
                         </h4>
                         <div className="space-y-2">
                           {getDocumentsByTier(tier.tier).map((doc) => (
-                            <div key={doc.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                            <div key={doc.key} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
                               <div className="flex items-center gap-3">
                                 <FileText className="w-4 h-4 text-[var(--sp-accent)]" />
                                 <div>
@@ -458,7 +497,7 @@ const VerificationPage = () => {
                                 </button>
                                 {doc.status === 'pending' && (
                                   <button
-                                    onClick={() => handleDeleteDocument(doc.id, doc.file_url)}
+                                    onClick={() => handleDeleteDocument(doc.key, doc.storage_path || doc.file_url)}
                                     className="p-1 text-[var(--text-secondary)] hover:text-red-400 transition-colors"
                                     title="Delete document"
                                   >
