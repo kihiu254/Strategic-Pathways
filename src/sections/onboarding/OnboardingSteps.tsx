@@ -1,7 +1,7 @@
 import type { UseFormRegister, FieldErrors, Control, UseFormSetValue } from 'react-hook-form';
 import { useWatch, useFieldArray } from 'react-hook-form';
 import type { OnboardingData } from './schema';
-import { User, Mail, Phone, Linkedin, Globe, Briefcase, Award, Heart, Upload, Zap, Shield, Target, TrendingUp, Check, Plus, Trash2, Camera } from 'lucide-react';
+import { User, Mail, Phone, Linkedin, Globe, Briefcase, Award, Heart, Upload, Zap, Shield, Target, TrendingUp, Check, Plus, Trash2, Camera, GraduationCap } from 'lucide-react';
 import { countries } from '../../data/countries';
 import { institutionsByCountry } from '../../data/institutions';
 import { useState } from 'react';
@@ -268,6 +268,173 @@ export const Education = ({ register, errors, readOnlyFields }: StepProps) => (
     </div>
   </div>
 );
+
+// Enhanced layout used by onboarding wizard
+export const EducationEnhanced = ({ register, errors, control }: StepProps) => {
+  const [newCountry, setNewCountry] = useState('');
+  const [newLang, setNewLang] = useState<{ lang: string; level: 'Basic' | 'Intermediate' | 'Fluent' | 'Native' }>({ lang: '', level: 'Fluent' });
+
+  const countriesWorked = useFieldArray({ control, name: 'countriesWorkedIn' });
+  const languages = useFieldArray({ control, name: 'languagesSpoken' });
+
+  const addCountry = () => {
+    if (!newCountry.trim()) return;
+    if (countriesWorked.fields.some((f: any) => (f as any).value === newCountry || (f as any) === newCountry)) return;
+    countriesWorked.append(newCountry.trim());
+    setNewCountry('');
+  };
+
+  const addLanguage = () => {
+    if (!newLang.lang.trim()) return;
+    languages.append({ lang: newLang.lang.trim(), level: newLang.level });
+    setNewLang({ lang: '', level: 'Fluent' });
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass-light rounded-2xl p-6 border border-white/10 space-y-4 shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <GraduationCap size={18} className="text-[var(--sp-accent)]" />
+            <h4 className="text-lg font-semibold text-[var(--text-primary)]">Education</h4>
+          </div>
+          <div className="space-y-3">
+            <label className="text-[var(--text-secondary)] text-sm block ml-1">Highest Level of Education</label>
+            <select {...register('highestEducation')} className="input-glass w-full appearance-none">
+              <option value="">Select level...</option>
+              <option value="Bachelor’s">Bachelor’s</option>
+              <option value="Master’s">Master’s</option>
+              <option value="PhD">PhD</option>
+              <option value="Professional Certification">Professional Certification</option>
+              <option value="Other">Other</option>
+            </select>
+            {errors.highestEducation && <p className="text-red-400 text-xs">{errors.highestEducation.message}</p>}
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[var(--text-secondary)] text-sm block ml-1">Country Where You Studied</label>
+            <select {...register('studyCountry')} className="input-glass w-full appearance-none">
+              <option value="">Select country...</option>
+              {countries.map(c => (
+                <option key={`study-${c.name}`} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+            {errors.studyCountry && <p className="text-red-400 text-xs">{errors.studyCountry.message}</p>}
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[var(--text-secondary)] text-sm block ml-1">Institution Name(s)</label>
+            <input
+              {...register('institutions')}
+              className="input-glass w-full"
+              placeholder="e.g. University of Nairobi"
+            />
+            {errors.institutions && <p className="text-red-400 text-xs">{errors.institutions.message}</p>}
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[var(--text-secondary)] text-sm block ml-1">Field of Study / Specialization</label>
+            <input
+              {...register('fieldOfStudy')}
+              className="input-glass w-full"
+              placeholder="e.g. Strategic Management"
+            />
+            {errors.fieldOfStudy && <p className="text-red-400 text-xs">{errors.fieldOfStudy.message}</p>}
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[var(--text-secondary)] text-sm block ml-1">Other Countries Worked In (Optional)</label>
+            <input
+              {...register('otherCountriesWorked')}
+              className="input-glass w-full"
+              placeholder="e.g. Rwanda, UAE"
+            />
+          </div>
+        </div>
+
+        <div className="glass-light rounded-2xl p-6 border border-white/10 space-y-5 shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe size={18} className="text-[var(--sp-accent)]" />
+            <h4 className="text-lg font-semibold text-[var(--text-primary)]">Global Exposure</h4>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[var(--text-secondary)] text-sm block ml-1">Countries you have worked in</label>
+            <div className="flex gap-2">
+              <select
+                className="input-glass flex-1 appearance-none"
+                value={newCountry}
+                onChange={(e) => setNewCountry(e.target.value)}
+              >
+                <option value="">Add country...</option>
+                {countries.map(c => (
+                  <option key={`worked-${c.name}`} value={c.name}>{c.name}</option>
+                ))}
+              </select>
+              <button type="button" onClick={addCountry} className="sp-btn-primary px-4 py-2 flex items-center gap-1">
+                <Plus size={14} /> Add
+              </button>
+            </div>
+            {countriesWorked.fields.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {countriesWorked.fields.map((field, idx) => (
+                  <span key={field.id ?? idx} className="px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs flex items-center gap-1">
+                    {(field as any).value ?? (field as any)}
+                    <button type="button" onClick={() => countriesWorked.remove(idx)} className="hover:text-red-300">
+                      <Trash2 size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[var(--text-secondary)] text-sm block ml-1">Languages spoken</label>
+            <div className="flex gap-2 flex-wrap">
+              <input
+                value={newLang.lang}
+                onChange={(e) => setNewLang(prev => ({ ...prev, lang: e.target.value }))}
+                className="input-glass flex-1 min-w-[160px]"
+                placeholder="e.g. English, Kiswahili"
+              />
+              <select
+                value={newLang.level}
+                onChange={(e) => setNewLang(prev => ({ ...prev, level: e.target.value as any }))}
+                className="input-glass w-40 appearance-none"
+              >
+                {['Basic', 'Intermediate', 'Fluent', 'Native'].map(level => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+              <button type="button" onClick={addLanguage} className="sp-btn-primary px-4 py-2 flex items-center gap-1">
+                <Plus size={14} /> Add
+              </button>
+            </div>
+            {languages.fields.length > 0 && (
+              <div className="space-y-2">
+                {languages.fields.map((field, idx) => (
+                  <div key={field.id} className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                    <div className="text-sm text-[var(--text-primary)]">
+                      {(field as any).lang} <span className="text-[var(--text-secondary)]">({(field as any).level})</span>
+                    </div>
+                    <button type="button" onClick={() => languages.remove(idx)} className="text-[var(--text-secondary)] hover:text-red-300">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-[var(--text-secondary)]">
+            Tip: Listing global experience helps matching with cross-border projects and county governments.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const ProfessionalExperience = ({ register, errors, control }: StepProps) => {
   const selectedExpertise = useWatch({ control, name: 'functionalExpertise' }) || [];

@@ -12,7 +12,7 @@ import * as Steps from './onboarding/OnboardingSteps';
 const getSteps = () => [
   { id: 'profileType', title: 'Profile Type', component: Steps.ProfileTypeSelection },
   { id: 'basic', title: 'Basic Information', component: Steps.BasicInfo },
-  { id: 'education', title: 'Education & Global', component: Steps.Education },
+  { id: 'education', title: 'Education & Global', component: Steps.EducationEnhanced },
   { id: 'experience', title: 'Professional Experience', component: Steps.ProfessionalExperience },
   { id: 'interest', title: 'Areas of Interest', component: Steps.AreasOfInterest },
   { id: 'premium', title: 'Recommended: Professional Details', component: Steps.PremiumDetails },
@@ -27,7 +27,7 @@ const getFieldsForStepId = (stepId: string) => {
   switch (stepId) {
     case 'profileType': return ['profileType'];
     case 'basic': return ['fullName', 'professionalTitle', 'email', 'linkedinUrl', 'websiteUrl', 'countryOfResidence', 'nationality'];
-    case 'education': return ['highestEducation', 'studyCountry', 'institutions', 'fieldOfStudy'];
+    case 'education': return ['highestEducation', 'studyCountry', 'institutions', 'fieldOfStudy', 'otherCountriesWorked', 'countriesWorkedIn', 'languagesSpoken'];
     case 'experience': return ['yearsOfExperience', 'primarySector', 'functionalExpertise', 'employmentStatus', 'bio'];
     case 'interest': return ['engagementTypes', 'availability', 'preferredFormat'];
     case 'premium': return ['keyAchievements', 'industrySubSpecialization', 'compensationExpectation', 'preferredProjectType'];
@@ -98,6 +98,8 @@ const EditOnboardingPage = () => {
             studyCountry: data.education?.country || '',
             institutions: data.education?.institutions || '',
             fieldOfStudy: data.education?.field || '',
+            countriesWorkedIn: data.education?.worked_countries || [],
+            languagesSpoken: data.education?.languages || [],
             otherCountriesWorked: data.education?.other_countries || '',
             yearsOfExperience: data.years_of_experience || '0–3',
             primarySector: data.sector || 'Technology',
@@ -130,7 +132,6 @@ const EditOnboardingPage = () => {
             keyAchievements: data.key_achievements || '',
             industrySubSpecialization: data.industry_sub_spec || '',
             compensationExpectation: data.compensation_expectation || 'Market rate',
-            languagesSpoken: data.education?.languages || [],
             preferredProjectType: data.preferred_project_types || [],
             sdgAlignment: data.sdg_alignment || []
           };

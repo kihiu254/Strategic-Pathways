@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { onboardingSchema } from './schema';
 import type { OnboardingData } from './schema';
 import { 
-  ProfileTypeSelection, UserCategorySelection, BasicInfo, Education, ProfessionalExperience, 
+  ProfileTypeSelection, UserCategorySelection, BasicInfo, EducationEnhanced as Education, ProfessionalExperience, 
   AreasOfInterest, PremiumDetails, ContributionValue, IncomeVenture, 
   VerificationCredits, CommunityVisibility 
 } from './OnboardingSteps';
@@ -85,6 +85,7 @@ const ProfileOnboarding = () => {
       userCategory: 'Study-Abroad Returnee (Recent Graduate)',
       functionalExpertise: [],
       engagementTypes: [],
+      countriesWorkedIn: [],
       languagesSpoken: [],
       sdgAlignment: [],
       preferredProjectType: [],
@@ -167,6 +168,7 @@ const ProfileOnboarding = () => {
             institutions: data.institutions,
             field: data.fieldOfStudy,
             other_countries: data.otherCountriesWorked,
+            worked_countries: data.countriesWorkedIn,
             languages: data.languagesSpoken,
           },
           years_of_experience: data.yearsOfExperience,
@@ -220,7 +222,7 @@ const ProfileOnboarding = () => {
       case 'profileType': return ['profileType'];
       case 'category': return ['userCategory'];
       case 'basic': return ['fullName', 'professionalTitle', 'email', 'linkedinUrl', 'websiteUrl', 'countryOfResidence', 'nationality'];
-      case 'education': return ['highestEducation', 'studyCountry', 'institutions', 'fieldOfStudy'];
+      case 'education': return ['highestEducation', 'studyCountry', 'institutions', 'fieldOfStudy', 'otherCountriesWorked', 'countriesWorkedIn', 'languagesSpoken'];
       case 'experience': return ['yearsOfExperience', 'primarySector', 'functionalExpertise', 'employmentStatus', 'bio'];
       case 'interest': return ['engagementTypes', 'availability', 'preferredFormat'];
       case 'premium': return ['keyAchievements', 'industrySubSpecialization', 'compensationExpectation', 'preferredProjectType'];
