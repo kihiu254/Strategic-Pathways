@@ -328,8 +328,7 @@ const ProfilePage = () => {
 
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
+        .update({
           full_name: profile.name,
           professional_title: profile.title,
           location: profile.location,
@@ -340,7 +339,8 @@ const ProfilePage = () => {
           bio: profile.bio,
           profile_completion_percentage: profile.matchScore,
           updated_at: new Date().toISOString()
-        });
+        })
+        .eq('id', user.id);
 
       if (error) throw error;
 
@@ -538,30 +538,20 @@ const ProfilePage = () => {
         throw new Error("You must be logged in to upload a profile picture.");
       }
 
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/avatar_${Date.now()}.${fileExt}`;
+      const { uploadFile } = await import('../lib/uploadUtils');
+      const { url } = await uploadFile(file, 'profiles');
       
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
       const { error: updateError } = await supabase
         .from('profiles')
-        .upsert({ 
-          id: user.id,
-          avatar_url: publicUrl,
+        .update({ 
+          avatar_url: url,
           updated_at: new Date().toISOString()
-        });
+        })
+        .eq('id', user.id);
 
       if (updateError) throw updateError;
       
-      setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+      setProfile(prev => ({ ...prev, avatar_url: url }));
       toast.success('Profile picture updated successfully!');
     } catch (error: any) {
       toast.error('Failed to upload profile picture: ' + error.message);

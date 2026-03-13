@@ -51,12 +51,11 @@ const AdminRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Basic role check. 
-  // For production, this should ideally be checked against a secure 'role' column
-  // in the 'profiles' table, but for this demo, we can authorize demo admins.
-  const isAdminHardcoded = user?.email?.includes('admin') || 
-                  user?.email?.includes('joinstrategicpathways') ||
-                  user?.email === '1kihiupaul@gmail.com';
+  const isAdminHardcoded = (
+    user?.email?.includes('admin') || 
+    user?.email?.includes('joinstrategicpathways') ||
+    user?.email === '1kihiupaul@gmail.com'
+  );
 
   const isAdmin = isAdminHardcoded || isAdminRole;
 

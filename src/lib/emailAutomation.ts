@@ -82,7 +82,7 @@ export class EmailAutomationService {
   }
 
   // Trigger verification status update email
-  static async onVerificationStatusUpdate(email: string, name: string, status: string, tier: string) {
-    await this.triggerEmail('verification_status_update', { email, name, status, tier });
+  static async onVerificationStatusUpdate(email: string, name: string, status: string, tier: string, reason?: string) {
+    await this.triggerEmail('verification_status_update', { email, name, status, tier, reason });
   }
 }

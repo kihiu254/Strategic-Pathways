@@ -126,10 +126,25 @@ export default async function handler(req: any, res: any) {
         };
         break;
 
-      case 'partner_inquiry':
+      case 'partner_inquiry': {
+        // Fetch all admins to broadcast the inquiry
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          process.env.VITE_SUPABASE_URL || '',
+          process.env.VITE_SUPABASE_ANON_KEY || ''
+        );
+
+        const { data: admins } = await supabase
+          .from('profiles')
+          .select('email, id')
+          .eq('role', 'admin');
+
+        const adminEmails = admins?.map(a => a.email).filter(Boolean) || [];
+        const recipients = [...new Set([...adminEmails, 'hello@joinstrategicpathways.com'])];
+
         emailData = {
           from: fromEmail,
-          to: 'hello@joinstrategicpathways.com',
+          to: recipients,
           subject: `New Inquiry: ${data.name} - ${data.organization || 'Individual'}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -144,11 +159,29 @@ export default async function handler(req: any, res: any) {
                 <div style="background: #f7fafc; padding: 20px; border-radius: 8px; font-style: italic;">
                   ${data.message}
                 </div>
+                <div style="margin-top: 30px; text-align: center;">
+                  <a href="${productionUrl}/admin" style="background: #c89f5e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Admin Dashboard</a>
+                </div>
               </div>
             </div>
           `
         };
+
+        // Also create in-app notifications for all admins
+        if (admins && admins.length > 0) {
+          await supabase.from('notifications').insert(
+            admins.map(admin => ({
+              user_id: admin.id,
+              title: 'New Partner Inquiry',
+              message: `${data.name} from ${data.organization || 'Individual'} sent a message.`,
+              type: 'system',
+              read: false,
+              data: { inquiry_email: data.email }
+            }))
+          );
+        }
         break;
+      }
 
       default:
         return res.status(400).json({ error: 'Invalid email type' });

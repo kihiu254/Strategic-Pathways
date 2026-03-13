@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/authStore';
+import { EmailAutomationService } from '../lib/emailAutomation';
 
 import AdminOpportunitiesManager from './AdminOpportunitiesManager';
 
@@ -22,8 +24,40 @@ const safeParse = (val: string | null) => {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const user = useAuthStore((state) => state.user);
   const [activeSection, setActiveSection] = useState('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+
+  // Sync admin role for hardcoded accounts (Self-healing)
+  useEffect(() => {
+    const healAdminRole = async () => {
+      if (!user?.email) return;
+      
+      const isHardcoded = (
+        user.email.includes('admin') || 
+        user.email.includes('joinstrategicpathways') ||
+        user.email === '1kihiupaul@gmail.com'
+      );
+
+      if (isHardcoded) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (!error && data && data.role !== 'admin') {
+          console.log('Self-healing admin role for:', user.email);
+          await supabase
+            .from('profiles')
+            .update({ role: 'admin' })
+            .eq('id', user.id);
+          toast.success('Admin access synchronized with database.');
+        }
+      }
+    };
+    healAdminRole();
+  }, [user]);
 
 
 
@@ -103,11 +137,20 @@ const AdminDashboard = () => {
           .not('verification_docs', 'is', null)
           .order('created_at', { ascending: false })
           .limit(20);
+
+        // Fetch Manual Uploads
+        const { data: verifDocs } = await supabase
+          .from('verification_documents')
+          .select('*, profiles(full_name, email)')
+          .order('created_at', { ascending: false })
+          .limit(20);
         
-        if (appsData) {
-          const applications = appsData
+        const profilesWithDocs = appsData || [];
+        const additionalDocs = (verifDocs || []) as any[];
+
+        const unifiedApps = [
+          ...profilesWithDocs
             .filter(app => {
-              // Check if verification_docs has actual content
               let docs = app.verification_docs;
               if (typeof docs === 'string') {
                 try { docs = JSON.parse(docs); } catch { return false; }
@@ -117,17 +160,30 @@ const AdminDashboard = () => {
             })
             .map(app => ({
               id: app.id,
+              userId: app.id,
               name: app.full_name || 'Unknown',
               email: app.email || 'N/A',
               type: 'Onboarding Verification',
               status: app.verification_status || 'pending',
               date: new Date(app.created_at).toLocaleDateString(),
-              docs: typeof app.verification_docs === 'string' ? safeParse(app.verification_docs) : app.verification_docs
-            }));
-          
-          setRecentApplications(applications);
-          setStats(prev => ({ ...prev, pendingApps: applications.filter(a => a.status === 'pending').length }));
-        }
+              docs: typeof app.verification_docs === 'string' ? safeParse(app.verification_docs) : app.verification_docs,
+              source: 'profile'
+            })),
+          ...additionalDocs.map(doc => ({
+            id: doc.id,
+            userId: doc.user_id,
+            name: doc.profiles?.full_name || 'Unknown',
+            email: doc.profiles?.email || 'N/A',
+            type: `Manual: ${doc.document_type || 'Unspecified'}`,
+            status: doc.status || 'pending',
+            date: new Date(doc.created_at).toLocaleDateString(),
+            docs: { manual: doc.file_url },
+            source: 'document_table'
+          }))
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        setRecentApplications(unifiedApps.slice(0, 20));
+        setStats(prev => ({ ...prev, pendingApps: unifiedApps.filter(a => a.status === 'pending').length }));
 
         // Fetch Members
         const { data: membersData } = await supabase
@@ -222,64 +278,84 @@ const AdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  const handleApprove = async (id: string, email?: string, name?: string) => {
+  const handleApprove = async (id: string, email?: string, name?: string, source?: string) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          verification_status: 'approved',
-          verification_tier: 'Tier 2 â€“ Verified Professional'
-        })
-        .eq('id', id);
-      if (error) throw error;
+      const appSource = source || recentApplications.find(a => a.id === id)?.source || 'profile';
+      
+      if (appSource === 'profile') {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ 
+            verification_status: 'approved',
+            verification_tier: 'Tier 2 – Verified Professional'
+          })
+          .eq('id', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('verification_documents')
+          .update({ status: 'approved' })
+          .eq('id', id);
+        if (error) throw error;
+      }
+
       setRecentApplications(prev => prev.map(app => app.id === id ? { ...app, status: 'approved' } : app));
-      logAction('approve_application', { id, email, name });
-      toast.success('Application approved successfully!');
+      logAction('approve_application', { id, email, name, source: appSource });
+      toast.success('Approved successfully!');
       
       // Trigger Email Notification
       const appEmail = email || recentApplications.find(a => a.id === id)?.email;
       const appName = name || recentApplications.find(a => a.id === id)?.name || 'Member';
       if (appEmail) {
-        await fetch('/api/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'verification_update',
-            data: { email: appEmail, name: appName, status: 'approved' }
-          })
-        }).catch(err => console.error("Failed to send email", err));
+        await EmailAutomationService.onVerificationStatusUpdate(
+          appEmail, 
+          appName, 
+          'approved', 
+          'Tier 2 – Verified Professional'
+        ).catch(err => console.error("Failed to send email", err));
       }
     } catch (error) {
-      toast.error('Failed to approve application');
+      toast.error('Failed to approve');
     }
   };
 
-  const handleReject = async (id: string, email?: string, name?: string) => {
+  const handleReject = async (id: string, email?: string, name?: string, source?: string) => {
+    const reason = window.prompt('Enter rejection reason (optional):') || 'Criteria not met';
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ verification_status: 'rejected' })
-        .eq('id', id);
-      if (error) throw error;
+      const appSource = source || recentApplications.find(a => a.id === id)?.source || 'profile';
+      
+      if (appSource === 'profile') {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ verification_status: 'rejected' })
+          .eq('id', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('verification_documents')
+          .update({ status: 'rejected' })
+          .eq('id', id);
+        if (error) throw error;
+      }
+
       setRecentApplications(prev => prev.map(app => app.id === id ? { ...app, status: 'rejected' } : app));
-      toast.error('Application rejected');
-      logAction('reject_application', { id, email, name });
+      toast.error('Rejected');
+      logAction('reject_application', { id, email, name, reason, source: appSource });
       
       // Trigger Email Notification
       const appEmail = email || recentApplications.find(a => a.id === id)?.email;
       const appName = name || recentApplications.find(a => a.id === id)?.name || 'Member';
       if (appEmail) {
-        await fetch('/api/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'verification_update',
-            data: { email: appEmail, name: appName, status: 'rejected' }
-          })
-        }).catch(err => console.error("Failed to send email", err));
+        await EmailAutomationService.onVerificationStatusUpdate(
+          appEmail, 
+          appName, 
+          'rejected', 
+          'Tier 2 – Verified Professional',
+          reason
+        ).catch(err => console.error("Failed to send email", err));
       }
     } catch (error) {
-      toast.error('Failed to reject application');
+      toast.error('Failed to reject');
     }
   };
 
