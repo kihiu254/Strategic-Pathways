@@ -150,25 +150,21 @@ const AdminDashboard = () => {
 
         const unifiedApps = [
           ...profilesWithDocs
-            .filter(app => {
-              let docs = app.verification_docs;
-              if (typeof docs === 'string') {
-                try { docs = JSON.parse(docs); } catch { return false; }
-              }
-              if (!docs || typeof docs !== 'object') return false;
-              return Object.values(docs as Record<string, any>).some(val => val && val !== '');
+            .map(app => {
+              const docsParsed = typeof app.verification_docs === 'string' ? safeParse(app.verification_docs) : app.verification_docs;
+              return {
+                id: app.id,
+                userId: app.id,
+                name: app.full_name || 'Unknown',
+                email: app.email || 'N/A',
+                type: 'Onboarding Verification',
+                status: app.verification_status || 'pending',
+                date: new Date(app.created_at).toLocaleDateString(),
+                docs: docsParsed,
+                source: 'profile'
+              };
             })
-            .map(app => ({
-              id: app.id,
-              userId: app.id,
-              name: app.full_name || 'Unknown',
-              email: app.email || 'N/A',
-              type: 'Onboarding Verification',
-              status: app.verification_status || 'pending',
-              date: new Date(app.created_at).toLocaleDateString(),
-              docs: typeof app.verification_docs === 'string' ? safeParse(app.verification_docs) : app.verification_docs,
-              source: 'profile'
-            })),
+            .filter(app => !!app.docs && typeof app.docs === 'object'),
           ...additionalDocs.map(doc => ({
             id: doc.id,
             userId: doc.user_id,
