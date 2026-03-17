@@ -31,6 +31,17 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
+      if (leftRef.current) {
+        gsap.set(leftRef.current, { opacity: 1, x: 0 });
+      }
+      if (formRef.current) {
+        gsap.set(formRef.current, { opacity: 1, x: 0 });
+      }
+      const inputs = inputsRef.current?.querySelectorAll('.form-field') || [];
+      if (inputs.length) {
+        gsap.set(inputs, { opacity: 1, y: 0 });
+      }
+
       // Left column animation
       gsap.fromTo(leftRef.current,
         { x: '-6vw', opacity: 0 },
@@ -38,6 +49,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
           x: 0,
           opacity: 1,
           duration: 0.8,
+          immediateRender: false,
           scrollTrigger: {
             trigger: sectionRef.current,
             start: 'top 70%',
@@ -53,6 +65,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
           x: 0,
           opacity: 1,
           duration: 0.8,
+          immediateRender: false,
           scrollTrigger: {
             trigger: sectionRef.current,
             start: 'top 70%',
@@ -62,7 +75,6 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
       );
 
       // Inputs stagger animation
-      const inputs = inputsRef.current?.querySelectorAll('.form-field') || [];
       gsap.fromTo(inputs,
         { y: 16, opacity: 0 },
         {
@@ -70,6 +82,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
           opacity: 1,
           duration: 0.5,
           stagger: 0.06,
+          immediateRender: false,
           scrollTrigger: {
             trigger: formRef.current,
             start: 'top 75%',
@@ -78,6 +91,9 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
         }
       );
     }, sectionRef);
+
+    requestAnimationFrame(() => ScrollTrigger.refresh());
+    setTimeout(() => ScrollTrigger.refresh(), 60);
 
     return () => ctx.revert();
   }, []);

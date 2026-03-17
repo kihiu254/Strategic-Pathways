@@ -28,6 +28,7 @@ const AboutPage = () => {
     const ctx = gsap.context(() => {
       // Setup scroll animations for all sections with class .animate-section
       const sections = document.querySelectorAll('.animate-section');
+      gsap.set(sections, { opacity: 1, y: 0 });
       sections.forEach((section) => {
         gsap.fromTo(
           section,
@@ -50,6 +51,9 @@ const AboutPage = () => {
       // Stagger items inside grids
       const grids = document.querySelectorAll('.animate-grid');
       grids.forEach((grid) => {
+        if (grid.children?.length) {
+          gsap.set(grid.children, { opacity: 1, y: 0 });
+        }
         gsap.fromTo(
           grid.children,
           { y: 40, opacity: 0 },
