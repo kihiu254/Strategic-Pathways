@@ -24,6 +24,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isLightMode, setIsLightMode] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Check initial theme from localStorage
@@ -42,14 +43,28 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
       if (user?.id) {
         const { data } = await supabase
           .from('profiles')
-          .select('avatar_url')
+          .select('avatar_url, role')
           .eq('id', user.id)
           .single();
         setUserAvatar(data?.avatar_url || null);
+        const email = user.email || '';
+        const shouldPromote =
+          email.includes('admin') ||
+          email.includes('joinstrategicpathways') ||
+          email === '1kihiupaul@gmail.com';
+
+        if (shouldPromote && data?.role !== 'admin') {
+          await supabase.from('profiles').update({ role: 'admin' }).eq('id', user.id);
+          setUserRole('admin');
+        } else {
+          setUserRole(data?.role || null);
+        }
       }
     };
     fetchUserAvatar();
   }, [user]);
+
+  const roleLabel = userRole === 'admin' ? t('common.admin') : t('common.member');
 
   const toggleTheme = () => {
     setIsLightMode(!isLightMode);
@@ -111,7 +126,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                 alt="Strategic Pathways" 
                 width={160}
                 height={40}
-                className="h-8 lg:h-10 w-auto object-contain transform scale-125 lg:scale-[1.75] origin-left"
+                className="h-7 sm:h-8 lg:h-10 w-auto object-contain transform scale-100 sm:scale-110 lg:scale-[1.75] origin-left"
               />
             </button>
             <span className="lg:hidden text-[9px] font-bold text-[var(--sp-accent)] mt-1.5 tracking-[0.15em] uppercase whitespace-nowrap opacity-80">
@@ -174,7 +189,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                   <div className="absolute right-0 top-full mt-2 w-56 glass-card p-2 z-50">
                     <div className="px-3 py-2 border-b border-white/10 mb-2">
                       <p className="text-[var(--text-primary)] font-medium truncate">{user?.user_metadata?.full_name || user?.email}</p>
-                      <p className="text-[var(--text-secondary)] text-xs">{t('common.member')}</p>
+                      <p className="text-[var(--text-secondary)] text-xs">{roleLabel}</p>
                     </div>
                     <button 
                       onClick={() => {
@@ -196,6 +211,18 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                       <LayoutDashboard size={16} />
                       <span className="text-sm">{t('common.dashboard')}</span>
                     </button>
+                    {userRole === 'admin' && (
+                      <button 
+                        onClick={() => {
+                          navigate('/admin');
+                          setIsProfileOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
+                      >
+                        <LayoutDashboard size={16} />
+                        <span className="text-sm">Admin Dashboard</span>
+                      </button>
+                    )}
                     <div className="border-t border-white/10 mt-2 pt-2">
                        <button 
                         onClick={() => {
@@ -243,7 +270,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[99] glass flex flex-col items-center justify-center gap-6">
+        <div className="fixed inset-0 z-[99] glass flex flex-col items-center justify-center gap-6 px-6 py-8 overflow-y-auto">
           {/* Logo in mobile menu */}
           <img 
             src="/logo.png" 
@@ -253,8 +280,9 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
             className="h-24 w-auto object-contain mb-4"
           />
           
-          <div className="mb-8">
+          <div className="mb-6 flex items-center gap-4">
             <LanguageSwitcher />
+            {isLoggedIn && <NotificationCenter />}
           </div>
           
           {navLinks.map((link) => (
@@ -293,6 +321,19 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                 <LayoutDashboard size={24} />
                 {t('common.dashboard')}
               </button>
+
+              {userRole === 'admin' && (
+                <button 
+                  onClick={() => {
+                    navigate('/admin');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-[var(--text-primary)] text-2xl font-medium hover:text-[var(--sp-accent)] transition-colors flex items-center gap-2"
+                >
+                  <LayoutDashboard size={24} />
+                  Admin Dashboard
+                </button>
+              )}
 
               <button 
                 onClick={() => {

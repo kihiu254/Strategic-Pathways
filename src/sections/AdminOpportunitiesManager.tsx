@@ -69,7 +69,7 @@ const AdminOpportunitiesManager = () => {
         .select(`
           *,
           opportunity:opportunities(title),
-          profile:profiles(full_name, email)
+          profile:profiles!opportunity_applications_user_id_fkey(full_name, email)
         `)
         .order('applied_at', { ascending: false });
 

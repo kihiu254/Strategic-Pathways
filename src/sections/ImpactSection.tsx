@@ -79,12 +79,12 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
       className={`sp-section-pinned bg-[var(--bg-primary)] ${className}`}
     >
       <div className="w-full h-full flex items-center justify-center px-6 lg:px-12">
-        <div className="relative w-full max-w-[1400px] h-auto lg:h-[64vh] flex flex-col lg:flex-row gap-6 lg:gap-8 py-12 lg:py-0">
+        <div className="relative w-full max-w-[1400px] h-auto lg:min-h-[520px] flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8 py-12 lg:py-0">
           
           {/* Left Photo Card */}
           <div 
             ref={photoRef}
-            className="sp-card w-full lg:w-[38vw] h-[40vh] lg:h-full relative"
+            className="sp-card w-full lg:flex-1 h-[40vh] lg:h-[520px] relative"
           >
             <img 
               src="/images/impact_mentorship.jpg" 
@@ -99,7 +99,7 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
           {/* Right Stats Panel */}
           <div 
             ref={panelRef}
-            className="sp-panel w-full lg:w-[48vw] h-auto lg:h-full flex flex-col justify-center p-6 lg:p-10"
+            className="sp-panel w-full lg:flex-1 h-auto lg:h-[520px] flex flex-col justify-center p-6 lg:p-10"
           >
             {/* Label */}
             <div ref={labelRef} className="mb-4 lg:mb-6">

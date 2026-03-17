@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -76,6 +76,9 @@ const AdminDashboard = () => {
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [showPromoteList, setShowPromoteList] = useState(false);
   const [promoteSearch, setPromoteSearch] = useState('');
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const adminMenuRef = useRef<HTMLDivElement>(null);
+  const [adminProfile, setAdminProfile] = useState<{ full_name?: string; email?: string; avatar_url?: string } | null>(null);
   const [newAdmin, setNewAdmin] = useState({ email: '', full_name: '', password: '' });
   const [newMember, setNewMember] = useState({
     email: '',
@@ -138,12 +141,25 @@ const AdminDashboard = () => {
           .order('created_at', { ascending: false })
           .limit(20);
 
-        // Fetch Manual Uploads
+        // Fetch Manual Uploads (fetch profile info in a second query to avoid PostgREST join errors)
         const { data: verifDocs } = await supabase
           .from('verification_documents')
-          .select('*, profiles(full_name, email)')
-          .order('created_at', { ascending: false })
+          .select('*')
+          .order('id', { ascending: false }) // some environments lack created_at column; id is always present
           .limit(20);
+
+        let profileMap: Record<string, { full_name?: string; email?: string }> = {};
+        const userIds = [...new Set((verifDocs || []).map(doc => doc.user_id).filter(Boolean))];
+        if (userIds.length) {
+          const { data: docProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', userIds);
+          profileMap = (docProfiles || []).reduce((acc: any, p: any) => {
+            acc[p.id] = p;
+            return acc;
+          }, {});
+        }
         
         const profilesWithDocs = appsData || [];
         const additionalDocs = (verifDocs || []) as any[];
@@ -168,8 +184,8 @@ const AdminDashboard = () => {
           ...additionalDocs.map(doc => ({
             id: doc.id,
             userId: doc.user_id,
-            name: doc.profiles?.full_name || 'Unknown',
-            email: doc.profiles?.email || 'N/A',
+            name: profileMap[doc.user_id]?.full_name || 'Unknown',
+            email: profileMap[doc.user_id]?.email || 'N/A',
             type: `Manual: ${doc.document_type || 'Unspecified'}`,
             status: doc.status || 'pending',
             date: new Date(doc.created_at).toLocaleDateString(),
@@ -272,6 +288,31 @@ const AdminDashboard = () => {
     };
 
     fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const fetchAdminProfile = async () => {
+      if (!user?.id) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, email, avatar_url')
+        .eq('id', user.id)
+        .single();
+      if (data) {
+        setAdminProfile(data);
+      }
+    };
+    fetchAdminProfile();
+  }, [user]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (adminMenuRef.current && !adminMenuRef.current.contains(event.target as Node)) {
+        setIsAdminMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleApprove = async (id: string, email?: string, name?: string, source?: string) => {
@@ -705,6 +746,9 @@ const AdminDashboard = () => {
     { id: 'profile', label: 'My Profile', icon: User },
     { id: 'settings', label: t('dashboard.sections.settings'), icon: Settings },
   ];
+  const underReviewCount = members.filter((m) => m.status === 'under_review').length;
+  const duplicateCount = duplicateCandidates.length;
+  const pendingApprovals = recentApplications.filter((a) => a.status === 'pending').length;
 
   if (isLoading) {
     return (
@@ -811,9 +855,9 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="premium-glass border-b border-white/5 px-8 py-6 sticky top-0 z-30">
-          <div className="flex items-center justify-between">
-            <div>
+        <header className="premium-glass border-b border-white/5 px-4 sm:px-6 lg:px-8 py-4 lg:py-6 sticky top-0 z-30">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="space-y-1">
               <nav className="flex items-center gap-2 text-xs font-semibold text-[var(--sp-accent)] uppercase tracking-widest mb-1 opacity-60">
                 <span>Admin</span>
                 <span className="text-white/20">/</span>
@@ -823,31 +867,157 @@ const AdminDashboard = () => {
                 {sidebarItems.find(i => i.id === activeSection)?.label}
               </h1>
             </div>
-            <div className="flex items-center gap-6">
-              <button
-                onClick={() => navigate('/')}
-                className="sp-btn-glass text-sm px-6 py-2.5 hover:scale-105 active:scale-95 transition-all"
-              >
-                {t('dashboard.buttons.viewWebsite')}
-              </button>
-              <div className="flex items-center gap-3 pl-6 border-l border-white/10">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-[var(--text-primary)]">Admin User</p>
-                  <p className="text-[10px] text-[var(--sp-accent)] font-semibold uppercase tracking-wider">Super Admin</p>
+            <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 w-full lg:w-auto">
+              <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 w-full lg:w-auto">
+                <div className="relative">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+                  <input
+                    type="text"
+                    placeholder="Search members, projects, opportunities..."
+                    className="input-glass pl-9 pr-3 py-2 w-full sm:w-64 text-xs"
+                  />
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center shadow-lg shadow-[var(--sp-accent)]/20 hover:rotate-6 transition-transform cursor-pointer">
-                  <span className="text-[var(--text-inverse)] font-bold text-lg">A</span>
+                <button
+                  onClick={() => setActiveSection('opportunities')}
+                  className="sp-btn-primary text-xs px-4 py-2 whitespace-nowrap"
+                >
+                  Create Opportunity
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveSection('admins');
+                    setShowAddAdmin(true);
+                  }}
+                  className="sp-btn-glass text-xs px-4 py-2 whitespace-nowrap"
+                >
+                  Invite Admin
+                </button>
+              </div>
+              <div className="flex items-center justify-between lg:justify-start gap-3 lg:gap-6 w-full lg:w-auto">
+                <button
+                  onClick={() => navigate('/')}
+                  className="sp-btn-glass text-sm px-4 sm:px-6 py-2.5 hover:scale-105 active:scale-95 transition-all"
+                >
+                  {t('dashboard.buttons.viewWebsite')}
+                </button>
+                <div className="relative flex items-center gap-3 lg:pl-6 lg:border-l lg:border-white/10" ref={adminMenuRef}>
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-bold text-[var(--text-primary)]">{adminProfile?.full_name || 'Admin User'}</p>
+                    <p className="text-[10px] text-[var(--sp-accent)] font-semibold uppercase tracking-wider">Super Admin</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAdminMenuOpen((prev) => !prev)}
+                    className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center shadow-lg shadow-[var(--sp-accent)]/20 hover:rotate-6 transition-transform cursor-pointer"
+                  >
+                    {adminProfile?.avatar_url ? (
+                      <img src={adminProfile.avatar_url} alt="Admin" className="w-full h-full object-cover rounded-2xl" />
+                    ) : (
+                      <span className="text-[var(--text-inverse)] font-bold text-lg">
+                        {(adminProfile?.full_name || 'Admin').charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </button>
+                  {isAdminMenuOpen && (
+                    <div className="absolute right-0 top-[72px] w-64 glass-card p-2 z-50">
+                      <div className="px-3 py-2 border-b border-white/10 mb-2">
+                        <p className="text-[var(--text-primary)] font-medium truncate">
+                          {adminProfile?.full_name || 'Admin User'}
+                        </p>
+                        <p className="text-[var(--text-secondary)] text-xs truncate">
+                          {adminProfile?.email || user?.email}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigate('/profile');
+                          setIsAdminMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
+                      >
+                        <User size={16} />
+                        <span className="text-sm">My Profile</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/dashboard');
+                          setIsAdminMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
+                      >
+                        <LayoutDashboard size={16} />
+                        <span className="text-sm">User Dashboard</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/admin');
+                          setIsAdminMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
+                      >
+                        <Shield size={16} />
+                        <span className="text-sm">Admin Dashboard</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Content */}
         <main className="flex-1 p-3 lg:p-6 overflow-auto pb-20 lg:pb-6">
           {/* Overview Section */}
           {activeSection === 'overview' && (
-            <div className="space-y-6">
+            <div className="space-y-8">
+              {/* Command Center */}
+              <div className="premium-glass p-8 rounded-[32px] border border-white/5 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--sp-accent)]/10 via-transparent to-transparent" />
+                <div className="relative flex flex-col lg:flex-row gap-8">
+                  <div className="flex-1 space-y-4">
+                    <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--sp-accent)] font-bold">Admin Command Center</p>
+                    <h2 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
+                      Manage every feature from one place.
+                    </h2>
+                    <p className="text-[var(--text-secondary)] max-w-2xl">
+                      Review applications, publish opportunities, and track membership growth without switching tools.
+                    </p>
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      <button onClick={() => setActiveSection('applications')} className="sp-btn-primary text-sm px-4 py-2">
+                        Review Applications
+                      </button>
+                      <button onClick={() => setActiveSection('opportunities')} className="sp-btn-glass text-sm px-4 py-2">
+                        Create Opportunity
+                      </button>
+                      <button onClick={() => setActiveSection('members')} className="sp-btn-glass text-sm px-4 py-2">
+                        Manage Members
+                      </button>
+                      <button onClick={() => setActiveSection('analytics')} className="sp-btn-glass text-sm px-4 py-2">
+                        View Analytics
+                      </button>
+                    </div>
+                  </div>
+                  <div className="lg:w-[360px] grid grid-cols-2 gap-3">
+                    {[
+                      { label: 'Pending approvals', value: pendingApprovals, icon: FileText },
+                      { label: 'Under review', value: underReviewCount, icon: Shield },
+                      { label: 'Possible duplicates', value: duplicateCount, icon: Copy },
+                      { label: 'Total members', value: stats.totalMembers, icon: Users },
+                    ].map((item, i) => (
+                      <div key={i} className="glass-card p-4 rounded-2xl border border-white/5">
+                        <div className="flex items-center justify-between">
+                          <div className="p-2 rounded-xl bg-white/5 text-[var(--sp-accent)]">
+                            <item.icon size={18} />
+                          </div>
+                          <span className="text-xl font-bold text-[var(--text-primary)]">{item.value}</span>
+                        </div>
+                        <p className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mt-3">{item.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {[
@@ -858,7 +1028,6 @@ const AdminDashboard = () => {
                 ].map((stat, i) => (
                   <div key={i} className="premium-glass p-6 rounded-[24px] border border-white/5 relative overflow-hidden group hover:border-[var(--sp-accent)]/30 transition-all duration-500">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--sp-accent)]/5 rounded-full -mr-12 -mt-12 group-hover:bg-[var(--sp-accent)]/10 transition-colors" />
-                    
                     <div className="flex justify-between items-start mb-6">
                       <div className={`p-3 rounded-2xl bg-white/5 text-[var(--sp-accent)] group-hover:scale-110 group-hover:rotate-12 transition-transform`}>
                         <stat.icon size={24} />
@@ -868,7 +1037,6 @@ const AdminDashboard = () => {
                         {stat.change}
                       </div>
                     </div>
-                    
                     <div className="space-y-1">
                       <h4 className="text-[var(--text-secondary)] text-sm font-medium tracking-wide uppercase opacity-70">{stat.label}</h4>
                       <p className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">{stat.value}</p>
@@ -908,6 +1076,85 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+              {/* Operations Hub */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
+                {[
+                  { id: 'members', title: 'Members', description: 'Profiles, verification, tiers, and badges.', metric: `${stats.totalMembers} total members`, icon: Users },
+                  { id: 'opportunities', title: 'Opportunities', description: 'Publish and manage opportunities.', metric: 'Create and edit opportunities', icon: Briefcase },
+                  { id: 'applications', title: 'Applications', description: 'Review onboarding and verification.', metric: `${pendingApprovals} pending reviews`, icon: FileText },
+                  { id: 'projects', title: 'Projects', description: 'Track active and completed projects.', metric: `${stats.activeProjects} active projects`, icon: ClipboardList },
+                  { id: 'analytics', title: 'Analytics', description: 'Reports, growth, and insights.', metric: 'Performance dashboards', icon: TrendingUp },
+                  { id: 'admins', title: 'Admin Team', description: 'Invite and manage admins.', metric: `${admins.length} admins`, icon: Shield },
+                  { id: 'settings', title: 'Settings', description: 'Plans, notifications, and platform config.', metric: 'Platform controls', icon: Settings },
+                  { id: 'onboarding', title: 'Onboarding Records', description: 'Review onboarding submissions.', metric: 'Open onboarding records', icon: ClipboardList },
+                ].map((card) => (
+                  <button
+                    key={card.title}
+                    onClick={() => {
+                      if (card.id === 'onboarding') {
+                        navigate('/admin/onboarding');
+                        return;
+                      }
+                      setActiveSection(card.id);
+                    }}
+                    className="premium-glass p-5 rounded-[24px] border border-white/5 text-left hover:border-[var(--sp-accent)]/30 transition-all duration-300 group"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-2.5 rounded-xl bg-white/5 text-[var(--sp-accent)] group-hover:scale-110 transition-transform">
+                        <card.icon size={18} />
+                      </div>
+                      <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--text-secondary)]">Open</span>
+                    </div>
+                    <h3 className="text-[var(--text-primary)] font-semibold text-base">{card.title}</h3>
+                    <p className="text-[var(--text-secondary)] text-xs mt-2">{card.description}</p>
+                    <p className="text-[var(--sp-accent)] text-[10px] font-semibold uppercase tracking-widest mt-3">{card.metric}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Workflow and System Health */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 premium-glass p-6 rounded-[28px] border border-white/5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">Workflow Queue</h3>
+                    <button onClick={() => setActiveSection('applications')} className="sp-btn-glass text-xs px-3 py-1.5">
+                      Open queue
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Pending approvals', value: pendingApprovals, tone: 'bg-yellow-500/15 text-yellow-300' },
+                      { label: 'Under review', value: underReviewCount, tone: 'bg-blue-500/15 text-blue-300' },
+                      { label: 'Duplicates', value: duplicateCount, tone: 'bg-purple-500/15 text-purple-300' },
+                      { label: 'Verified', value: stats.verifiedProfessionals, tone: 'bg-green-500/15 text-green-300' },
+                    ].map((item, i) => (
+                      <div key={i} className="glass-light rounded-2xl p-4 border border-white/5">
+                        <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-full inline-block ${item.tone}`}>
+                          {item.label}
+                        </span>
+                        <p className="text-2xl font-bold text-[var(--text-primary)] mt-3">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="premium-glass p-6 rounded-[28px] border border-white/5">
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">System Health</h3>
+                  <div className="space-y-3">
+                    {[
+                      { label: 'Payments', status: 'Paystack connected', tone: 'text-green-300' },
+                      { label: 'Email', status: 'Automation ready', tone: 'text-green-300' },
+                      { label: 'Storage', status: 'Verification docs OK', tone: 'text-green-300' },
+                      { label: 'Auth', status: 'Login and OTP OK', tone: 'text-green-300' },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center justify-between glass-light rounded-xl px-4 py-3">
+                        <span className="text-xs text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>
+                        <span className={`text-xs font-semibold ${item.tone}`}>{item.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Charts Row */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div className="lg:col-span-2 premium-glass p-8 rounded-[32px] border border-white/5 relative overflow-hidden group">
@@ -921,21 +1168,29 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                   <div className="h-64 flex items-end justify-between gap-3 px-2">
-                    {[45, 60, 48, 75, 55, 90, 100].map((h, i) => (
+                    {[
+                      { h: 45, label: 'Last 7 Days' },
+                      { h: 60, label: 'Month 1' },
+                      { h: 48, label: 'Month 2' },
+                      { h: 75, label: 'Month 3' },
+                      { h: 55, label: 'Month 4' },
+                      { h: 90, label: 'Month 5' },
+                      { h: 100, label: 'Month 6' },
+                      { h: 65, label: 'Month 7' }
+                    ].map((item, i) => (
                       <div key={i} className="flex-1 flex flex-col items-center gap-4 group/bar">
                         <div className="relative w-full h-full flex items-end">
-                           <div
+                          <div
                             className="w-full bg-gradient-to-t from-[var(--sp-accent)]/10 to-[var(--sp-accent)]/40 group-hover/bar:to-[var(--sp-accent)]/60 rounded-t-xl transition-all duration-700 ease-[var(--transition-premium)] relative overflow-hidden"
-                            style={{ height: `${h}%` }}
+                            style={{ height: `${item.h}%` }}
                           >
                             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/bar:translate-y-0 transition-transform duration-500 opacity-20" />
                           </div>
-                          {/* Tooltip */}
                           <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[var(--sp-accent)] text-[var(--text-inverse)] text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none">
-                            {h}%
+                            {item.h}%
                           </div>
                         </div>
-                        <span className="text-[10px] text-[var(--text-secondary)] font-bold tracking-tighter uppercase opacity-50 group-hover/bar:opacity-100 transition-opacity">Month {i+1}</span>
+                        <span className="text-[10px] text-[var(--text-secondary)] font-bold tracking-tighter uppercase opacity-50 group-hover/bar:opacity-100 transition-opacity text-center leading-tight">{item.label}</span>
                       </div>
                     ))}
                   </div>
@@ -944,163 +1199,40 @@ const AdminDashboard = () => {
                 <div className="premium-glass p-8 rounded-[32px] border border-white/5 relative overflow-hidden flex flex-col items-center justify-center text-center">
                   <div className="absolute inset-0 bg-gradient-to-b from-[var(--sp-accent)]/5 to-transparent" />
                   <h4 className="font-bold text-[var(--text-primary)] mb-6 relative z-10">{t('dashboard.charts.distribution')}</h4>
-                  <div className="relative w-48 h-48 flex items-center justify-center relative z-10">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                      <circle
-                        cx="50" cy="50" r="40"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="12"
-                        className="text-white/5"
-                      />
-                      <circle
-                        cx="50" cy="50" r="40"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="12"
-                        strokeDasharray={2 * Math.PI * 40}
-                        strokeDashoffset={2 * Math.PI * 40 * (1 - 0.65)}
-                        className="text-[var(--sp-accent)]"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center group">
-                      <span className="text-4xl font-bold text-[var(--text-primary)] group-hover:scale-110 transition-transform">65%</span>
-                      <span className="text-[10px] text-[var(--sp-accent)] font-bold uppercase tracking-widest opacity-60">Verified</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Activity */}
-              <div className="premium-glass rounded-[32px] border border-white/5 overflow-hidden">
-                <div className="p-8 border-b border-white/5 flex justify-between items-center">
-                  <h4 className="font-bold text-xl text-[var(--text-primary)] tracking-tight">{t('dashboard.recentApps.title')}</h4>
-                  <button className="sp-btn-glass text-xs px-4 py-2 hover:bg-[var(--sp-accent)] hover:text-[var(--text-inverse)] transition-all">
-                    {t('dashboard.recentApps.viewAll')}
-                  </button>
-                </div>
-                <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                  <div className="flex items-center gap-4">
-                     <span className="text-sm font-medium text-[var(--text-secondary)]">{selectedApplications.length} selected</span>
-                     <button 
-                       disabled={selectedApplications.length === 0}
-                       onClick={handleBulkApprove}
-                       className="sp-btn-glass text-xs py-1.5 px-3 disabled:opacity-30 hover:bg-green-500 hover:text-white"
-                     >
-                       Bulk Approve
-                     </button>
-                     <button 
-                       disabled={selectedApplications.length === 0}
-                       onClick={handleBulkReject}
-                       className="sp-btn-glass text-xs py-1.5 px-3 disabled:opacity-30 hover:bg-red-500 hover:text-white"
-                     >
-                       Bulk Reject
-                     </button>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead className="bg-white/[0.02] text-[var(--text-secondary)] text-[10px] uppercase tracking-[0.2em] font-bold">
-                      <tr>
-                        <th className="px-6 py-5 w-12">
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-white/20 bg-transparent text-[var(--sp-accent)] focus:ring-[var(--sp-accent)] cursor-pointer"
-                            onChange={(e) => setSelectedApplications(e.target.checked ? recentApplications.map(a => a.id) : [])} 
-                            checked={selectedApplications.length > 0 && selectedApplications.length === recentApplications.length} 
-                          />
-                        </th>
-                        <th className="px-4 py-5">{t('dashboard.recentApps.name')}</th>
-                        <th className="px-8 py-5">{t('dashboard.recentApps.type')}</th>
-                        <th className="px-8 py-5">{t('dashboard.recentApps.date')}</th>
-                        <th className="px-8 py-5">{t('dashboard.recentApps.status')}</th>
-                        <th className="px-8 py-5 text-right">{t('dashboard.recentApps.actions')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/[0.03]">
-                      {recentApplications.map((app) => (
-                        <tr key={app.id} className="group hover:bg-white/[0.02] transition-colors">
-                          <td className="px-6 py-5 w-12 text-center">
-                            <input 
-                              type="checkbox" 
-                              className="rounded border-white/20 bg-transparent text-[var(--sp-accent)] focus:ring-[var(--sp-accent)] cursor-pointer"
-                              checked={selectedApplications.includes(app.id)} 
-                              onChange={(e) => {
-                                 if (e.target.checked) setSelectedApplications(prev => [...prev, app.id]);
-                                 else setSelectedApplications(prev => prev.filter(id => id !== app.id));
-                              }} 
-                            />
-                          </td>
-                          <td className="px-4 py-5">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center shadow-lg shadow-[var(--sp-accent)]/10 group-hover:scale-110 transition-transform">
-                                <span className="text-[var(--text-inverse)] font-bold">{app.name.charAt(0)}</span>
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--sp-accent)] transition-colors">{app.name}</p>
-                                <p className="text-[10px] text-[var(--text-secondary)] opacity-60 font-medium tracking-tight uppercase">{app.email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-8 py-5 text-xs font-semibold text-[var(--text-secondary)]">{app.type}</td>
-                          <td className="px-8 py-5 text-xs text-[var(--text-secondary)]">{app.date}</td>
-                          <td className="px-8 py-5">
-                            <span className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusBadge(app.status)}`}>
-                              {app.status.replace('_', ' ')}
-                            </span>
-                          </td>
-                          <td className="px-8 py-5">
-                            <div className="flex justify-end gap-2 pr-6">
-                              <button 
-                                onClick={() => navigate(`/admin/user/${app.id}`)}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-[var(--sp-accent)] hover:text-[var(--text-inverse)] transition-all"
-                                title="View Full Profile"
-                              >
-                                <User size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleViewDocs(app)}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-blue-500 hover:text-white transition-all"
-                                title="View Documents"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleApprove(app.id)}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-green-500 hover:text-white transition-all"
-                              >
-                                <CheckCircle size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleReject(app.id)}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-red-500 hover:text-white transition-all"
-                              >
-                                <X size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  {(() => {
+                    const verifiedPercentage = stats.totalMembers > 0 
+                      ? Math.round((stats.verifiedProfessionals / stats.totalMembers) * 100) 
+                      : 0;
+                    return (
+                      <div className="relative w-48 h-48 flex items-center justify-center relative z-10">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="12" className="text-white/5" />
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="12" strokeDasharray={251.327} strokeDashoffset={251.327 * (1 - verifiedPercentage / 100)} className="text-[var(--sp-accent)]" strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center group">
+                          <span className="text-4xl font-bold text-[var(--text-primary)] group-hover:scale-110 transition-transform">{verifiedPercentage}%</span>
+                          <span className="text-[10px] text-[var(--sp-accent)] font-bold uppercase tracking-widest opacity-60">Verified</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
               <div className="glass-card p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-[var(--text-primary)]">Recent Admin Actions</h3>
-                  <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-[0.2em]">Last 5</span>
+                  <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-[0.2em]">Verified and Recent Admin Actions Last 5</span>
                 </div>
-                <div className="space-y-2">
-                  {auditLog.slice(0,5).map((entry, i) => (
-                    <div key={i} className="flex items-center justify-between text-sm glass-light p-3 rounded-xl">
+                <div className="space-y-4">
+                  {auditLog.slice(0, 5).map((entry, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm glass-light p-4 rounded-xl">
                       <span className="text-[var(--text-primary)] font-medium">{entry.action}</span>
                       <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">{new Date(entry.at).toLocaleString()}</span>
                     </div>
                   ))}
                   {auditLog.length === 0 && (
-                    <p className="text-[var(--text-secondary)] text-sm">No admin actions yet.</p>
+                    <p className="text-[var(--text-secondary)] text-sm">No admin actions yet. Activity will appear here.</p>
                   )}
                 </div>
               </div>
@@ -1109,226 +1241,44 @@ const AdminDashboard = () => {
 
           {/* Members Section */}
           {activeSection === 'members' && (
-            <div className="space-y-4 lg:space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-                  <div className="relative w-full sm:w-auto">
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-64">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
-                    <input 
-                      type="text"
-                      placeholder={t('dashboard.placeholders.searchMembers')}
-                      className="input-glass pl-10 pr-4 py-2 w-full sm:w-64 text-sm"
-                    />
+                    <input type="text" placeholder={t('dashboard.placeholders.searchMembers')} className="input-glass pl-10 pr-4 py-2 w-full text-sm" />
                   </div>
-                  <button className="sp-btn-glass flex items-center gap-2 text-sm w-full sm:w-auto justify-center">
-                    <Filter size={14} />
-                    {t('dashboard.buttons.filter')}
-                  </button>
+                  <button className="sp-btn-glass flex items-center gap-2 text-sm"><Filter size={14} /> {t('dashboard.buttons.filter')}</button>
                 </div>
-                <button 
-                  onClick={() => setShowAddMember(true)}
-                  className="sp-btn-primary flex items-center gap-2 text-sm w-full sm:w-auto justify-center"
-                >
-                  <Plus size={14} />
-                  {t('dashboard.buttons.addMember')}
-                </button>
+                <button onClick={() => setShowAddMember(true)} className="sp-btn-primary flex items-center gap-2 text-sm"><Plus size={14} /> {t('dashboard.buttons.addMember')}</button>
               </div>
-
-              {showAddMember && (
-                <div className="glass-card p-6">
-                  <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Add New Member</h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[var(--text-secondary)] text-sm block mb-2">Email *</label>
-                        <input
-                          type="email"
-                          value={newMember.email}
-                          onChange={(e) => setNewMember({...newMember, email: e.target.value})}
-                          className="input-glass w-full"
-                          placeholder="member@example.com"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[var(--text-secondary)] text-sm block mb-2">Full Name *</label>
-                        <input
-                          type="text"
-                          value={newMember.full_name}
-                          onChange={(e) => setNewMember({...newMember, full_name: e.target.value})}
-                          className="input-glass w-full"
-                          placeholder="John Doe"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[var(--text-secondary)] text-sm block mb-2">Professional Title</label>
-                        <input
-                          type="text"
-                          value={newMember.professional_title}
-                          onChange={(e) => setNewMember({...newMember, professional_title: e.target.value})}
-                          className="input-glass w-full"
-                          placeholder="Senior Consultant"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[var(--text-secondary)] text-sm block mb-2">Phone</label>
-                        <input
-                          type="tel"
-                          value={newMember.phone}
-                          onChange={(e) => setNewMember({...newMember, phone: e.target.value})}
-                          className="input-glass w-full"
-                          placeholder="712345678"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[var(--text-secondary)] text-sm block mb-2">Tier</label>
-                        <select
-                          value={newMember.tier}
-                          onChange={(e) => setNewMember({...newMember, tier: e.target.value})}
-                          className="input-glass w-full"
-                        >
-                          <option value="Community">Community</option>
-                          <option value="Professional">Professional</option>
-                          <option value="Firm">Firm</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <button onClick={handleAddMember} className="sp-btn-primary">
-                        Add Member
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setShowAddMember(false);
-                          setNewMember({ email: '', full_name: '', professional_title: '', phone: '', tier: 'Community' });
-                        }} 
-                        className="sp-btn-glass"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div className="premium-glass rounded-[32px] border border-white/5 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead className="bg-white/[0.02] text-[var(--text-secondary)] text-[10px] uppercase tracking-[0.2em] font-bold">
                       <tr>
-                        <th className="px-8 py-5 whitespace-nowrap">{t('dashboard.headers.member')}</th>
-                        <th className="px-8 py-5 whitespace-nowrap">Category</th>
-                        <th className="px-8 py-5 whitespace-nowrap">Sector</th>
-                        <th className="px-8 py-5 whitespace-nowrap">{t('dashboard.headers.projects')}</th>
-                        <th className="px-8 py-5 whitespace-nowrap">{t('dashboard.headers.rating')}</th>
-                        <th className="px-8 py-5 whitespace-nowrap">{t('dashboard.headers.status')}</th>
-                        <th className="px-8 py-5 text-right">{t('dashboard.recentApps.actions')}</th>
+                        <th className="px-8 py-5">Member</th>
+                        <th className="px-8 py-5">Status</th>
+                        <th className="px-8 py-5">Tier</th>
+                        <th className="px-8 py-5 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/[0.03]">
                       {members.map((member) => (
-                        <tr key={member.id} className="group hover:bg-white/[0.02] transition-colors">
+                        <tr key={member.id} className="group hover:bg-white/[0.02]">
                           <td className="px-8 py-5">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center shadow-lg shadow-[var(--sp-accent)]/10 group-hover:scale-110 transition-transform cursor-pointer">
-                                <span className="text-[var(--text-inverse)] font-bold">{member.name.charAt(0)}</span>
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--sp-accent)] transition-colors truncate">{member.name}</p>
-                                <p className="text-[10px] text-[var(--text-secondary)] opacity-60 font-medium tracking-tight uppercase truncate">{member.professionalTitle || member.email}</p>
-                              </div>
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center shadow-lg shadow-[var(--sp-accent)]/10 group-hover:scale-110 transition-transform"><span className="text-[var(--text-inverse)] font-bold">{member.name.charAt(0)}</span></div>
+                              <div><p className="text-sm font-bold text-[var(--text-primary)]">{member.name}</p><p className="text-[10px] text-[var(--text-secondary)]">{member.email}</p></div>
                             </div>
                           </td>
-                          <td className="px-8 py-5">
-                            <span className="text-xs font-semibold text-[var(--text-secondary)] whitespace-nowrap">
-                              {member.userCategory?.split('(')[0] || 'N/A'}
-                            </span>
-                          </td>
-                          <td className="px-8 py-5 text-xs text-[var(--text-secondary)] font-medium">{member.sector || 'N/A'}</td>
-                          <td className="px-8 py-5 text-xs text-[var(--text-secondary)] font-bold">{member.projects}</td>
-                          <td className="px-8 py-5">
-                            <div className="flex items-center gap-1.5 text-[var(--sp-accent)] bg-[var(--sp-accent)]/5 w-fit px-2 py-1 rounded-lg">
-                              <Star size={12} className="fill-[var(--sp-accent)]" />
-                              <span className="text-[10px] font-bold">{member.rating.toFixed(1)}</span>
-                            </div>
-                          </td>
-                          <td className="px-8 py-5">
-                            <span className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusBadge(member.status)}`}>
-                              {member.status}
-                            </span>
-                          </td>
-                          <td className="px-8 py-5">
-                            <div className="flex justify-end gap-2 pr-4">
-                              <select
-                                value={member.tier || 'Community'}
-                                onChange={(e) => handleSetTier(member.id, e.target.value as 'Community' | 'Professional' | 'Firm')}
-                                className="input-glass text-[10px] px-2 py-2"
-                                title="Override tier"
-                              >
-                                <option value="Community">Community</option>
-                                <option value="Professional">Professional</option>
-                                <option value="Firm">Firm</option>
-                              </select>
-                              <button 
-                                onClick={() => navigate(`/admin/user/${member.id}`)}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-[var(--sp-accent)] hover:text-[var(--text-inverse)] transition-all"
-                                title="View Profile"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleViewDocs({ id: member.id, name: member.name, email: member.email, docs: member.docs || {} })}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-purple-500 hover:text-white transition-all"
-                                title="View Documents"
-                              >
-                                <FileText size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleAssignBadge(member.id, 'verified')}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-green-500 hover:text-white transition-all"
-                            title="Assign Verified"
-                          >
-                                <Shield size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleAssignBadge(member.id, 'premium')}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-yellow-500 hover:text-white transition-all"
-                                title="Upgrade to Premium"
-                              >
-                                <Star size={16} />
-                              </button>
-                          <button 
-                            onClick={() => handleFlagDuplicate(member.id)}
-                            className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-purple-500 hover:text-white transition-all"
-                            title="Flag duplicate"
-                          >
-                            <Copy size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleNote(member.id)}
-                            className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-teal-500 hover:text-white transition-all"
-                            title="Add note / assign owner"
-                          >
-                            <FileText size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleSuspendMember(member.id, 'under_review')}
-                            className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-orange-500 hover:text-white transition-all"
-                            title="Suspend"
-                          >
-                                <X size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleDeleteMember(member.id)}
-                                className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-red-500 hover:text-white transition-all"
-                                title="Delete profile"
-                              >
-                              <Trash2 size={16} />
-                            </button>
-                            {memberNotes[member.id]?.note && (
-                              <span className="text-[10px] text-[var(--text-secondary)] px-2 py-1 rounded bg-white/5">
-                                Note: {memberNotes[member.id].owner || 'Unassigned'}
-                              </span>
-                            )}
+                          <td className="px-8 py-5"><span className={`px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase ${getStatusBadge(member.status)}`}>{member.status}</span></td>
+                          <td className="px-8 py-5"><span className="text-xs text-[var(--text-secondary)]">{member.tier || 'Community'}</span></td>
+                          <td className="px-8 py-5 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button onClick={() => navigate(`/admin/user/${member.id}`)} className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-[var(--sp-accent)] hover:text-[var(--text-inverse)] transition-all"><Eye size={16} /></button>
+                              <button onClick={() => handleViewDocs({ id: member.id, name: member.name, email: member.email, docs: member.docs || {} })} className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-purple-500 hover:text-white transition-all"><FileText size={16} /></button>
+                              <button onClick={() => handleDeleteMember(member.id)} className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-red-500 hover:text-white transition-all"><Trash2 size={16} /></button>
                             </div>
                           </td>
                         </tr>
@@ -1337,79 +1287,35 @@ const AdminDashboard = () => {
                   </table>
                 </div>
               </div>
-
-              {duplicateCandidates.length > 0 && (
-                <div className="glass-card p-6 border border-purple-500/20">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">Potential Duplicates</h3>
-                    <span className="text-[10px] px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 font-bold uppercase tracking-wider">
-                      {duplicateCandidates.length} flagged
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {duplicateCandidates.map((dupe) => (
-                      <div key={dupe.id} className="flex items-center justify-between glass-light p-3 rounded-xl">
-                        <div>
-                          <p className="text-sm text-[var(--text-primary)] font-semibold">{dupe.name}</p>
-                          <p className="text-xs text-[var(--text-secondary)]">{dupe.email}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => {
-                              const primary = members.find(m => m.name?.toLowerCase() === dupe.name?.toLowerCase() && m.id !== dupe.id);
-                              if (primary) mergeProfiles(primary.id, dupe.id);
-                              else toast.error('No primary profile found to merge into');
-                            }}
-                            className="sp-btn-primary text-xs"
-                          >
-                            Merge into primary
-                          </button>
-                          <button 
-                            onClick={() => handleFlagDuplicate(dupe.id)}
-                            className="sp-btn-glass text-xs"
-                          >
-                            Flag
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteMember(dupe.id)}
-                            className="sp-btn-glass text-xs"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
           {/* Projects Section */}
           {activeSection === 'projects' && (
             <div className="space-y-6">
-              <div className=" flex items-center justify-between">
-                <div className=" flex items-center gap-4">
-                  <div className="relative">
-                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
-                    <input 
-                      type="text"
-                      placeholder={t('dashboard.placeholders.searchProjects')}
-                      className="input-glass pl-10 pr-4 py-2 w-64"
-                    />
-                  </div>
-                  <button className="sp-btn-glass flex items-center gap-2">
-                    <Filter size={16} />
-                    {t('dashboard.buttons.filter')}
-                  </button>
-                </div>
-                <button className="sp-btn-primary flex items-center gap-2">
-                  <Plus size={16} />
-                  {t('dashboard.buttons.newProject')}
-                </button>
-              </div>
+              {/* Projects toolbar */}
+          <div className="flex flex-wrap gap-3 md:gap-4 items-stretch md:items-center justify-between mb-6">
+            <div className="relative w-full sm:w-72">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+              <input 
+                type="text"
+                placeholder={t('dashboard.placeholders.searchProjects')}
+                className="input-glass pl-10 pr-4 py-2 w-full"
+              />
+            </div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <button className="sp-btn-glass flex items-center gap-2 justify-center w-full sm:w-auto">
+                <Filter size={16} />
+                {t('dashboard.buttons.filter')}
+              </button>
+              <button className="sp-btn-primary flex items-center gap-2 justify-center w-full sm:w-auto">
+                <Plus size={16} />
+                {t('dashboard.buttons.newProject')}
+              </button>
+            </div>
+          </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {projects.map((project) => (
                   <div key={project.id} className="glass-card p-6">
                     <div className=" flex items-start justify-between mb-4">

@@ -101,7 +101,7 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
           {/* Card A - Returnees */}
           <div 
             ref={cardARef}
-            className="sp-card w-full lg:w-[42vw] h-[35vh] lg:h-[56vh] relative group cursor-pointer"
+            className="sp-card w-full lg:flex-1 h-[280px] sm:h-[320px] lg:h-[520px] relative group cursor-pointer"
           >
             <img 
               src="/images/audience_returnees.jpg" 
@@ -122,7 +122,7 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
           {/* Card B - Institutions */}
           <div 
             ref={cardBRef}
-            className="sp-card w-full lg:w-[42vw] h-[35vh] lg:h-[56vh] relative group cursor-pointer"
+            className="sp-card w-full lg:flex-1 h-[280px] sm:h-[320px] lg:h-[520px] relative group cursor-pointer"
           >
             <img 
               src="/images/audience_institutions.jpg" 

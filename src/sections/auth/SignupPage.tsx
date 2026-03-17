@@ -13,10 +13,32 @@ const SignupPage = () => {
   const setSession = useAuthStore((state) => state.setSession);
   const setUser = useAuthStore((state) => state.setUser);
   const session = useAuthStore((state) => state.session);
+
+  const ensureSupabaseReady = () => {
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      toast.error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+      return false;
+    }
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      toast.error('You appear to be offline. Please check your connection and try again.');
+      return false;
+    }
+    return true;
+  };
   
   useEffect(() => {
     if (session) {
-      navigate('/profile');
+      if (ensureSupabaseReady()) {
+        supabase.from('profiles').upsert({
+          id: session.user.id,
+          email: session.user.email,
+          tier: 'Community',
+          profile_type: 'Standard Member',
+          onboarding_completed: false,
+          updated_at: new Date().toISOString(),
+        });
+      }
+      navigate('/pricing');
     }
   }, [session, navigate]);
 
@@ -31,11 +53,12 @@ const SignupPage = () => {
 
   const handleOAuth = async (provider: 'google' | 'linkedin_oidc') => {
     try {
+      if (!ensureSupabaseReady()) return;
       setLoading(true);
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/onboarding`,
+          redirectTo: `${window.location.origin}/pricing`,
           scopes: provider === 'linkedin_oidc' ? 'openid profile email' : 'openid profile email'
         }
       });
@@ -53,13 +76,14 @@ const SignupPage = () => {
       toast.error(t('auth.toast.invalidName'));
       return;
     }
+    if (!ensureSupabaseReady()) return;
 
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: formData.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/onboarding`,
+          emailRedirectTo: `${window.location.origin}/pricing`,
           shouldCreateUser: true,
           data: { full_name: formData.name }
         }
@@ -82,6 +106,7 @@ const SignupPage = () => {
 
   const handleVerifyToken = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!ensureSupabaseReady()) return;
     setLoading(true);
 
     try {
@@ -103,7 +128,15 @@ const SignupPage = () => {
       setSession(data.session);
       setUser(data.user);
       toast.success(t('auth.toast.success'));
-      navigate('/onboarding');
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        email: formData.email,
+        tier: 'Community',
+        profile_type: 'Standard Member',
+        onboarding_completed: false,
+        updated_at: new Date().toISOString(),
+      });
+      navigate('/pricing');
     } catch (error: any) {
       toast.error(error.message || 'Invalid or expired code.');
     } finally {

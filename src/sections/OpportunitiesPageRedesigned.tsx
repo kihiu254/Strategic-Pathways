@@ -58,7 +58,7 @@ const OpportunitiesPageRedesigned = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('tier, profile_type')
+        .select('tier, profile_type, onboarding_completed')
         .eq('id', user.id)
         .single();
       
@@ -121,6 +121,10 @@ const OpportunitiesPageRedesigned = () => {
       navigate('/login');
       return;
     }
+    if (isProfileLoading || !profile) {
+      toast.error('Loading your profile. Please try again in a moment.');
+      return;
+    }
 
     if (['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) {
       toast.error('Upgrade to Premium to apply for opportunities', {
@@ -131,16 +135,30 @@ const OpportunitiesPageRedesigned = () => {
       });
       return;
     }
+    if (!profile?.onboarding_completed) {
+      toast.error('Complete your onboarding to apply for opportunities.');
+      navigate('/onboarding/full');
+      return;
+    }
 
     setSelectedOpp(opp);
   };
 
   const submitApplication = async () => {
     if (!user || !selectedOpp) return;
+    if (isProfileLoading || !profile) {
+      toast.error('Loading your profile. Please try again in a moment.');
+      return;
+    }
 
     if (['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) {
       toast.error('Upgrade to Premium to apply');
       navigate('/pricing');
+      return;
+    }
+    if (!profile?.onboarding_completed) {
+      toast.error('Complete your onboarding to apply.');
+      navigate('/onboarding/full');
       return;
     }
 

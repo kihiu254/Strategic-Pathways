@@ -144,9 +144,9 @@ const AdminOnboardingList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      <div className="px-6 py-6 flex items-center justify-between border-b border-white/10">
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] pt-24 pb-12">
+      <div className="px-4 sm:px-6 py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-white/10">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => window.history.back()}
             className="sp-btn-glass px-3 py-2 flex items-center gap-2 text-sm"
@@ -158,17 +158,17 @@ const AdminOnboardingList = () => {
             <p className="text-sm text-[var(--text-secondary)]">All submitted onboarding data for admin review.</p>
           </div>
         </div>
-        <div className="flex gap-3 items-center">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full md:w-auto">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="pl-9 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm"
+              className="w-full sm:w-64 pl-9 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm"
               placeholder="Search name, email, type…"
             />
           </div>
-          <button onClick={downloadCSV} className="sp-btn-primary flex items-center gap-2 px-3 py-2">
+          <button onClick={downloadCSV} className="sp-btn-primary flex items-center justify-center gap-2 px-3 py-2">
             <Download size={16} /> CSV
           </button>
         </div>
@@ -179,7 +179,7 @@ const AdminOnboardingList = () => {
           <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading profiles…
         </div>
       ) : (
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="grid gap-4">
             {filtered.map((r) => {
               const edu = r.education || {};
@@ -190,7 +190,7 @@ const AdminOnboardingList = () => {
               const docs = r.verification_docs && typeof r.verification_docs === 'object' ? Object.entries(r.verification_docs) : [];
               return (
                 <div key={r.id} className="glass-card border border-white/10 rounded-xl p-4">
-                  <div className="flex flex-wrap gap-3 items-center justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-lg">{r.full_name}</span>

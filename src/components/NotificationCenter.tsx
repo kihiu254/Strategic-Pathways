@@ -44,8 +44,8 @@ const NotificationCenter = () => {
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-96 max-h-[500px] glass-card p-4 z-50 shadow-2xl">
+          <div className="fixed inset-0 z-[120]" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 top-full mt-2 w-[90vw] max-w-sm sm:w-96 sm:max-w-none max-h-[500px] glass-card p-4 z-[121] shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-[var(--text-primary)]">Notifications</h3>
               <div className="flex items-center gap-2">

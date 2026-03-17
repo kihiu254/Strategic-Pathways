@@ -75,12 +75,12 @@ const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => 
       className={`sp-section-pinned bg-[var(--bg-primary)] ${className}`}
     >
       <div className="w-full h-full flex items-center justify-center px-6 lg:px-12">
-        <div className="relative w-full max-w-[1400px] h-[64vh] flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="relative w-full max-w-[1400px] h-auto lg:min-h-[520px] flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8">
           
           {/* Left Typographic Panel */}
           <div 
             ref={panelRef}
-            className="sp-panel w-full lg:w-[44vw] h-auto lg:h-full flex flex-col justify-center p-6 lg:p-10 order-2 lg:order-1"
+            className="sp-panel w-full lg:flex-1 h-auto lg:h-[520px] flex flex-col justify-center p-6 lg:p-10 order-2 lg:order-1"
           >
             {/* Headline */}
             <h2 
@@ -131,7 +131,7 @@ const OpportunitiesSection = ({ className = '' }: OpportunitiesSectionProps) => 
           {/* Right Photo Card */}
           <div 
             ref={photoRef}
-            className="sp-card w-full lg:w-[42vw] h-[30vh] lg:h-full relative order-1 lg:order-2"
+            className="sp-card w-full lg:flex-1 h-[30vh] lg:h-[520px] relative order-1 lg:order-2"
           >
             <img 
               src="/images/opportunities_workspace.jpg" 

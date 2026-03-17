@@ -12,6 +12,15 @@ const AboutPage = () => {
   const navigate = useNavigate();
   const pageRef = useRef<HTMLDivElement>(null);
 
+  const getArray = <T,>(key: string): T[] => {
+    const value = t(key, { returnObjects: true });
+    if (Array.isArray(value)) {
+      return value as T[];
+    }
+    const fallback = i18n.getResource('en', 'translation', key);
+    return Array.isArray(fallback) ? (fallback as T[]) : [];
+  };
+
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
     document.title = t('about.title');
@@ -144,9 +153,9 @@ const AboutPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-grid">
-          {(t('about.solution.items', { returnObjects: true }) as any[]).map((item, i) => {
+          {getArray<{ title: string; desc: string }>('about.solution.items').map((item, i) => {
             const icons = [LayoutDashboard, Users, Briefcase, Lightbulb, Target, ShieldCheck];
-            const Icon = icons[i];
+            const Icon = icons[i] ?? LayoutDashboard;
             return (
               <div key={i} className="bg-[var(--bg-card)]/5 border border-[var(--text-primary)]/10 rounded-3xl p-8 hover:-translate-y-2 transition-transform duration-300 shadow-sm hover:shadow-xl">
                 <div className="w-12 h-12 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center mb-6">
@@ -166,7 +175,7 @@ const AboutPage = () => {
           <h2 className="text-3xl lg:text-5xl font-bold text-[var(--text-primary)] mb-12 text-center">{t('about.objectives.headline')}</h2>
           
           <div className="space-y-4">
-            {(t('about.objectives.list', { returnObjects: true }) as string[]).map((goal, i) => (
+            {getArray<string>('about.objectives.list').map((goal, i) => (
               <div key={i} className="bg-[var(--bg-card)]/5 p-6 rounded-2xl flex items-center gap-6 border border-[var(--text-primary)]/5 shadow-sm">
                 <div className="text-4xl font-bold text-[var(--sp-accent)]/30 shrink-0 select-none">0{i + 1}</div>
                 <p className="text-lg lg:text-xl font-medium text-[var(--text-primary)]">{goal}</p>

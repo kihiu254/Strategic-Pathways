@@ -70,6 +70,17 @@
 
   html {
     scroll-behavior: smooth;
+    width: 100%;
+    max-width: 100%;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  body, #root {
+    width: 100%;
+    max-width: 100%;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 
   body {
@@ -77,6 +88,19 @@
     background-color: var(--bg-primary);
     color: var(--text-primary);
     overflow-x: hidden;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  @media (max-width: 640px) {
+    body {
+      font-size: 15px;
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -268,7 +292,7 @@
   }
 
   .sp-section-pinned {
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
     height: auto;
     position: relative;

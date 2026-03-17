@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Star, ArrowRight, Building2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useNavigate } from 'react-router-dom';
+import { Check, Star, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/authStore';
 
 interface PricingSectionProps {
   className?: string;
@@ -13,107 +12,107 @@ interface PricingSectionProps {
 
 const PricingSection = ({ className = '' }: PricingSectionProps) => {
   const { t } = useTranslation();
-  
-  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
-  const [selectedTier, setSelectedTier] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', organization: '' });
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [currentTier, setCurrentTier] = useState<string | null>(null);
 
-  const handleJoinClick = (tier: string) => {
-    setSelectedTier(tier);
-    setJoinDialogOpen(true);
-  };
+  useEffect(() => {
+    if (!user) return;
+    const ensureProfile = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, tier')
+        .eq('id', user.id)
+        .single();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      // 1. Save to Database
-      const { error: dbError } = await supabase
-        .from('partner_inquiries')
-        .insert([
-          { 
-            name: formData.name, 
-            email: formData.email, 
-            organization: formData.organization, 
-            message: `Join Request for ${selectedTier} Tier`
-          }
-        ]);
-
-      if (dbError) throw dbError;
-
-      // 2. Trigger Email Notification (soft-fail in local/dev)
-      let emailError: string | null = null;
-      try {
-        const response = await fetch('/api/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'partner_inquiry',
-            data: {
-              ...formData,
-              message: `Join Request for ${selectedTier} Tier`
-            }
-          })
+      if (!data) {
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          email: user.email,
+          tier: 'Community',
+          profile_type: 'Standard Member',
+          updated_at: new Date().toISOString(),
         });
-
-        if (!response.ok) {
-          // In local Vite dev the API route does not exist (404) – log but don't block UX.
-          if (response.status !== 404) {
-            const errorData = await response.json().catch(() => ({}));
-            emailError = errorData.error || `Email service error (${response.status})`;
-          } else {
-            emailError = 'Email service unavailable in this environment.';
-          }
-        }
-      } catch (err: any) {
-        emailError = err?.message || 'Email service unreachable.';
+        setCurrentTier('Community');
+        return;
       }
-
-      toast.success(t('pricing.dialog.success', { tier: selectedTier }));
-      if (emailError) {
-        toast.warning(emailError);
-        console.warn('[pricing] email send warning:', emailError);
+      if (data?.tier) {
+        setCurrentTier(data.tier);
       }
-      setJoinDialogOpen(false);
-      setFormData({ name: '', email: '', organization: '' });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to submit request');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    };
+    ensureProfile();
+  }, [user]);
 
   const tiers = [
     {
+      id: 'community',
       name: t('pricing.tiers.community.name'),
       price: t('pricing.tiers.community.price'),
       period: '',
       description: t('pricing.tiers.community.description'),
-      features: t('pricing.tiers.community.features', { returnObjects: true }) as string[],
       cta: t('pricing.tiers.community.cta'),
       featured: false
     },
     {
+      id: 'professional',
       name: t('pricing.tiers.professional.name'),
       price: t('pricing.tiers.professional.price'),
       period: t('pricing.tiers.professional.period'),
       description: t('pricing.tiers.professional.description'),
-      features: t('pricing.tiers.professional.features', { returnObjects: true }) as string[],
       cta: t('pricing.tiers.professional.cta'),
       featured: true
     },
     {
+      id: 'firm',
       name: t('pricing.tiers.firm.name'),
       price: t('pricing.tiers.firm.price'),
       period: '',
       description: t('pricing.tiers.firm.description'),
-      features: t('pricing.tiers.firm.features', { returnObjects: true }) as string[],
       cta: t('pricing.tiers.firm.cta'),
       featured: false
     }
   ];
+
+  const getPoints = (text: string) =>
+    text
+      .split('/')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const handleSelectTier = async (tierId: string) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setIsProcessing(tierId);
+
+    try {
+      if (tierId === 'community') {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            tier: 'Community',
+            profile_type: 'Standard Member',
+            onboarding_completed: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
+
+        if (error) throw error;
+        navigate('/onboarding/basic');
+        return;
+      }
+
+      const targetTier = tierId === 'professional' ? 'professional' : 'firm';
+      navigate(`/payment?tier=${targetTier}`);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to select plan.');
+    } finally {
+      setIsProcessing(null);
+    }
+  };
 
   return (
     <section
@@ -143,9 +142,17 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
         </div>
 
         <div className="mt-10 lg:mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3 items-stretch">
-          {tiers.map((tier) => (
+          {tiers.map((tier) => {
+            const isCurrent =
+              !!user &&
+              !!currentTier &&
+              ((tier.id === 'community' && currentTier === 'Community') ||
+                (tier.id === 'professional' && currentTier === 'Professional') ||
+                (tier.id === 'firm' && (currentTier === 'Firm' || currentTier === 'Custom')));
+
+            return (
             <div
-              key={tier.name}
+              key={tier.id}
               className={`rounded-2xl border shadow-md transition-transform duration-200 hover:-translate-y-1 ${
                 tier.featured
                   ? 'border-[var(--sp-accent)]/60 bg-white/10 backdrop-blur-md shadow-[0_24px_60px_rgba(0,0,0,0.25)]'
@@ -164,111 +171,45 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
                   <h3 className={`text-xl font-semibold ${tier.featured ? 'text-[var(--sp-accent)]' : 'text-white'}`}>
                     {tier.name}
                   </h3>
+                  {isCurrent && (
+                    <span className="mt-2 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--sp-accent)] bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/30 px-2.5 py-1 rounded-full">
+                      Current plan
+                    </span>
+                  )}
                   <div className="mt-3 flex items-baseline gap-2">
                     <span className="text-4xl font-bold">{tier.price}</span>
                     {tier.period && <span className="text-white/60 text-sm">{tier.period}</span>}
                   </div>
-                  <p className="text-white/70 text-sm mt-3 leading-relaxed">{tier.description}</p>
                 </div>
 
                 <ul className="space-y-3 text-sm text-white/80 flex-1">
-                  {tier.features.map((feature, index) => (
-                    <li key={`${tier.name}-${index}`} className="flex items-start gap-3">
+                  {getPoints(tier.description).map((point, index) => (
+                    <li key={`${tier.id}-${index}`} className="flex items-start gap-3">
                       <span className="mt-[2px] rounded-full bg-[var(--sp-accent)]/15 text-[var(--sp-accent)] p-1">
                         <Check className="w-3.5 h-3.5" strokeWidth={3} />
                       </span>
-                      <span className="leading-relaxed">{feature}</span>
+                      <span className="leading-relaxed">{point}</span>
                     </li>
                   ))}
                 </ul>
 
                 <button
-                  onClick={() => handleJoinClick(tier.name)}
-                  className={`mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition-colors ${
+                  onClick={() => handleSelectTier(tier.id)}
+                  disabled={isProcessing === tier.id || isCurrent}
+                  className={`mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition-colors disabled:opacity-60 ${
                     tier.featured
                       ? 'bg-[var(--sp-accent)] text-gray-900 hover:bg-[#e5c285]'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
-                  {tier.cta}
+                  {isCurrent ? 'Current plan' : tier.cta}
                   {tier.featured && <ArrowRight size={16} />}
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/3 px-6 py-4 text-sm text-white/80">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[var(--sp-accent)]/15 text-[var(--sp-accent)] grid place-items-center font-bold">SP</div>
-            <div>
-              <p className="font-semibold text-white">Need something tailored?</p>
-              <p className="text-white/70">We’ll customise team onboarding, governance, and billing.</p>
-            </div>
-          </div>
-          <button
-            onClick={() => handleJoinClick(t('pricing.tiers.firm.name'))}
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-[var(--sp-accent)]/60 text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10"
-          >
-            Talk to us
-            <ArrowRight size={16} />
-          </button>
+          )})}
         </div>
       </div>
-
-      {/* Join Dialog */}
-      <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
-        <DialogContent className="bg-[var(--bg-primary)] border border-white/10 text-[var(--text-primary)] max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Building2 className="text-[var(--sp-accent)]" />
-              {t('pricing.dialog.title')}
-            </DialogTitle>
-            <DialogDescription className="text-[var(--text-secondary)]">
-              {t('pricing.dialog.description', { tier: selectedTier })}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div>
-              <Label htmlFor="name" className="text-[var(--text-primary)]">{t('pricing.dialog.nameLabel')}</Label>
-              <Input 
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                placeholder={t('pricing.dialog.nameLabel')}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email" className="text-[var(--text-primary)]">{t('pricing.dialog.emailLabel')}</Label>
-              <Input 
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                placeholder={t('pricing.dialog.emailLabel')}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="organization" className="text-[var(--text-primary)]">{t('pricing.dialog.orgLabel')}</Label>
-              <Input 
-                id="organization"
-                value={formData.organization}
-                onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                className="bg-white/5 border-white/10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50"
-                placeholder={t('pricing.dialog.orgLabel')}
-              />
-            </div>
-            <button type="submit" disabled={isSubmitting} className="sp-btn-primary w-full disabled:opacity-50">
-              {isSubmitting ? t('contact.labels.submitting') : t('pricing.dialog.submit')}
-            </button>
-          </form>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 };

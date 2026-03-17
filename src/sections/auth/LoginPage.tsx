@@ -12,6 +12,18 @@ const LoginPage = () => {
   const setSession = useAuthStore((state) => state.setSession);
   const setUser = useAuthStore((state) => state.setUser);
   const session = useAuthStore((state) => state.session);
+
+  const ensureSupabaseReady = () => {
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      toast.error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+      return false;
+    }
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      toast.error('You appear to be offline. Please check your connection and try again.');
+      return false;
+    }
+    return true;
+  };
   
   useEffect(() => {
     const handleOAuthCallback = async () => {
@@ -28,7 +40,7 @@ const LoginPage = () => {
             // Sync profile safely
             const { data: existingProfile } = await supabase
               .from('profiles')
-              .select('id, avatar_url, full_name')
+              .select('id, avatar_url, full_name, tier, profile_type, onboarding_completed')
               .eq('id', currentSession.user.id)
               .single();
 
@@ -46,28 +58,36 @@ const LoginPage = () => {
             if (!existingProfile?.avatar_url && (metadata.avatar_url || metadata.picture)) {
               profileData.avatar_url = metadata.avatar_url || metadata.picture;
             }
+            if (!existingProfile?.tier) {
+              profileData.tier = 'Community';
+            }
+            if (!existingProfile?.profile_type) {
+              profileData.profile_type = 'Standard Member';
+            }
+            if (existingProfile?.onboarding_completed === null || existingProfile?.onboarding_completed === undefined) {
+              profileData.onboarding_completed = false;
+            }
 
             // Only sync if there's new data or if profile doesn't exist
             if (!existingProfile || Object.keys(profileData).length > 3) {
               await supabase.from('profiles').upsert(profileData);
             }
 
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('onboarding_completed')
-              .eq('id', currentSession.user.id)
-              .single();
+            const tier = existingProfile?.tier || 'Community';
+            const completed = !!existingProfile?.onboarding_completed;
 
             if (currentSession.user.email?.includes('admin') || currentSession.user.email?.includes('joinstrategicpathways')) {
               navigate('/admin');
-            } else if (profile?.onboarding_completed) {
+            } else if (tier === 'Community') {
+              navigate(completed ? '/profile' : '/pricing');
+            } else if (completed) {
               navigate('/profile');
             } else {
-              navigate('/onboarding');
+              navigate('/onboarding/full');
             }
           } catch (error) {
             console.error('Error syncing profile:', error);
-            navigate('/profile');
+            navigate('/pricing');
           }
         }
         return;
@@ -79,7 +99,7 @@ const LoginPage = () => {
           try {
             const { data: existingProfile } = await supabase
               .from('profiles')
-              .select('id, avatar_url, full_name')
+              .select('id, avatar_url, full_name, tier, profile_type, onboarding_completed')
               .eq('id', session.user.id)
               .single();
 
@@ -96,27 +116,35 @@ const LoginPage = () => {
             if (!existingProfile?.avatar_url && (metadata.avatar_url || metadata.picture)) {
               profileData.avatar_url = metadata.avatar_url || metadata.picture;
             }
+            if (!existingProfile?.tier) {
+              profileData.tier = 'Community';
+            }
+            if (!existingProfile?.profile_type) {
+              profileData.profile_type = 'Standard Member';
+            }
+            if (existingProfile?.onboarding_completed === null || existingProfile?.onboarding_completed === undefined) {
+              profileData.onboarding_completed = false;
+            }
 
             if (!existingProfile || Object.keys(profileData).length > 3) {
               await supabase.from('profiles').upsert(profileData);
             }
 
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('onboarding_completed')
-              .eq('id', session.user.id)
-              .single();
+            const tier = existingProfile?.tier || 'Community';
+            const completed = !!existingProfile?.onboarding_completed;
 
             if (session.user.email?.includes('admin') || session.user.email?.includes('joinstrategicpathways')) {
               navigate('/admin');
-            } else if (profile?.onboarding_completed) {
+            } else if (tier === 'Community') {
+              navigate(completed ? '/profile' : '/pricing');
+            } else if (completed) {
               navigate('/profile');
             } else {
-              navigate('/onboarding');
+              navigate('/onboarding/full');
             }
           } catch (error) {
             console.error('Error syncing profile:', error);
-            navigate('/profile');
+            navigate('/pricing');
           }
         };
 
@@ -141,6 +169,7 @@ const LoginPage = () => {
 
   const handleOAuth = async (provider: 'google' | 'linkedin_oidc') => {
     try {
+      if (!ensureSupabaseReady()) return;
       setLoading(true);
       
       if (provider === 'linkedin_oidc') {
@@ -171,6 +200,7 @@ const LoginPage = () => {
 
   const checkAccountExists = async () => {
     if (!formData.email) return;
+    if (!ensureSupabaseReady()) return;
     setIsCheckingEmail(true);
     try {
       const { data } = await supabase.rpc('check_user_exists', { user_email: formData.email });
@@ -191,6 +221,7 @@ const LoginPage = () => {
   const handleSendToken = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!formData.email) return;
+    if (!ensureSupabaseReady()) return;
 
     setLoading(true);
     try {
@@ -213,7 +244,7 @@ const LoginPage = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email: formData.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/profile`,
+          emailRedirectTo: `${window.location.origin}/pricing`,
           shouldCreateUser: currentIsSignUp,
           data: currentIsSignUp ? { full_name: formData.name } : undefined
         }
@@ -235,10 +266,11 @@ const LoginPage = () => {
       toast.error('Please enter your email address first.');
       return;
     }
+    if (!ensureSupabaseReady()) return;
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/profile`,
+        redirectTo: `${window.location.origin}/pricing`,
       });
       if (error) throw error;
       toast.success('Password reset instructions sent to your email!');
@@ -252,6 +284,7 @@ const LoginPage = () => {
   // Step 2: Verify the 8-digit Token
   const handleVerifyToken = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!ensureSupabaseReady()) return;
     setLoading(true);
 
     try {
@@ -269,16 +302,29 @@ const LoginPage = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('onboarding_completed')
+        .select('tier, onboarding_completed')
         .eq('id', data.user.id)
         .single();
 
+      if (!profile?.tier) {
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          email: data.user.email,
+          tier: 'Community',
+          profile_type: 'Standard Member',
+          onboarding_completed: false,
+          updated_at: new Date().toISOString(),
+        });
+      }
+
       if (formData.email.includes('admin') || formData.email.includes('joinstrategicpathways')) {
         navigate('/admin');
+      } else if ((profile?.tier || 'Community') === 'Community') {
+        navigate(profile?.onboarding_completed ? '/profile' : '/pricing');
       } else if (profile?.onboarding_completed) {
         navigate('/profile');
       } else {
-        navigate('/onboarding');
+        navigate('/onboarding/full');
       }
     } catch (error: any) {
       toast.error(error.message || 'Invalid or expired code.');

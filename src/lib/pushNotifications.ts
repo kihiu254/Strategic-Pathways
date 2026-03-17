@@ -27,11 +27,10 @@ export class PushNotificationService {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user?.id) {
-      console.warn("Skipping FCM token save: 'fcm_token' column missing in profiles table");
-      // await supabase
-      //   .from('profiles')
-      //   .update({ fcm_token: token })
-      //   .eq('id', user.id);
+      await supabase
+        .from('profiles')
+        .update({ fcm_token: token })
+        .eq('id', user.id);
     }
   }
 

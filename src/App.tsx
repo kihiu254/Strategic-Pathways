@@ -34,6 +34,10 @@ const SignupPage = lazy(() => import('./sections/auth/SignupPage'));
 const AdminRoute = lazy(() => import('./sections/auth/AdminRoute'));
 const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPageRedesigned'));
 const OnboardingFlow = lazy(() => import('./sections/onboarding/ProfileOnboarding'));
+const BasicOnboarding = lazy(() => import('./sections/onboarding/BasicOnboarding'));
+const BasicEditOnboarding = lazy(() => import('./sections/onboarding/BasicEditOnboarding'));
+const OnboardingRouter = lazy(() => import('./sections/onboarding/OnboardingRouter'));
+const PaymentPage = lazy(() => import('./sections/PaymentPage'));
 const VerificationPage = lazy(() => import('./sections/VerificationPage'));
 const ReferralsPage = lazy(() => import('./sections/ReferralsPage'));
 const SitemapPage = lazy(() => import('./sections/SitemapPage'));
@@ -190,7 +194,10 @@ function MainLayout() {
                     <Route path="/dashboard" element={<UserDashboard />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/profile/edit" element={<EditOnboardingPage />} />
-                    <Route path="/onboarding" element={<OnboardingFlow />} />
+                    <Route path="/profile/edit/basic" element={<BasicEditOnboarding />} />
+                    <Route path="/onboarding" element={<OnboardingRouter />} />
+                    <Route path="/onboarding/basic" element={<BasicOnboarding />} />
+                    <Route path="/onboarding/full" element={<OnboardingFlow />} />
                     <Route path="/verification" element={<VerificationPage />} />
                     <Route path="/referrals" element={<ReferralsPage />} />
                     <Route path="/sitemap" element={<SitemapPage />} />
@@ -203,6 +210,7 @@ function MainLayout() {
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/help-center" element={<HelpCenterPage />} />
                     <Route path="/pricing" element={<PricingPage />} />
+                    <Route path="/payment" element={<PaymentPage />} />
                     
                     {/* Protected Admin Route */}
                     <Route element={<AdminRoute />}>

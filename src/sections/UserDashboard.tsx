@@ -21,6 +21,7 @@ const UserDashboard = () => {
   const [referralStats, setReferralStats] = useState({ total: 0, active: 0, rewards: 0 });
   const [matchScores, setMatchScores] = useState<MatchScores | null>(null);
   const [actionItems, setActionItems] = useState<{title: string, reward: number, actionPath: string}[]>([]);
+  const editPath = profile?.tier === 'Community' ? '/profile/edit/basic' : '/profile/edit';
 
   useEffect(() => {
     if (!user) {
@@ -80,11 +81,12 @@ const UserDashboard = () => {
 
       // Calculate Next Steps
       const items: {title: string; reward: number; actionPath: string}[] = [];
-      if (!hasCV) items.push({ title: 'Upload your CV', reward: 7, actionPath: '/profile/edit' });
-      if (skillsCount < 3) items.push({ title: 'Add professional skills', reward: 6, actionPath: '/profile/edit' });
+      const editRoute = profileData?.tier === 'Community' ? '/profile/edit/basic' : '/profile/edit';
+      if (!hasCV) items.push({ title: 'Upload your CV', reward: 7, actionPath: editRoute });
+      if (skillsCount < 3) items.push({ title: 'Add professional skills', reward: 6, actionPath: editRoute });
       if (projectsCount === 0) items.push({ title: 'Showcase past projects', reward: 5, actionPath: '/profile' });
-      if (!profileData?.sector && !profileData?.primarySector) items.push({ title: 'Define your primary sector', reward: 10, actionPath: '/profile/edit' });
-      if (!profileData?.bio) items.push({ title: 'Add a professional bio', reward: 5, actionPath: '/profile/edit' });
+      if (!profileData?.sector && !profileData?.primarySector) items.push({ title: 'Define your primary sector', reward: 10, actionPath: editRoute });
+      if (!profileData?.bio) items.push({ title: 'Add a professional bio', reward: 5, actionPath: editRoute });
       
       setActionItems(items.slice(0, 2));
 
@@ -183,7 +185,7 @@ const UserDashboard = () => {
                     </div>
                     <p className="text-lg font-bold text-[var(--text-primary)] mb-2">No Matches Yet</p>
                     <p className="text-sm text-[var(--text-secondary)] max-w-[300px] mb-6">Unlock your first recommendation by adding at least 3 relevant skills to your profile.</p>
-                    <button onClick={() => navigate('/profile/edit')} className="sp-btn-primary py-2 px-6">Optimize Profile</button>
+                    <button onClick={() => navigate(editPath)} className="sp-btn-primary py-2 px-6">Optimize Profile</button>
                   </div>
                 ) : (
                   opportunities.map(opp => (
@@ -213,7 +215,7 @@ const UserDashboard = () => {
               <h3 className="text-lg font-bold text-[var(--text-primary)] mb-8">Quick Actions</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <button 
-                  onClick={() => navigate('/profile/edit')}
+                  onClick={() => navigate(editPath)}
                   className="flex flex-col items-center gap-4 p-8 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
                 >
                   <Upload size={24} className="text-[var(--sp-accent)]" />
@@ -238,7 +240,7 @@ const UserDashboard = () => {
                   <span className="text-sm text-[var(--text-secondary)] font-medium">Find Work</span>
                 </button>
                 <button 
-                  onClick={() => navigate('/profile/edit')}
+                  onClick={() => navigate(editPath)}
                   className="flex flex-col items-center gap-4 p-8 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
                 >
                   <Settings size={24} className="text-[var(--sp-accent)]" />
@@ -453,7 +455,7 @@ const UserDashboard = () => {
               </div>
               <div className="flex gap-2">
                 <button 
-                  onClick={() => navigate('/profile/edit')}
+                  onClick={() => navigate(editPath)}
                   className="sp-btn-glass text-sm w-full"
                 >
                   Manage

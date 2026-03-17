@@ -523,6 +523,30 @@ const ProfilePage = () => {
   };
 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const isCommunityTier = profile.tier === 'Community';
+  const displayTier = profile.tier === 'Firm' ? 'Partners' : profile.tier;
+
+  const getEditPath = () => (isCommunityTier ? '/profile/edit/basic' : '/profile/edit');
+
+  const handleSwitchToCommunity = async () => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          tier: 'Community',
+          profile_type: 'Standard Member',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      setProfile(prev => ({ ...prev, tier: 'Community', profileType: 'Standard Member' }));
+      toast.success('Switched to Community plan.');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to switch plan.');
+    }
+  };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -783,7 +807,7 @@ const ProfilePage = () => {
 
                 <div className="flex gap-3">
                   <button 
-                    onClick={() => navigate('/profile/edit')}
+                    onClick={() => navigate(getEditPath())}
                     className="sp-btn-primary flex items-center gap-2"
                   >
                     <Edit2 size={16} />
@@ -826,7 +850,7 @@ const ProfilePage = () => {
                   <div className="text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold opacity-70 mt-1">{t('profilePage.labels.rating')}</div>
                 </div>
                 <div className="glass-light backdrop-blur-xl rounded-2xl p-4 text-center border border-white/5 hover:border-[var(--sp-accent)]/20 transition-all group/stat">
-                  <div className="text-lg font-bold text-[var(--sp-accent)] group-hover:scale-110 transition-transform">{profile.tier}</div>
+                  <div className="text-lg font-bold text-[var(--sp-accent)] group-hover:scale-110 transition-transform">{displayTier}</div>
                   <div className="text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold opacity-70 mt-1">{t('profilePage.labels.tier')}</div>
                 </div>
               </div>
@@ -1206,7 +1230,7 @@ const ProfilePage = () => {
                   { icon: FileText, label: 'Update CV', color: 'bg-blue-500/10 text-blue-400', action: () => { setActiveTab('documents'); setTimeout(() => document.getElementById('cv-upload')?.click(), 100); } },
                   { icon: Share2, label: 'Share Profile', color: 'bg-purple-500/10 text-purple-400', action: () => handleShareDocument('profile') },
                   { icon: Search, label: 'Find Work', color: 'bg-green-500/10 text-green-400', action: () => navigate('/opportunities') },
-                  { icon: Settings, label: 'Edit Profile', color: 'bg-orange-500/10 text-orange-400', action: () => navigate('/profile/edit') },
+                  { icon: Settings, label: 'Edit Profile', color: 'bg-orange-500/10 text-orange-400', action: () => navigate(getEditPath()) },
                 ].map((action, i) => (
                   <button key={i} onClick={action.action} className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[var(--sp-accent)]/20 hover:bg-white/[0.05] transition-all group">
                     <div className={`p-2 rounded-xl mb-2 ${action.color} group-hover:scale-110 transition-transform`}>
@@ -1347,7 +1371,7 @@ const ProfilePage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">Tier</span>
-                  <span className="text-[var(--sp-accent)]">{profile.tier}</span>
+                  <span className="text-[var(--sp-accent)]">{displayTier}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">Verification</span>
@@ -1362,6 +1386,22 @@ const ProfilePage = () => {
                     Active
                   </span>
                 </div>
+              </div>
+              <div className="mt-6 space-y-2">
+                {isCommunityTier ? (
+                  <button onClick={() => navigate('/pricing')} className="w-full sp-btn-primary py-2 text-xs">
+                    Upgrade Plan
+                  </button>
+                ) : (
+                  <>
+                    <button onClick={() => navigate('/pricing')} className="w-full sp-btn-secondary py-2 text-xs">
+                      Change Plan
+                    </button>
+                    <button onClick={handleSwitchToCommunity} className="w-full sp-btn-glass py-2 text-xs">
+                      Switch to Community
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

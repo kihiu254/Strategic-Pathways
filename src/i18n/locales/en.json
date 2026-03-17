@@ -13,8 +13,8 @@
   "hero": {
     "title": "A talent execution and venture-building platform mobilising globally trained professionals into collaborative projects, ventures, and initiatives that foster sustainable brain circulation.",
     "subtitle": "",
-    "cta": "Free to Join! Vetted Membership",
-    "secondary": "Explore Opportunities"
+    "cta": "Explore Opportunities",
+    "secondary": "Learn More"
   },
   "value": {
     "title": "Why Strategic Pathways?",
@@ -108,7 +108,7 @@
       "community": {
         "name": "Community",
         "price": "Free",
-        "description": "Core profile features/Community access/Learning & insights",
+        "description": "Core profile features/Community access/Learning/Insights",
         "features": ["Profile listing", "Monthly newsletter", "Event invites"],
         "cta": "Join free"
       },
@@ -355,6 +355,7 @@
       "experience": "Experience",
       "education": "Education",
       "myProjects": "My Projects",
+      "projects": "Projects",
       "recentActivity": "Recent Activity",
       "recommended": "Recommended for You",
       "viewMatches": "View all matches →",

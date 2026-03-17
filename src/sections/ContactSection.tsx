@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
-import SocialIcon from '../components/SocialIcon';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -158,8 +157,8 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                 </div>
                 <div>
                   <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.email')}</p>
-                  <a href="mailto:hello@joinstrategicpathways.com" className="text-[var(--text-primary)] hover:text-[var(--sp-accent)] transition-colors">
-                    hello@joinstrategicpathways.com
+                  <a href="mailto:info@joinstrategicpathways.com" className="text-[var(--text-primary)] hover:text-[var(--sp-accent)] transition-colors">
+                    info@joinstrategicpathways.com
                   </a>
                 </div>
               </div>
@@ -197,35 +196,6 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
               </div>
             </div>
 
-            {/* Follow Us */}
-              <div className="mt-4 pt-6 border-t border-[var(--sp-accent)]/10">
-                <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">{t('contact.follow')}</h3>
-                <p className="text-[var(--text-secondary)] mb-8 leading-relaxed">
-                  {t('contact.followSub')}
-                </p>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { name: 'LinkedIn', url: 'https://www.linkedin.com/company/join-strategicpathways/' },
-                  { name: 'X', url: 'https://x.com/SPathways_' },
-                  { name: 'Instagram', url: 'https://www.instagram.com/joinstrategicpathways/' },
-                  { name: 'TikTok', url: 'https://www.tiktok.com/@joinstrategicpathways' },
-                  { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61588643401308' },
-                  { name: 'Threads', url: 'https://www.threads.net/@joinstrategicpathways' },
-                  { name: 'YouTube', url: 'https://www.youtube.com/@joinstrategicpathways' }
-                ].map((social) => (
-                  <a 
-                    key={social.name}
-                    href={social.url} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
-                    title={social.name}
-                  >
-                    <SocialIcon platform={social.name} size={18} />
-                  </a>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right Column - Form */}

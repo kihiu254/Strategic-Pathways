@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { onboardingSchema } from './schema';
 import type { OnboardingData } from './schema';
 import { 
-  ProfileTypeSelection, UserCategorySelection, BasicInfo, EducationEnhanced as Education, ProfessionalExperience, 
+  UserCategorySelection, BasicInfo, EducationEnhanced as Education, ProfessionalExperience, 
   AreasOfInterest, PremiumDetails, ContributionValue, IncomeVenture, 
   VerificationCredits, CommunityVisibility 
 } from './OnboardingSteps';
@@ -16,36 +16,18 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { calculateProfileCompletion } from '../../utils/profileScoring';
 
-const getSteps = (profileType: string) => {
-  const baseSteps = [
-    { id: 'profileType', title: 'Profile Type', component: ProfileTypeSelection },
-  ];
-
-  if (profileType === 'Standard Member') {
-    return [
-      ...baseSteps,
-      { id: 'basic', title: 'Basic Info', component: BasicInfo },
-      { id: 'experience', title: 'Professional Snapshot', component: ProfessionalExperience },
-      { id: 'interest', title: 'Engagement Intent', component: AreasOfInterest },
-      { id: 'contribution', title: 'Short Narrative', component: ContributionValue },
-      { id: 'visibility', title: 'Consent & Community', component: CommunityVisibility },
-    ];
-  }
-
-  return [
-    ...baseSteps,
-    { id: 'category', title: 'User Category', component: UserCategorySelection },
-    { id: 'basic', title: 'Basic Info', component: BasicInfo },
-    { id: 'education', title: 'Education & Global', component: Education },
-    { id: 'experience', title: 'Professional Experience', component: ProfessionalExperience },
-    { id: 'interest', title: 'Areas of Interest', component: AreasOfInterest },
-    { id: 'premium', title: 'Recommended: Professional Details', component: PremiumDetails },
-    { id: 'contribution', title: 'Contribution & Value', component: ContributionValue },
-    { id: 'income', title: 'Income & Venture', component: IncomeVenture },
-    { id: 'verification', title: 'Verification', component: VerificationCredits },
-    { id: 'visibility', title: 'Community & Visibility', component: CommunityVisibility },
-  ];
-};
+const getSteps = () => ([
+  { id: 'category', title: 'User Category', component: UserCategorySelection },
+  { id: 'basic', title: 'Basic Info', component: BasicInfo },
+  { id: 'education', title: 'Education & Global', component: Education },
+  { id: 'experience', title: 'Professional Experience', component: ProfessionalExperience },
+  { id: 'interest', title: 'Areas of Interest', component: AreasOfInterest },
+  { id: 'premium', title: 'Recommended: Professional Details', component: PremiumDetails },
+  { id: 'contribution', title: 'Contribution & Value', component: ContributionValue },
+  { id: 'income', title: 'Income & Venture', component: IncomeVenture },
+  { id: 'verification', title: 'Verification', component: VerificationCredits },
+  { id: 'visibility', title: 'Community & Visibility', component: CommunityVisibility },
+]);
 
 const ProfileOnboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -74,7 +56,7 @@ const ProfileOnboarding = () => {
     resolver: zodResolver(onboardingSchema),
     mode: 'onChange',
     defaultValues: loadDraft() || {
-      profileType: 'Standard Member',
+      profileType: 'Premium (Verified)',
       email: user?.email || '',
       fullName: user?.user_metadata?.full_name || '',
       professionalTitle: '',
@@ -99,9 +81,27 @@ const ProfileOnboarding = () => {
     }
   });
 
-  const profileType = useWatch({ control, name: 'profileType' });
-  const steps = getSteps(profileType);
+  const steps = getSteps();
   const allFormData = useWatch({ control });
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    const fetchTier = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('tier')
+        .eq('id', user.id)
+        .single();
+      const profileTier = data?.tier || 'Community';
+      if (profileTier === 'Community') {
+        navigate('/onboarding/basic');
+      }
+    };
+    fetchTier();
+  }, [user, navigate]);
 
   // Auto-save draft
   useEffect(() => {
@@ -143,7 +143,7 @@ const ProfileOnboarding = () => {
         .from('profiles')
         .upsert({
           id: user.id,
-          profile_type: data.profileType,
+          profile_type: 'Premium (Verified)',
           full_name: data.fullName,
           professional_title: data.professionalTitle,
           email: data.email,
@@ -219,7 +219,6 @@ const ProfileOnboarding = () => {
 
   const getFieldsForStepId = (stepId: string) => {
     switch (stepId) {
-      case 'profileType': return ['profileType'];
       case 'category': return ['userCategory'];
       case 'basic': return ['fullName', 'professionalTitle', 'email', 'linkedinUrl', 'websiteUrl', 'countryOfResidence', 'nationality'];
       case 'education': return ['highestEducation', 'studyCountry', 'institutions', 'fieldOfStudy', 'otherCountriesWorked', 'countriesWorkedIn', 'languagesSpoken'];

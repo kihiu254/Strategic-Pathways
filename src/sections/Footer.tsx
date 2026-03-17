@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Mail, Send, Globe, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react';
+import { Mail, Send, Globe } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import SocialIcon from '../components/SocialIcon';
@@ -53,6 +53,7 @@ const Footer = () => {
       links: [
         { label: t('nav.about'), href: '/concept-note' },
         { label: t('nav.howItWorks'), href: '/how-it-works' },
+        { label: t('nav.pricing'), href: '/pricing' },
         { label: t('footer.opportunities'), href: '/opportunities' },
         { label: t('footer.successStories'), href: '/impact' }
       ]
@@ -60,6 +61,7 @@ const Footer = () => {
     resources: {
       title: t('footer.resources'),
       links: [
+        { label: t('footer.helpCenter'), href: '/help-center' },
         { label: t('footer.privacy'), href: '/privacy' },
         { label: t('footer.terms'), href: '/terms' },
         { label: t('footer.cookies'), href: '/cookies' }
@@ -73,14 +75,21 @@ const Footer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
           {/* Brand & Social */}
           <div className="lg:col-span-4 flex flex-col items-start">
-            <img 
-              src="/logo.png" 
-              alt="Strategic Pathways" 
-              width={160} 
-              height={40} 
-              className="h-10 w-auto mb-6 rounded-lg cursor-pointer grayscale hover:grayscale-0 transition-all duration-500" 
+            <button
+              type="button"
               onClick={() => navigate('/')}
-            />
+              className="group text-left mb-6"
+              aria-label="Strategic Pathways Home"
+            >
+              <span
+                className="block text-2xl sm:text-3xl font-semibold tracking-[0.08em] text-[var(--text-primary)] transition-colors group-hover:text-[var(--sp-accent)]"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                <span className="text-[var(--sp-accent)] group-hover:text-[var(--text-primary)] transition-colors">Strategic</span>{' '}
+                Pathways
+              </span>
+              <span className="mt-2 block h-0.5 w-12 rounded-full bg-[var(--sp-accent)]/70 group-hover:bg-[var(--sp-accent)] transition-colors" />
+            </button>
             <p className="text-[var(--text-secondary)] text-sm mb-8 leading-relaxed max-w-sm">
               {t('footer.brandDesc')}
             </p>
@@ -89,10 +98,12 @@ const Footer = () => {
               {[
                 { platform: 'X', url: 'https://x.com/SPathways_' },
                 { platform: 'LinkedIn', url: 'https://www.linkedin.com/company/join-strategicpathways/' },
+                { platform: 'Instagram', url: 'https://www.instagram.com/joinstrategicpathways/' },
                 { platform: 'TikTok', url: 'https://www.tiktok.com/@joinstrategicpathways' },
+                { platform: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61588643401308' },
                 { platform: 'Threads', url: 'https://www.threads.net/@joinstrategicpathways' },
                 { platform: 'YouTube', url: 'https://www.youtube.com/@joinstrategicpathways' },
-              ].map((social, i) => (
+              ].map((social) => (
                 <a 
                   key={social.platform} 
                   href={social.url} 
@@ -183,12 +194,6 @@ const Footer = () => {
         <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col md:flex-row items-center gap-6 text-[var(--text-secondary)] text-xs font-medium order-2 md:order-1 text-center md:text-left">
             <span>© 2026 {t('footer.rights')}</span>
-            <div className="hidden md:flex items-center gap-2">
-              <div className="w-1 h-1 rounded-full bg-white/10" />
-              <a href="mailto:hello@joinstrategicpathways.com" className="hover:text-[var(--sp-accent)] transition-colors">
-                hello@joinstrategicpathways.com
-              </a>
-            </div>
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-8 order-1 md:order-2">

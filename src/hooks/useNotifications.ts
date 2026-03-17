@@ -72,6 +72,21 @@ export const useNotifications = () => {
   }, [user]);
 
   const markAsRead = async (notificationId: string) => {
+    setNotifications((prev) => {
+      let shouldDecrement = false;
+      const next = prev.map((n) => {
+        if (n.id === notificationId && !n.read) {
+          shouldDecrement = true;
+          return { ...n, read: true, updated_at: new Date().toISOString() };
+        }
+        return n;
+      });
+      if (shouldDecrement) {
+        setUnreadCount((count) => Math.max(0, count - 1));
+      }
+      return next;
+    });
+
     await supabase
       .from('notifications')
       .update({ read: true, updated_at: new Date().toISOString() })
@@ -79,6 +94,11 @@ export const useNotifications = () => {
   };
 
   const markAllAsRead = async () => {
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, read: true, updated_at: new Date().toISOString() }))
+    );
+    setUnreadCount(0);
+
     await supabase
       .from('notifications')
       .update({ read: true, updated_at: new Date().toISOString() })

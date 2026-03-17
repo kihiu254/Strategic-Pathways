@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Loader2, ChevronLeft, ChevronRight, Check, Save } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,7 +10,6 @@ import { onboardingSchema, type OnboardingData } from './onboarding/schema';
 import * as Steps from './onboarding/OnboardingSteps';
 
 const getSteps = () => [
-  { id: 'profileType', title: 'Profile Type', component: Steps.ProfileTypeSelection },
   { id: 'basic', title: 'Basic Information', component: Steps.BasicInfo },
   { id: 'education', title: 'Education & Global', component: Steps.EducationEnhanced },
   { id: 'experience', title: 'Professional Experience', component: Steps.ProfessionalExperience },
@@ -25,7 +24,6 @@ const getSteps = () => [
 
 const getFieldsForStepId = (stepId: string) => {
   switch (stepId) {
-    case 'profileType': return ['profileType'];
     case 'basic': return ['fullName', 'professionalTitle', 'email', 'linkedinUrl', 'websiteUrl', 'countryOfResidence', 'nationality'];
     case 'education': return ['highestEducation', 'studyCountry', 'institutions', 'fieldOfStudy', 'otherCountriesWorked', 'countriesWorkedIn', 'languagesSpoken'];
     case 'experience': return ['yearsOfExperience', 'primarySector', 'functionalExpertise', 'employmentStatus', 'bio'];
@@ -61,7 +59,6 @@ const EditOnboardingPage = () => {
     mode: 'onChange'
   });
 
-  const profileType = useWatch({ control, name: 'profileType' }) || 'Standard Member';
   const steps = getSteps();
   const ActiveComponent = steps[currentStep].component as any;
   const progress = Math.round(((currentStep + 1) / steps.length) * 100);
@@ -82,9 +79,14 @@ const EditOnboardingPage = () => {
 
         if (error) throw error;
 
+        if (data?.tier === 'Community') {
+          navigate('/profile/edit/basic');
+          return;
+        }
+
         if (data) {
           const formData: Partial<OnboardingData> = {
-            profileType: data.profile_type || 'Standard Member',
+            profileType: data.profile_type || 'Premium (Verified)',
             fullName: data.full_name || '',
             professionalTitle: data.professional_title || '',
             email: data.email || '',
@@ -172,7 +174,7 @@ const EditOnboardingPage = () => {
         .from('profiles')
         .upsert({
           id: user.id,
-          profile_type: data.profileType,
+          profile_type: 'Premium (Verified)',
           full_name: normalize(data.fullName),
           professional_title: normalize(data.professionalTitle),
           email: data.email,

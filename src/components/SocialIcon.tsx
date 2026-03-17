@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   Linkedin, 
-  Twitter, 
   Instagram, 
   Facebook, 
   Youtube, 
@@ -23,8 +22,8 @@ const SocialIcon = ({ platform, size = 18, className = '' }: SocialIconProps) =>
   const iconMap: Record<string, React.ElementType> = {
     'linkedin': Linkedin,
     'instagram': Instagram,
-    'twitter': Twitter,
-    'x': Twitter,
+    'twitter': 'x',
+    'x': 'x',
     'facebook': Facebook,
     'youtube': Youtube,
     'mail': Mail,
@@ -33,6 +32,20 @@ const SocialIcon = ({ platform, size = 18, className = '' }: SocialIconProps) =>
   };
 
   // Custom SVGs for platforms not in Lucide or needing specific styling
+  if (normalizedPlatform === 'x' || normalizedPlatform === 'twitter') {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        width={size}
+        height={size}
+        className={className}
+      >
+        <path d="M18.244 2H21l-6.537 7.468L22 22h-6.172l-4.83-6.308L5.48 22H2.7l6.98-7.98L2 2h6.33l4.37 5.792L18.244 2zm-1.082 18h1.585L7.27 4H5.57l11.592 16z" />
+      </svg>
+    );
+  }
+
   if (normalizedPlatform === 'tiktok') {
     return (
       <svg 

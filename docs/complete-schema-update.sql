@@ -44,12 +44,14 @@ ADD COLUMN IF NOT EXISTS profile_completion_percentage integer DEFAULT 0;
 -- Create verification documents table
 CREATE TABLE IF NOT EXISTS public.verification_documents (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id uuid NOT NULL,
+  CONSTRAINT verification_documents_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE,
   document_type text NOT NULL,
   document_category text NOT NULL,
   file_url text NOT NULL,
   status text DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-  reviewed_by uuid REFERENCES public.profiles(id),
+  reviewed_by uuid,
+  CONSTRAINT verification_documents_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES public.profiles(id),
   reviewed_at timestamp with time zone,
   admin_notes text,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
