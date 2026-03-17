@@ -135,7 +135,20 @@ function MainLayout() {
   // Cleanup ScrollTrigger when switching pages
   useEffect(() => {
     if (location.pathname !== '/') {
-      ScrollTrigger.getAll().forEach(st => st.kill());
+      const isInDom = (el: unknown) => {
+        if (!el || !(el instanceof Element)) return false;
+        return document.body.contains(el);
+      };
+
+      ScrollTrigger.getAll().forEach(st => {
+        const trigger = st.vars?.trigger;
+        const pin = st.vars?.pin;
+        if (!isInDom(trigger) && !isInDom(pin)) {
+          st.kill();
+        }
+      });
+
+      ScrollTrigger.refresh();
     }
   }, [location.pathname]);
 
