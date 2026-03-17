@@ -29,7 +29,7 @@ const AboutPage = () => {
       // Setup scroll animations for all sections with class .animate-section
       const sections = document.querySelectorAll('.animate-section');
       sections.forEach((section) => {
-        gsap.fromTo(section,
+        const tween = gsap.fromTo(section,
           { y: 50, opacity: 0 },
           {
             y: 0,
@@ -43,12 +43,15 @@ const AboutPage = () => {
             }
           }
         );
+        if (ScrollTrigger.isInViewport(section as Element, 0.8)) {
+          tween.progress(1);
+        }
       });
 
       // Stagger items inside grids
       const grids = document.querySelectorAll('.animate-grid');
       grids.forEach((grid) => {
-        gsap.fromTo(grid.children,
+        const tween = gsap.fromTo(grid.children,
           { y: 40, opacity: 0 },
           {
             y: 0,
@@ -63,8 +66,14 @@ const AboutPage = () => {
             }
           }
         );
+        if (ScrollTrigger.isInViewport(grid as Element, 0.8)) {
+          tween.progress(1);
+        }
       });
     }, pageRef);
+
+    requestAnimationFrame(() => ScrollTrigger.refresh());
+    setTimeout(() => ScrollTrigger.refresh(), 60);
 
     return () => ctx.revert();
   }, [t]);

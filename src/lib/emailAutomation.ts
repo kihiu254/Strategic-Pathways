@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 export class EmailAutomationService {
   private static apiUrl = '/api/send';
 
-  private static async triggerEmail(type: string, data: any) {
+  private static async triggerEmail(type: string, data: Record<string, unknown>) {
     try {
       const response = await fetch(this.apiUrl, {
         method: 'POST',
@@ -21,8 +21,9 @@ export class EmailAutomationService {
         return { success: false, error: 'Empty response' };
       }
       
-      return JSON.parse(text);
-    } catch (error) {
+      const parsed = JSON.parse(text) as { success?: boolean; error?: string };
+      return { success: !!parsed.success, error: parsed.error };
+    } catch (error: unknown) {
       console.error('Email trigger failed:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
