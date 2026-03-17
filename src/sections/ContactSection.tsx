@@ -151,23 +151,29 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
   return (
     <section 
       ref={sectionRef}
-      className={`relative bg-[var(--bg-primary)] py-20 lg:py-28 ${className}`}
+      className={`relative bg-[var(--bg-primary)] py-20 lg:py-28 overflow-hidden ${className}`}
     >
+      <div className="pointer-events-none absolute -top-24 -left-32 h-72 w-72 rounded-full bg-[var(--sp-accent)]/12 blur-[120px]" />
+      <div className="pointer-events-none absolute bottom-0 -right-32 h-80 w-80 rounded-full bg-[#10364d]/50 blur-[140px]" />
       <div className="w-full px-6 lg:px-12">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           
           {/* Left Column - Info */}
-          <div ref={leftRef} className="flex flex-col justify-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] mb-4">
+          <div ref={leftRef} className="flex flex-col justify-center space-y-6">
+            <div className="inline-flex items-center gap-3">
+              <div className="w-10 h-0.5 bg-[var(--sp-accent)]" />
+              <span className="text-[var(--sp-accent)] text-xs font-semibold uppercase tracking-[0.2em]">Contact</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)]">
               {t('contact.headline')}
             </h2>
-            <p className="text-[var(--text-secondary)] mb-8 lg:mb-10">
+            <p className="text-[var(--text-secondary)] text-base lg:text-lg max-w-xl">
               {t('contact.body')}
             </p>
 
             {/* Contact Details */}
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center gap-3">
+            <div className="space-y-4">
+              <div className="premium-glass rounded-2xl p-4 border border-white/10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center">
                   <Mail className="w-5 h-5 text-[var(--sp-accent)]" />
                 </div>
@@ -179,7 +185,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="premium-glass rounded-2xl p-4 border border-white/10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center">
                   <MessageCircle className="w-5 h-5 text-[var(--sp-accent)]" />
                 </div>
@@ -191,7 +197,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="premium-glass rounded-2xl p-4 border border-white/10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-[var(--sp-accent)]" />
                 </div>
@@ -201,7 +207,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="premium-glass rounded-2xl p-4 border border-white/10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center">
                   <Clock className="w-5 h-5 text-[var(--sp-accent)]" />
                 </div>
@@ -217,7 +223,7 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
           {/* Right Column - Form */}
           <div 
             ref={formRef}
-            className="bg-black/20 border border-white/10 rounded-3xl p-6 lg:p-8"
+            className="premium-glass border border-white/10 rounded-3xl p-6 lg:p-8 shadow-2xl"
           >
             <form ref={inputsRef} onSubmit={handleSubmit} className="space-y-5">
               <div className="form-field">

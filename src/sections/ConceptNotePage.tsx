@@ -86,7 +86,9 @@ const AboutPage = () => {
   }, [i18n.language, t]);
 
   return (
-    <div ref={pageRef} className="min-h-screen bg-[var(--bg-primary)] pt-20 pb-20 selection:bg-[var(--sp-accent)] selection:text-[var(--text-primary)]">
+    <div ref={pageRef} className="min-h-screen bg-[var(--bg-primary)] pt-20 pb-20 selection:bg-[var(--sp-accent)] selection:text-[var(--text-primary)] relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-40 -left-24 h-80 w-80 rounded-full bg-[var(--sp-accent)]/10 blur-[120px]" />
+      <div className="pointer-events-none absolute top-40 -right-32 h-96 w-96 rounded-full bg-[#10364d]/50 blur-[140px]" />
       {/* Navigation Top Bar */}
       <div className="max-w-7xl mx-auto px-6 lg:px-12 mb-6 animate-section">
         <button 
@@ -99,28 +101,34 @@ const AboutPage = () => {
       </div>
 
       {/* 1. Hero Title */}
-      <section className="max-w-5xl mx-auto px-6 lg:px-12 mb-24 animate-section text-center">
-        <div className="inline-flex items-center gap-3 mb-6">
-          <div className="w-12 h-0.5 bg-[var(--sp-accent)]" />
-          <span className="sp-label text-[var(--sp-accent)] text-sm tracking-widest uppercase font-semibold">{t('about.mission.label')}</span>
-          <div className="w-12 h-0.5 bg-[var(--sp-accent)]" />
+      <section className="max-w-6xl mx-auto px-6 lg:px-12 mb-24 animate-section">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center">
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-3">
+              <div className="w-10 h-0.5 bg-[var(--sp-accent)]" />
+              <span className="sp-label text-[var(--sp-accent)] text-sm tracking-widest uppercase font-semibold">{t('about.mission.label')}</span>
+            </div>
+            <h1 
+              style={{ fontFamily: "'Inter', sans-serif" }}
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight leading-[1.1] text-balance"
+            >
+              {t('about.mission.headline').split(' ').map((word, i, arr) => (
+                i >= arr.length - 3 
+                  ? <span key={i} className="text-[var(--sp-accent)]">{word} </span>
+                  : <span key={i}>{word} </span>
+              ))}
+            </h1>
+          </div>
+          <div className="premium-glass rounded-3xl p-8 border border-white/10 shadow-2xl">
+            <p 
+              style={{ fontFamily: "'Inter', sans-serif" }}
+              className="text-base lg:text-lg text-[var(--text-secondary)] leading-relaxed font-medium"
+            >
+              {t('about.mission.body')}
+            </p>
+            <div className="mt-8 h-0.5 w-16 bg-[var(--sp-accent)]/60 rounded-full" />
+          </div>
         </div>
-        <h1 
-          style={{ fontFamily: "'Inter', sans-serif" }}
-          className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight leading-[1.1] mb-10 text-balance"
-        >
-          {t('about.mission.headline').split(' ').map((word, i, arr) => (
-            i >= arr.length - 3 
-              ? <span key={i} className="text-[var(--sp-accent)]">{word} </span>
-              : <span key={i}>{word} </span>
-          ))}
-        </h1>
-        <p 
-          style={{ fontFamily: "'Inter', sans-serif" }}
-          className="text-base lg:text-xl text-[var(--text-secondary)] max-w-4xl mx-auto leading-relaxed font-medium opacity-85"
-        >
-          {t('about.mission.body')}
-        </p>
       </section>
 
       {/* 2. Problem Statement (Dark Section) */}
@@ -128,7 +136,7 @@ const AboutPage = () => {
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #C89F5E 0%, transparent 50%)' }} />
         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative animate-section">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
+            <div className="premium-glass rounded-3xl p-8 border border-white/10 shadow-2xl">
               <h2 className="text-3xl lg:text-5xl font-bold mb-6 tracking-tight">{t('about.problem.headline')}</h2>
               <p className="text-[var(--text-secondary)] text-lg lg:text-xl leading-relaxed mb-6">
                 {t('about.problem.body1')}
@@ -139,12 +147,12 @@ const AboutPage = () => {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-grid">
-              <div className="bg-[var(--bg-card)]/5/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
+              <div className="bg-[var(--bg-card)]/10 border border-white/10 rounded-3xl p-8 backdrop-blur-sm shadow-xl">
                 <Globe className="w-10 h-10 text-[var(--sp-accent)] mb-6" />
                 <h3 className="text-xl font-bold mb-3">{t('about.problem.expertise.title')}</h3>
                 <p className="text-[var(--text-secondary)] text-sm">{t('about.problem.expertise.desc')}</p>
               </div>
-              <div className="bg-[var(--bg-card)]/5/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
+              <div className="bg-[var(--bg-card)]/10 border border-white/10 rounded-3xl p-8 backdrop-blur-sm shadow-xl">
                 <Building2 className="w-10 h-10 text-[var(--sp-accent)] mb-6" />
                 <h3 className="text-xl font-bold mb-3">{t('about.problem.gaps.title')}</h3>
                 <p className="text-[var(--text-secondary)] text-sm">{t('about.problem.gaps.desc')}</p>
@@ -168,7 +176,7 @@ const AboutPage = () => {
             const icons = [LayoutDashboard, Users, Briefcase, Lightbulb, Target, ShieldCheck];
             const Icon = icons[i] ?? LayoutDashboard;
             return (
-              <div key={i} className="bg-[var(--bg-card)]/5 border border-[var(--text-primary)]/10 rounded-3xl p-8 hover:-translate-y-2 transition-transform duration-300 shadow-sm hover:shadow-xl">
+              <div key={i} className="premium-glass border border-white/10 rounded-3xl p-8 hover:-translate-y-2 transition-transform duration-300 shadow-sm hover:shadow-2xl">
                 <div className="w-12 h-12 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center mb-6">
                   <Icon className="w-6 h-6 text-[var(--sp-accent)]" />
                 </div>
@@ -182,14 +190,18 @@ const AboutPage = () => {
 
       {/* 4. Project Goals Layout */}
       <section className="bg-[var(--bg-primary)]/5 py-24 mb-24 relative">
-        <div className="max-w-5xl mx-auto px-6 lg:px-12 animate-section">
-          <h2 className="text-3xl lg:text-5xl font-bold text-[var(--text-primary)] mb-12 text-center">{t('about.objectives.headline')}</h2>
-          
-          <div className="space-y-4">
+        <div className="max-w-6xl mx-auto px-6 lg:px-12 animate-section">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-12">
+            <h2 className="text-3xl lg:text-5xl font-bold text-[var(--text-primary)]">{t('about.objectives.headline')}</h2>
+            <p className="text-[var(--text-secondary)] max-w-xl text-base lg:text-lg">
+              {t('about.solution.subheadline')}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {getArray<string>('about.objectives.list').map((goal, i) => (
-              <div key={i} className="bg-[var(--bg-card)]/5 p-6 rounded-2xl flex items-center gap-6 border border-[var(--text-primary)]/5 shadow-sm">
-                <div className="text-4xl font-bold text-[var(--sp-accent)]/30 shrink-0 select-none">0{i + 1}</div>
-                <p className="text-lg lg:text-xl font-medium text-[var(--text-primary)]">{goal}</p>
+              <div key={i} className="premium-glass p-6 rounded-2xl flex items-center gap-6 border border-white/10 shadow-xl">
+                <div className="text-3xl font-bold text-[var(--sp-accent)]/40 shrink-0 select-none">0{i + 1}</div>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">{goal}</p>
               </div>
             ))}
           </div>
@@ -204,14 +216,14 @@ const AboutPage = () => {
           <div className="animate-section">
             <h2 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-8">Who We Serve</h2>
             <div className="space-y-6">
-              <div className="bg-[var(--sp-accent)] rounded-3xl p-8 text-[var(--text-primary)]">
-                <h3 className="text-2xl font-bold mb-4">{t('about.beneficiaries.primary.title')}</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0" /> {t('about.beneficiaries.primary.returnees')}</li>
-                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0" /> {t('about.beneficiaries.primary.diaspora')}</li>
+              <div className="premium-glass rounded-3xl p-8 border border-white/10 shadow-2xl">
+                <h3 className="text-2xl font-bold mb-4 text-[var(--sp-accent)]">{t('about.beneficiaries.primary.title')}</h3>
+                <ul className="space-y-3 text-[var(--text-primary)]">
+                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0 text-[var(--sp-accent)]" /> {t('about.beneficiaries.primary.returnees')}</li>
+                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0 text-[var(--sp-accent)]" /> {t('about.beneficiaries.primary.diaspora')}</li>
                 </ul>
               </div>
-              <div className="bg-[var(--bg-card)]/5 border border-[var(--text-primary)]/10 rounded-3xl p-8 text-[var(--text-primary)]">
+              <div className="premium-glass border border-white/10 rounded-3xl p-8 text-[var(--text-primary)] shadow-xl">
                 <h3 className="text-xl font-bold mb-4">{t('about.beneficiaries.secondary.title')}</h3>
                 <ul className="space-y-3 text-[var(--text-secondary)]">
                   <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[var(--sp-accent)] shrink-0" /> {t('about.beneficiaries.secondary.counties')}</li>
@@ -226,7 +238,8 @@ const AboutPage = () => {
           {/* Expected Results */}
           <div className="animate-section">
             <h2 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-8">{t('about.impactAbout.headline')}</h2>
-            <div className="relative pl-8 border-l-2 border-[var(--sp-accent)]/30 space-y-12 pb-6">
+            <div className="premium-glass rounded-3xl p-8 border border-white/10 shadow-2xl">
+              <div className="relative pl-8 border-l-2 border-[var(--sp-accent)]/30 space-y-10 pb-2">
               
               <div className="relative">
                 <div className="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-[var(--bg-primary)] border-4 border-[var(--sp-accent)]" />
@@ -247,6 +260,7 @@ const AboutPage = () => {
                 <p className="text-[var(--text-secondary)] font-medium text-lg mt-2">{t('about.impactAbout.long.desc2')}</p>
               </div>
 
+              </div>
             </div>
           </div>
         </div>
