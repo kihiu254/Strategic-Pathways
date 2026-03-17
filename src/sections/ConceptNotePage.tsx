@@ -29,13 +29,15 @@ const AboutPage = () => {
       // Setup scroll animations for all sections with class .animate-section
       const sections = document.querySelectorAll('.animate-section');
       sections.forEach((section) => {
-        const tween = gsap.fromTo(section,
+        const tween = gsap.fromTo(
+          section,
           { y: 50, opacity: 0 },
           {
             y: 0,
             opacity: 1,
             duration: 1,
             ease: 'power3.out',
+            immediateRender: false,
             scrollTrigger: {
               trigger: section,
               start: 'top 80%',
@@ -51,7 +53,8 @@ const AboutPage = () => {
       // Stagger items inside grids
       const grids = document.querySelectorAll('.animate-grid');
       grids.forEach((grid) => {
-        const tween = gsap.fromTo(grid.children,
+        const tween = gsap.fromTo(
+          grid.children,
           { y: 40, opacity: 0 },
           {
             y: 0,
@@ -59,6 +62,7 @@ const AboutPage = () => {
             duration: 0.8,
             stagger: 0.1,
             ease: 'power3.out',
+            immediateRender: false,
             scrollTrigger: {
               trigger: grid,
               start: 'top 80%',
