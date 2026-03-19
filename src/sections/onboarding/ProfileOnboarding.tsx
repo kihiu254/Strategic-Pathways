@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { onboardingSchema } from './schema';
-import type { OnboardingData } from './schema';
+import type { OnboardingData, OnboardingFormInput } from './schema';
 import { 
   UserCategorySelection, BasicInfo, EducationEnhanced as Education, ProfessionalExperience, 
   AreasOfInterest, PremiumDetails, ContributionValue, IncomeVenture, 
@@ -12,9 +12,11 @@ import {
 } from './OnboardingSteps';
 import { ChevronRight, ChevronLeft, Check, Star } from 'lucide-react';
 import SEO from '../../components/SEO';
+import { AppNotificationService } from '../../lib/appNotifications';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { calculateProfileCompletion } from '../../utils/profileScoring';
+import './ProfileOnboarding.css';
 
 const getSteps = () => ([
   { id: 'category', title: 'User Category', component: UserCategorySelection },
@@ -22,12 +24,25 @@ const getSteps = () => ([
   { id: 'education', title: 'Education & Global', component: Education },
   { id: 'experience', title: 'Professional Experience', component: ProfessionalExperience },
   { id: 'interest', title: 'Areas of Interest', component: AreasOfInterest },
-  { id: 'premium', title: 'Recommended: Professional Details', component: PremiumDetails },
+  { id: 'premium', title: 'Professional Details', component: PremiumDetails },
   { id: 'contribution', title: 'Contribution & Value', component: ContributionValue },
   { id: 'income', title: 'Income & Venture', component: IncomeVenture },
   { id: 'verification', title: 'Verification', component: VerificationCredits },
   { id: 'visibility', title: 'Community & Visibility', component: CommunityVisibility },
 ]);
+
+const progressWidthClasses = [
+  'profile-onboarding-progress-10',
+  'profile-onboarding-progress-20',
+  'profile-onboarding-progress-30',
+  'profile-onboarding-progress-40',
+  'profile-onboarding-progress-50',
+  'profile-onboarding-progress-60',
+  'profile-onboarding-progress-70',
+  'profile-onboarding-progress-80',
+  'profile-onboarding-progress-90',
+  'profile-onboarding-progress-100',
+];
 
 const ProfileOnboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -39,20 +54,14 @@ const ProfileOnboarding = () => {
     try {
       if (!user?.id) return null;
       const draft = localStorage.getItem(`onboarding_draft_${user.id}`);
-      if (draft) return JSON.parse(draft) as Partial<OnboardingData>;
+      if (draft) return JSON.parse(draft) as Partial<OnboardingFormInput>;
     } catch (e) {
       console.error('Failed to load draft:', e);
     }
     return null;
   };
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid },
-    control,
-    trigger,
-  } = useForm<OnboardingData>({
+  const methods = useForm<OnboardingFormInput, unknown, OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     mode: 'onChange',
     defaultValues: loadDraft() || {
@@ -80,6 +89,13 @@ const ProfileOnboarding = () => {
       communityAmbassador: 'Maybe',
     }
   });
+
+  const {
+    handleSubmit,
+    control,
+    trigger,
+    formState: { isValid },
+  } = methods;
 
   const steps = getSteps();
   const allFormData = useWatch({ control });
@@ -115,7 +131,7 @@ const ProfileOnboarding = () => {
 
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStepId(steps[currentStep].id);
-    const isStepValid = await trigger(fieldsToValidate as any);
+    const isStepValid = await trigger(fieldsToValidate);
     
     if (isStepValid) {
       if (currentStep < steps.length - 1) {
@@ -137,7 +153,10 @@ const ProfileOnboarding = () => {
   const onSubmit = async (data: OnboardingData) => {
     setIsSubmitting(true);
     try {
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        toast.error('Session expired. Please sign in again.');
+        return;
+      }
 
       const { error } = await supabase
         .from('profiles')
@@ -208,16 +227,27 @@ const ProfileOnboarding = () => {
       if (error) throw error;
 
       localStorage.removeItem(`onboarding_draft_${user.id}`);
+      await AppNotificationService.notifySelf({
+        title: 'Professional profile completed',
+        message: 'Your professional onboarding is complete and your profile is now ready for opportunities.',
+        type: 'success',
+        data: { action: 'profile_onboarding_complete' },
+      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
       toast.success('Onboarding complete! Welcome to the network.');
       navigate('/profile');
-    } catch (error: any) {
-      toast.error('Failed to save profile: ' + error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error('Failed to save profile: ' + errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getFieldsForStepId = (stepId: string) => {
+  const handleFormSubmit = handleSubmit((data) => {
+    void onSubmit(data);
+  });
+
+  const getFieldsForStepId = (stepId: string): (keyof OnboardingFormInput)[] => {
     switch (stepId) {
       case 'category': return ['userCategory'];
       case 'basic': return ['fullName', 'professionalTitle', 'email', 'linkedinUrl', 'websiteUrl', 'countryOfResidence', 'nationality'];
@@ -235,6 +265,7 @@ const ProfileOnboarding = () => {
 
   const ActiveComponent = steps[currentStep].component;
   const progress = ((currentStep + 1) / steps.length) * 100;
+  const progressWidthClass = progressWidthClasses[currentStep] ?? progressWidthClasses[progressWidthClasses.length - 1];
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pt-24 pb-12 relative overflow-hidden">
@@ -258,8 +289,7 @@ const ProfileOnboarding = () => {
           {/* Progress Bar */}
           <div className="relative h-2 bg-white/5 rounded-full overflow-hidden border border-white/5 mb-2">
             <div 
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-[var(--sp-accent)]/50 to-[var(--sp-accent)] transition-all duration-500 ease-out"
-              style={{ width: `${progress}%` }}
+              className={`absolute top-0 left-0 h-full bg-gradient-to-r from-[var(--sp-accent)]/50 to-[var(--sp-accent)] transition-all duration-500 ease-out ${progressWidthClass}`}
             />
           </div>
           <div className="flex justify-between text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">
@@ -270,34 +300,32 @@ const ProfileOnboarding = () => {
         </div>
 
         <div className="glass-card p-8 lg:p-10 mb-8 border border-[var(--sp-accent)]/10 shadow-2xl backdrop-blur-xl">
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-[var(--sp-accent)] text-[var(--text-inverse)] flex items-center justify-center text-sm">
-                  {currentStep + 1}
-                </span>
-                {steps[currentStep].title}
-              </h2>
-              <div className="h-px w-full bg-gradient-to-r from-[var(--sp-accent)]/30 to-transparent" />
-            </div>
+          <FormProvider {...methods}>
+            <form onSubmit={handleFormSubmit}>
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-full bg-[var(--sp-accent)] text-[var(--text-inverse)] flex items-center justify-center text-sm">
+                    {currentStep + 1}
+                  </span>
+                  {steps[currentStep].title}
+                </h2>
+                <div className="h-px w-full bg-gradient-to-r from-[var(--sp-accent)]/30 to-transparent" />
+              </div>
 
-            <ActiveComponent 
-              register={register} 
-              errors={errors} 
-              control={control} 
-              readOnlyFields={['email', ...(user?.user_metadata?.full_name ? ['fullName'] : [])]}
-            />
+              <ActiveComponent 
+                readOnlyFields={['email', ...(user?.user_metadata?.full_name ? ['fullName'] : [])]}
+              />
 
-            <div className="mt-12 flex justify-between gap-4 pt-8 border-t border-[var(--sp-accent)]/10">
-              <button
-                type="button"
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                className="sp-btn-glass flex items-center gap-2 disabled:opacity-0"
-              >
-                <ChevronLeft size={18} />
-                Previous
-              </button>
+              <div className="mt-12 flex justify-between gap-4 pt-8 border-t border-[var(--sp-accent)]/10">
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  className="sp-btn-glass flex items-center gap-2 disabled:opacity-0"
+                >
+                  <ChevronLeft size={18} />
+                  Previous
+                </button>
 
               {currentStep < steps.length - 1 ? (
                 <button
@@ -326,6 +354,7 @@ const ProfileOnboarding = () => {
               )}
             </div>
           </form>
+        </FormProvider>
         </div>
 
         {/* Profile Strength Indicator */}

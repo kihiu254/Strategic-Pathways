@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
+import { AppNotificationService } from '../lib/appNotifications';
 
 export interface Notification {
   id: string;
@@ -108,13 +109,13 @@ export const useNotifications = () => {
 
   const createNotification = async (notification: Omit<Notification, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     if (!user) return;
-    
-    await supabase
-      .from('notifications')
-      .insert({
-        ...notification,
-        user_id: user.id
-      });
+
+    await AppNotificationService.notifySelf({
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      data: notification.data,
+    });
   };
 
   return {

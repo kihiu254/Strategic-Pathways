@@ -163,7 +163,7 @@ export const onboardingSchema = z.object({
   if (data.userCategory === 'Diaspora Expert (Still Abroad)' && !data.professionalProofUrl) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Professional proof is required for diaspora experts',
+      message: 'Professional proof is required for diaspora professionals',
       path: ['professionalProofUrl'],
     });
   }
@@ -177,4 +177,5 @@ export const onboardingSchema = z.object({
   }
 });
 
-export type OnboardingData = z.infer<typeof onboardingSchema>;
+export type OnboardingFormInput = z.input<typeof onboardingSchema>;
+export type OnboardingData = z.output<typeof onboardingSchema>;

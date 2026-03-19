@@ -49,7 +49,7 @@ const PrivacyPolicyPage = () => {
         <section>
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">5. Data Sharing & International Transfers</h2>
           <p>
-            We do not sell your data. We may share information with verified institutional partners (Counties, NGOs, and SMEs) for the sole purpose of matching you with projects. As some of our users are in the diaspora, data may be accessed internationally, but always under strict security protocols.
+            We do not sell your data. We may share information with verified institutional partners (county governments and development partners) for the sole purpose of matching you with opportunities. As some of our users are in the diaspora, data may be accessed internationally, but always under strict security protocols.
           </p>
         </section>
 
@@ -77,3 +77,4 @@ const PrivacyPolicyPage = () => {
 };
 
 export default PrivacyPolicyPage;
+

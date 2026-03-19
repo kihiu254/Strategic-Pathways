@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronLeft, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,15 +16,15 @@ const BasicEditOnboarding = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<BasicOnboardingData>({
+  const methods = useForm<BasicOnboardingData>({
     resolver: zodResolver(basicOnboardingSchema),
     mode: 'onChange',
   });
+
+  const {
+    handleSubmit,
+    reset,
+  } = methods;
 
   useEffect(() => {
     if (!user) {
@@ -53,8 +53,9 @@ const BasicEditOnboarding = () => {
           countryOfResidence: data?.location || '',
           nationality: data?.nationality || '',
         });
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to load profile.');
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load profile.';
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -86,8 +87,9 @@ const BasicEditOnboarding = () => {
       if (error) throw error;
       toast.success('Profile updated.');
       navigate('/profile');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update profile.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile.';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -125,30 +127,30 @@ const BasicEditOnboarding = () => {
         </div>
 
         <div className="glass-card p-8 lg:p-10 border border-[var(--sp-accent)]/10 shadow-2xl backdrop-blur-xl">
-          <form onSubmit={handleSubmit(onSubmit, onError)}>
-            <BasicInfo
-              register={register as any}
-              errors={errors as any}
-              readOnlyFields={['email', ...(user?.user_metadata?.full_name ? ['fullName'] : [])]}
-            />
+          <FormProvider {...methods}>
+            <form onSubmit={handleSubmit(onSubmit, onError)}>
+              <BasicInfo
+                readOnlyFields={['email', ...(user?.user_metadata?.full_name ? ['fullName'] : [])]}
+              />
 
-            <div className="mt-10 flex justify-end gap-4 pt-8 border-t border-[var(--sp-accent)]/10">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="sp-btn-primary flex items-center gap-2"
-              >
-                {isSubmitting ? (
-                  <div className="w-5 h-5 border-2 border-[var(--text-inverse)]/30 border-t-[var(--text-inverse)] rounded-full animate-spin" />
-                ) : (
-                  <>
-                    Save Changes
-                    <Check size={18} />
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+              <div className="mt-10 flex justify-end gap-4 pt-8 border-t border-[var(--sp-accent)]/10">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="sp-btn-primary flex items-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-2 border-[var(--text-inverse)]/30 border-t-[var(--text-inverse)] rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      Save Changes
+                      <Check size={18} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </FormProvider>
         </div>
       </div>
     </div>

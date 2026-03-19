@@ -105,7 +105,7 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
             <div ref={labelRef} className="mb-4 lg:mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-0.5 bg-[var(--sp-accent)]" />
-                <span className="sp-label">{t('impact.label')}</span>
+                <span className="sp-label">{t('about.objectives.eyebrow')}</span>
               </div>
             </div>
 
@@ -114,8 +114,12 @@ const ImpactSection = ({ className = '' }: ImpactSectionProps) => {
               ref={headlineRef}
               className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-[var(--text-primary)] mb-6 lg:mb-8"
             >
-              {t('impact.headline')}
+              {t('about.impactAbout.headline')}
             </h2>
+
+            <p className="text-[var(--text-secondary)] text-base lg:text-lg max-w-2xl mb-6 lg:mb-8">
+              {t('about.objectives.summary')}
+            </p>
 
             {/* Stats Grid */}
             <div 

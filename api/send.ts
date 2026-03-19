@@ -129,15 +129,17 @@ export default async function handler(req: any, res: any) {
       case 'partner_inquiry': {
         // Fetch all admins to broadcast the inquiry
         const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          process.env.VITE_SUPABASE_URL || '',
-          process.env.VITE_SUPABASE_ANON_KEY || ''
-        );
+        const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+        const hasServiceRole = Boolean(supabaseUrl && serviceRoleKey);
+        const supabase = hasServiceRole ? createClient(supabaseUrl, serviceRoleKey) : null;
 
-        const { data: admins } = await supabase
-          .from('profiles')
-          .select('email, id')
-          .eq('role', 'admin');
+        const { data: admins } = supabase
+          ? await supabase
+              .from('profiles')
+              .select('email, id')
+              .eq('role', 'admin')
+          : { data: [] as { email?: string | null; id: string }[] };
 
         const adminEmails = admins?.map(a => a.email).filter(Boolean) || [];
         const recipients = [...new Set([...adminEmails, 'hello@joinstrategicpathways.com'])];
@@ -168,7 +170,7 @@ export default async function handler(req: any, res: any) {
         };
 
         // Also create in-app notifications for all admins
-        if (admins && admins.length > 0) {
+        if (supabase && admins && admins.length > 0) {
           await supabase.from('notifications').insert(
             admins.map(admin => ({
               user_id: admin.id,

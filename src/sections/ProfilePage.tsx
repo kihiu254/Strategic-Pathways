@@ -8,11 +8,57 @@ import {
   Activity, Settings, Heart
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AppNotificationService } from '../lib/appNotifications';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { calculateDynamicMatchScore } from '../utils/matchScoring';
 import type { MatchScores } from '../utils/matchScoring';
 import { rankOpportunities, MOCK_OPPORTUNITIES } from '../utils/opportunities';
+import './ProfilePage.css';
+
+type DocumentFile = {
+  name: string;
+  created_at: string;
+  metadata: {
+    size: number;
+  };
+};
+
+type ActivityItem = {
+  action: string;
+  target: string;
+  time: string;
+  type: 'verification' | 'project';
+};
+
+type VerificationDocEntry = {
+  uploaded_at?: string;
+};
+
+type ProjectActivityRow = {
+  project_title: string | null;
+  created_at: string | null;
+  is_current: boolean | null;
+};
+
+const normalizeDocument = (file: {
+  name: string;
+  created_at?: string;
+  metadata?: { size?: number } | null;
+}): DocumentFile => ({
+  name: file.name,
+  created_at: file.created_at ?? '',
+  metadata: {
+    size: typeof file.metadata?.size === 'number' ? file.metadata.size : 0
+  }
+});
+
+const isVerificationDocEntry = (value: unknown): value is VerificationDocEntry => {
+  if (typeof value !== 'object' || value === null) return false;
+
+  const maybeEntry = value as { uploaded_at?: unknown };
+  return typeof maybeEntry.uploaded_at === 'undefined' || typeof maybeEntry.uploaded_at === 'string';
+};
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -23,9 +69,9 @@ const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [userProjects, setUserProjects] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<DocumentFile[]>([]);
+  const [userProjects, setUserProjects] = useState<{id: string, project_title: string, organization?: string, project_description?: string, is_current: boolean, created_at: string, tags?: string[]}[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [showAddProject, setShowAddProject] = useState(false);
   const [newProject, setNewProject] = useState({
     project_title: '',
@@ -52,8 +98,8 @@ const ProfilePage = () => {
     location: string;
     language: string;
     bio: string;
-    education: any[];
-    experience: any[];
+    education: {degree: string, school: string, year: string}[];
+    experience: {role: string, company: string, period: string}[];
     skills: string[];
     certifications: string[];
     projects: number;
@@ -162,7 +208,8 @@ const ProfilePage = () => {
             email: user.email || ''
           }));
         }
-      } catch (err: any) {
+      } catch (e) {
+      const err = e as Error;
         console.error('Error fetching profile:', err);
         if (user.role === 'authenticated') {
           toast.error('Failed to load profile data.');
@@ -235,7 +282,7 @@ const ProfilePage = () => {
 
     const fetchActivities = async () => {
       try {
-        const activities: any[] = [];
+        const activities: ActivityItem[] = [];
 
         // Verification uploads are stored on the profile record (verification_docs JSON)
         const { data: profileDocs } = await supabase
@@ -245,8 +292,8 @@ const ProfilePage = () => {
           .maybeSingle();
 
         if (profileDocs?.verification_docs && typeof profileDocs.verification_docs === 'object') {
-          Object.entries(profileDocs.verification_docs).forEach(([key, value]: [string, any]) => {
-            if (!value) return;
+          Object.entries(profileDocs.verification_docs as Record<string, unknown>).forEach(([key, value]) => {
+            if (!isVerificationDocEntry(value)) return;
             activities.push({
               action: 'Submitted verification',
               target: key.replace(/_/g, ' '),
@@ -265,12 +312,14 @@ const ProfilePage = () => {
           .limit(3);
 
         if (projectData) {
-          activities.push(...projectData.map(p => ({
-            action: p.is_current ? 'Started project' : 'Completed project',
-            target: p.project_title,
-            time: p.created_at,
+          const projectActivities: ActivityItem[] = (projectData as ProjectActivityRow[]).map((project) => ({
+            action: project.is_current ? 'Started project' : 'Completed project',
+            target: project.project_title ?? 'Untitled project',
+            time: project.created_at ?? new Date().toISOString(),
             type: 'project'
-          })));
+          }));
+
+          activities.push(...projectActivities);
         }
 
         activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
@@ -291,11 +340,12 @@ const ProfilePage = () => {
         let hasCV = false;
         if (data) {
           const actualDocs = data.filter(file => file.name !== '.emptyFolderPlaceholder');
-          setDocuments(actualDocs);
+          setDocuments(actualDocs.map(normalizeDocument));
           hasCV = actualDocs.length > 0;
         }
         return hasCV;
-      } catch (err: any) {
+      } catch (e) {
+      const err = e as Error;
         console.error('Error fetching documents:', err);
         return false;
       }
@@ -319,7 +369,7 @@ const ProfilePage = () => {
     };
 
     loadAllData();
-  }, [user, navigate]);
+  }, [isLoading, navigate, t, user]);
 
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
@@ -347,7 +397,8 @@ const ProfilePage = () => {
 
       setIsEditing(false);
       toast.success('Profile updated successfully!');
-    } catch (err: any) {
+    } catch (e) {
+      const err = e as Error;
       console.error('Save error:', err);
       toast.error('Failed to update profile: ' + err.message);
     }
@@ -377,6 +428,12 @@ const ProfilePage = () => {
 
       if (error) throw error;
 
+      await AppNotificationService.notifySelf({
+        title: 'Project added',
+        message: `"${newProject.project_title}" was added to your profile.`,
+        type: 'success',
+        data: { action: 'project_added', projectTitle: newProject.project_title },
+      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
       toast.success('Project added successfully!');
       setShowAddProject(false);
       setNewProject({
@@ -401,7 +458,8 @@ const ProfilePage = () => {
         profile.name,
         newProject.project_title
       );
-    } catch (err: any) {
+    } catch (e) {
+      const err = e as Error;
       console.error('Add project error:', err);
       toast.error('Failed to add project: ' + err.message);
     }
@@ -421,7 +479,8 @@ const ProfilePage = () => {
       toast.success('Project deleted');
       setUserProjects(prev => prev.filter(p => p.id !== projectId));
       setProfile(prev => ({ ...prev, projects: Math.max(0, prev.projects - 1) }));
-    } catch (err: any) {
+    } catch (e) {
+      const err = e as Error;
       toast.error('Failed to delete project: ' + err.message);
     }
   };
@@ -439,7 +498,8 @@ const ProfilePage = () => {
         await navigator.clipboard.writeText(data.signedUrl);
         toast.success('Shareable link copied to clipboard!');
       }
-    } catch (err: any) {
+    } catch (e) {
+      const err = e as Error;
       toast.error('Failed to generate share link: ' + err.message);
     }
   };
@@ -466,11 +526,23 @@ const ProfilePage = () => {
 
       if (error) throw error;
       
+      await AppNotificationService.notifySelf({
+        title: 'Document uploaded',
+        message: `${file.name} was uploaded successfully and is now available on your account.`,
+        type: 'success',
+        data: { action: 'document_uploaded', fileName: file.name },
+      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
       toast.success('Document uploaded successfully!');
       
       // Refresh documents list
       const { data } = await supabase.storage.from('resumes').list(user.id);
-      if (data) setDocuments(data.filter(file => file.name !== '.emptyFolderPlaceholder'));
+      if (data) {
+        setDocuments(
+          data
+            .filter(file => file.name !== '.emptyFolderPlaceholder')
+            .map(normalizeDocument)
+        );
+      }
 
       // Trigger email notification
       const { EmailAutomationService } = await import('../lib/emailAutomation');
@@ -479,7 +551,8 @@ const ProfilePage = () => {
         profile.name,
         file.name
       );
-    } catch (error: any) {
+    } catch (e) {
+      const error = e as Error;
       toast.error('Failed to upload document: ' + error.message);
     } finally {
       setIsUploadingFile(false);
@@ -500,7 +573,8 @@ const ProfilePage = () => {
       if (data) {
         window.open(data.signedUrl, '_blank');
       }
-    } catch (err: any) {
+    } catch (e) {
+      const err = e as Error;
       toast.error('Failed to download: ' + err.message);
     }
   };
@@ -517,7 +591,8 @@ const ProfilePage = () => {
       
       toast.success('File deleted successfully');
       setDocuments(prev => prev.filter(doc => doc.name !== fileName));
-    } catch (err: any) {
+    } catch (e) {
+      const err = e as Error;
       toast.error('Failed to delete file: ' + err.message);
     }
   };
@@ -527,6 +602,11 @@ const ProfilePage = () => {
   const displayTier = profile.tier === 'Firm' ? 'Partners' : profile.tier;
 
   const getEditPath = () => (isCommunityTier ? '/profile/edit/basic' : '/profile/edit');
+  const getMatchScoreOpacityClass = (weight: number) => {
+    if (weight >= 25) return 'profile-match-score-progress--strong';
+    if (weight >= 20) return 'profile-match-score-progress--medium';
+    return 'profile-match-score-progress--light';
+  };
 
   const handleSwitchToCommunity = async () => {
     if (!user) return;
@@ -543,7 +623,8 @@ const ProfilePage = () => {
       if (error) throw error;
       setProfile(prev => ({ ...prev, tier: 'Community', profileType: 'Standard Member' }));
       toast.success('Switched to Community plan.');
-    } catch (err: any) {
+    } catch (e) {
+      const err = e as Error;
       toast.error(err.message || 'Failed to switch plan.');
     }
   };
@@ -578,7 +659,8 @@ const ProfilePage = () => {
       
       setProfile(prev => ({ ...prev, avatar_url: url }));
       toast.success('Profile picture updated successfully!');
-    } catch (error: any) {
+    } catch (e) {
+      const error = e as Error;
       toast.error('Failed to upload profile picture: ' + error.message);
     } finally {
       setIsUploadingAvatar(false);
@@ -668,11 +750,15 @@ const ProfilePage = () => {
                 className="hidden"
                 onChange={handleAvatarUpload}
                 disabled={isUploadingAvatar}
+                aria-label="Upload profile picture"
+                title="Upload profile picture"
               />
               <button 
                 onClick={() => document.getElementById('avatar-upload')?.click()}
                 disabled={isUploadingAvatar}
                 className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[var(--sp-accent)] flex items-center justify-center text-[var(--text-inverse)] hover:bg-[#D4B76E] transition-all shadow-lg hover:scale-110 active:scale-95 disabled:opacity-50 z-20"
+                aria-label="Change profile picture"
+                title="Change profile picture"
               >
                 <Camera size={18} />
               </button>
@@ -694,6 +780,8 @@ const ProfilePage = () => {
                         onChange={e => setProfile({...profile, name: e.target.value})} 
                         className="input-glass py-2 px-3 text-2xl lg:text-3xl font-bold w-full"
                         placeholder="Your full name"
+                        aria-label="Full name"
+                        title="Full name"
                       />
                     ) : (
                       <h1 className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">
@@ -708,6 +796,8 @@ const ProfilePage = () => {
                       onChange={e => setProfile({...profile, title: e.target.value})} 
                       className="input-glass py-1 px-2 text-lg mb-1 w-full"
                       placeholder="Professional title"
+                      aria-label="Professional title"
+                      title="Professional title"
                     />
                   ) : (
                     <p className="text-[var(--sp-accent)] text-lg mb-1">{profile.title}</p>
@@ -746,11 +836,11 @@ const ProfilePage = () => {
                       <>
                         <div className="flex items-center gap-2 w-full lg:w-auto">
                            <MapPin size={14} className="shrink-0" />
-                           <input value={profile.location} onChange={e => setProfile({...profile, location: e.target.value})} className="input-glass py-1 px-2 text-sm w-full lg:w-48" />
+                           <input value={profile.location} onChange={e => setProfile({...profile, location: e.target.value})} className="input-glass py-1 px-2 text-sm w-full lg:w-48" placeholder="Location" aria-label="Location" title="Location" />
                         </div>
                         <div className="flex items-center gap-2 w-full lg:w-auto">
                            <Mail size={14} className="shrink-0" />
-                           <input value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="input-glass py-1 px-2 text-sm w-full lg:w-48" />
+                           <input value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="input-glass py-1 px-2 text-sm w-full lg:w-48" placeholder="Email address" aria-label="Email address" title="Email address" />
                         </div>
                         <div className="flex items-center gap-2 w-full lg:w-auto">
                            <Globe size={14} className="shrink-0" />
@@ -758,6 +848,8 @@ const ProfilePage = () => {
                              value={profile.language} 
                              onChange={e => setProfile({...profile, language: e.target.value})} 
                              className="input-glass py-1 px-2 text-sm w-full lg:w-48 appearance-none"
+                             aria-label="Preferred language"
+                             title="Preferred language"
                            >
                              <option value="English">English</option>
                              <option value="Swahili">Swahili</option>
@@ -771,6 +863,8 @@ const ProfilePage = () => {
                                value={profile.countryCode} 
                                onChange={e => setProfile({...profile, countryCode: e.target.value})} 
                                className="bg-transparent text-[var(--text-primary)] px-2 py-1 outline-none text-sm border-r border-[var(--sp-accent)]/20 appearance-none min-w-[70px]"
+                               aria-label="Phone country code"
+                               title="Phone country code"
                              >
                                <option value="+254">+254</option>
                                <option value="+1">+1</option>
@@ -778,7 +872,7 @@ const ProfilePage = () => {
                                <option value="+256">+256</option>
                                <option value="+255">+255</option>
                              </select>
-                             <input value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} className="bg-transparent border-none outline-none py-1 px-2 text-sm w-full text-[var(--text-primary)]" placeholder="Phone Number" />
+                             <input value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} className="bg-transparent border-none outline-none py-1 px-2 text-sm w-full text-[var(--text-primary)]" placeholder="Phone Number" aria-label="Phone number" title="Phone number" />
                            </div>
                         </div>
                       </>
@@ -893,6 +987,9 @@ const ProfilePage = () => {
                       value={profile.bio}
                       onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                       className="input-glass w-full min-h-[120px] p-4"
+                      placeholder="Tell us about yourself"
+                      aria-label="About you"
+                      title="About you"
                     />
                   ) : (
                     <p className="text-[var(--text-secondary)] leading-relaxed">{profile.bio}</p>
@@ -964,12 +1061,16 @@ const ProfilePage = () => {
                       value={newProject.project_title}
                       onChange={(e) => setNewProject({...newProject, project_title: e.target.value})}
                       className="input-glass w-full"
+                      aria-label="Project title"
+                      title="Project title"
                     />
                     <textarea
                       placeholder="Description"
                       value={newProject.project_description}
                       onChange={(e) => setNewProject({...newProject, project_description: e.target.value})}
                       className="input-glass w-full min-h-[100px]"
+                      aria-label="Project description"
+                      title="Project description"
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <input
@@ -977,12 +1078,16 @@ const ProfilePage = () => {
                         value={newProject.organization}
                         onChange={(e) => setNewProject({...newProject, organization: e.target.value})}
                         className="input-glass w-full"
+                        aria-label="Organization"
+                        title="Organization"
                       />
                       <input
                         placeholder="Your Role"
                         value={newProject.role}
                         onChange={(e) => setNewProject({...newProject, role: e.target.value})}
                         className="input-glass w-full"
+                        aria-label="Your role"
+                        title="Your role"
                       />
                     </div>
                     <label className="flex items-center gap-2 text-[var(--text-secondary)]">
@@ -994,6 +1099,9 @@ const ProfilePage = () => {
                       />
                       Currently working on this project
                     </label>
+                    <p className="text-xs text-[var(--text-secondary)]">
+                      Uncheck this when the work is complete. The project will remain visible on your profile and appear as completed.
+                    </p>
                     <div className="flex gap-2">
                       <button onClick={handleAddProject} className="sp-btn-primary">
                         Save Project
@@ -1017,6 +1125,7 @@ const ProfilePage = () => {
                           onClick={() => handleDeleteProject(project.id)}
                           className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Delete project"
+                          aria-label={`Delete project ${project.project_title}`}
                         >
                           <X size={14} />
                         </button>
@@ -1067,6 +1176,8 @@ const ProfilePage = () => {
                       accept=".pdf,.doc,.docx"
                       onChange={handleFileUpload}
                       disabled={isUploadingFile}
+                      aria-label="Upload CV or resume"
+                      title="Upload CV or resume"
                     />
                     <label 
                       htmlFor="cv-upload"
@@ -1100,6 +1211,7 @@ const ProfilePage = () => {
                             onClick={() => handleDownloadFile(doc.name)}
                             className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
                             title="View"
+                            aria-label={`View document ${doc.name.replace(/^\d+_/, '')}`}
                           >
                             <Eye size={16} />
                           </button>
@@ -1107,6 +1219,7 @@ const ProfilePage = () => {
                             onClick={() => handleShareDocument(doc.name)}
                             className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
                             title="Copy share link"
+                            aria-label={`Copy share link for ${doc.name.replace(/^\d+_/, '')}`}
                           >
                             <Share2 size={16} />
                           </button>
@@ -1114,6 +1227,7 @@ const ProfilePage = () => {
                             onClick={() => handleDeleteFile(doc.name)}
                             className="p-2 text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-white/5 rounded-lg hover:bg-red-500/10"
                             title="Delete"
+                            aria-label={`Delete document ${doc.name.replace(/^\d+_/, '')}`}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -1196,7 +1310,7 @@ const ProfilePage = () => {
                 ) : (
                   (() => {
                     const ranked = rankOpportunities(MOCK_OPPORTUNITIES, profile, profile.skills || []);
-                    return ranked.slice(0, 2).map((opp: any) => (
+                    return ranked.slice(0, 2).map((opp: { id: string | number; title: string; org: string; tags: string[] }) => (
                       <div key={opp.id} className="premium-glass-gold p-4 rounded-2xl border border-white/5 hover:border-[var(--sp-accent)]/30 transition-all group/item cursor-pointer" onClick={() => navigate('/opportunities')}>
                         <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1 group-hover/item:text-[var(--sp-accent)] transition-colors">{opp.title}</h4>
                         <p className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider mb-2">{opp.org}</p>
@@ -1303,13 +1417,13 @@ const ProfilePage = () => {
             <div className="glass-card p-6">
               <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Connect</h3>
               <div className="flex gap-3">
-                <button className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
+                <button title="LinkedIn Profile" aria-label="LinkedIn Profile" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
                   <Linkedin size={18} />
                 </button>
-                <button className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
+                <button title="Twitter Profile" aria-label="Twitter Profile" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
                   <Twitter size={18} />
                 </button>
-                <button className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
+                <button title="Website" aria-label="Website" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
                   <Globe size={18} />
                 </button>
               </div>
@@ -1338,12 +1452,11 @@ const ProfilePage = () => {
                       <span>{m.label} ({m.weight}%)</span>
                       <span className="text-[var(--sp-accent)]">{Math.round((m.score / m.weight) * 100)}%</span>
                     </div>
-                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-[var(--sp-accent)] transition-all duration-1000" 
-                        style={{ width: `${(m.score / m.weight) * 100}%`, opacity: m.weight / 25 }} 
-                      />
-                    </div>
+                    <progress
+                      className={`profile-match-score-progress ${getMatchScoreOpacityClass(m.weight)}`}
+                      value={m.score}
+                      max={m.weight}
+                    />
                   </div>
                 ))}
               </div>

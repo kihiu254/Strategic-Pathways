@@ -11,7 +11,7 @@ interface SEOProps {
 
 export default function SEO({ 
   title, 
-  description = 'Connecting Kenyan diaspora and study-abroad returnees with local projects, ventures, and consultancy roles to drive economic growth.', 
+  description = 'Connecting study-abroad returnees, diaspora returnees, and diaspora professionals with local projects, ventures, and consultancy roles to drive economic growth.', 
   type = 'website', 
   name = 'Strategic Pathways',
   image = '/logo-og.png',

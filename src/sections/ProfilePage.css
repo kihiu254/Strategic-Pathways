@@ -1,0 +1,43 @@
+.profile-match-score-progress {
+  width: 100%;
+  height: 0.25rem;
+  display: block;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.profile-match-score-progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+}
+
+.profile-match-score-progress::-webkit-progress-value {
+  background: var(--sp-accent);
+  border-radius: 9999px;
+  transition: width 1000ms;
+}
+
+.profile-match-score-progress::-moz-progress-bar {
+  background: var(--sp-accent);
+  border-radius: 9999px;
+  transition: width 1000ms;
+}
+
+.profile-match-score-progress--strong::-webkit-progress-value,
+.profile-match-score-progress--strong::-moz-progress-bar {
+  opacity: 1;
+}
+
+.profile-match-score-progress--medium::-webkit-progress-value,
+.profile-match-score-progress--medium::-moz-progress-bar {
+  opacity: 0.8;
+}
+
+.profile-match-score-progress--light::-webkit-progress-value,
+.profile-match-score-progress--light::-moz-progress-bar {
+  opacity: 0.6;
+}

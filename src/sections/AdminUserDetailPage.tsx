@@ -5,6 +5,7 @@ import {
   FileText, CheckCircle, X, Shield, Globe, Heart, TrendingUp, Target
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AppNotificationService } from '../lib/appNotifications';
 import { supabase } from '../lib/supabase';
 
 const AdminUserDetailPage = () => {
@@ -48,6 +49,14 @@ const AdminUserDetailPage = () => {
       if (error) throw error;
       toast.success('User approved successfully!');
       setUserData({ ...userData, verification_status: 'approved' });
+      if (userId) {
+        await AppNotificationService.notifyUser(userId, {
+          title: 'Verification approved',
+          message: 'Your profile verification has been approved. You can now access verified opportunities.',
+          type: 'success',
+          data: { action: 'verification_status_update', status: 'approved' },
+        }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+      }
       
       await fetch('/api/send', {
         method: 'POST',
@@ -72,6 +81,14 @@ const AdminUserDetailPage = () => {
       if (error) throw error;
       toast.error('User rejected');
       setUserData({ ...userData, verification_status: 'rejected' });
+      if (userId) {
+        await AppNotificationService.notifyUser(userId, {
+          title: 'Verification update',
+          message: 'Your verification submission was not approved. Please review your documents and try again.',
+          type: 'warning',
+          data: { action: 'verification_status_update', status: 'rejected' },
+        }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+      }
       
       await fetch('/api/send', {
         method: 'POST',
@@ -234,7 +251,7 @@ const AdminUserDetailPage = () => {
             <InfoRow label="Investor Interest" value={userData.investor_interest} />
           </InfoSection>
 
-          <InfoSection title="Premium Details" icon={Shield}>
+          <InfoSection title="Professional Details" icon={Shield}>
             <div className="mb-4">
               <h4 className="text-[var(--text-primary)] text-sm font-medium mb-2">Key Achievements</h4>
               <p className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap">{userData.key_achievements || 'N/A'}</p>

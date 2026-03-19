@@ -105,7 +105,7 @@ const AudienceSection = ({ className = '' }: AudienceSectionProps) => {
           >
             <img 
               src="/images/audience_returnees.jpg" 
-              alt="Study-abroad returnees"
+              alt="Study-abroad returnees, diaspora returnees, and diaspora professionals"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               width={800}
               height={600}

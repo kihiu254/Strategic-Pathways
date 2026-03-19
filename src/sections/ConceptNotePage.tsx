@@ -193,9 +193,14 @@ const AboutPage = () => {
         <div className="max-w-6xl mx-auto px-6 lg:px-12 animate-section">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-12">
             <h2 className="text-3xl lg:text-5xl font-bold text-[var(--text-primary)]">{t('about.objectives.headline')}</h2>
-            <p className="text-[var(--text-secondary)] max-w-xl text-base lg:text-lg">
-              {t('about.solution.subheadline')}
-            </p>
+            <div className="max-w-xl">
+              <p className="text-[11px] uppercase tracking-[0.28em] font-semibold text-[var(--sp-accent)] mb-3">
+                {t('about.objectives.eyebrow')}
+              </p>
+              <p className="text-[var(--text-secondary)] text-base lg:text-lg">
+                {t('about.objectives.summary')}
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {getArray<string>('about.objectives.list').map((goal, i) => (
@@ -219,8 +224,9 @@ const AboutPage = () => {
               <div className="premium-glass rounded-3xl p-8 border border-white/10 shadow-2xl">
                 <h3 className="text-2xl font-bold mb-4 text-[var(--sp-accent)]">{t('about.beneficiaries.primary.title')}</h3>
                 <ul className="space-y-3 text-[var(--text-primary)]">
-                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0 text-[var(--sp-accent)]" /> {t('about.beneficiaries.primary.returnees')}</li>
-                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0 text-[var(--sp-accent)]" /> {t('about.beneficiaries.primary.diaspora')}</li>
+                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0 text-[var(--sp-accent)]" /> {t('about.beneficiaries.primary.studyAbroad')}</li>
+                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0 text-[var(--sp-accent)]" /> {t('about.beneficiaries.primary.diasporaReturnees')}</li>
+                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 shrink-0 text-[var(--sp-accent)]" /> {t('about.beneficiaries.primary.diasporaProfessionals')}</li>
                 </ul>
               </div>
               <div className="premium-glass border border-white/10 rounded-3xl p-8 text-[var(--text-primary)] shadow-xl">

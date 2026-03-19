@@ -17,7 +17,7 @@ const TermsOfServicePage = () => {
         <section>
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">2. The Platform Service</h2>
           <p>
-            Strategic Pathways is a talent execution and venture-building platform. We provide a space for globally trained professionals and institutional partners to collaborate on projects, ventures, and initiatives. We are not a job board or a social network; we are an impact-driven ecosystem.
+            Strategic Pathways is a talent execution and venture-building platform. We provide a space for globally trained professionals and partners to collaborate on projects, ventures, and initiatives. We are not a job board or a social network; we are an impact-driven ecosystem.
           </p>
         </section>
 
@@ -49,7 +49,7 @@ const TermsOfServicePage = () => {
         <section>
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">6. Limitation of Liability</h2>
           <p>
-            While we strive for high-quality project matching, Strategic Pathways is not liable for the outcome of specific consultancy engagements or venture-building initiatives. We act as a facilitator and platform provider.
+            While we strive for high-quality talent matching, Strategic Pathways is not liable for the outcome of specific project engagements or venture-building initiatives. We act as a facilitator and platform provider.
           </p>
         </section>
 

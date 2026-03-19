@@ -30,7 +30,7 @@
   "audience": {
     "headline": "Built for Professionals. Open to Partners",
     "caption": "If you're working on Kenya's development, you belong here.",
-    "returnees": "Study-abroad returnees & diaspora experts",
+    "returnees": "Study-abroad returnees · diaspora returnees · diaspora professionals",
     "institutions": "Counties · Universities · NGOs · Donors"
   },
   "howItWorks": {
@@ -52,7 +52,7 @@
     ]
   },
   "impact": {
-    "headline": "Impact that scales.",
+    "headline": "Impact That Scales",
     "label": "Success Stories",
     "stats": {
       "professionals": "Professionals onboarded",
@@ -381,7 +381,7 @@
     "mission": {
       "label": "Our Mission",
       "headline": "Transforming Brain Drain into Brain Circulation",
-      "body": "Strategic Pathways mobilises study-abroad returnees and diaspora professionals into impactful local projects, fostering sustainable talent circulation across Kenya."
+      "body": "Strategic Pathways mobilises study-abroad returnees, diaspora returnees, and diaspora professionals into impactful local projects, fostering sustainable talent circulation across Kenya."
     },
     "problem": {
       "headline": "The Challenge We're Solving",
@@ -428,6 +428,8 @@
     },
     "objectives": {
       "headline": "Our Goals",
+      "eyebrow": "Impact That Scales",
+      "summary": "Our goals are designed to turn early traction into long-term systems change, from verified professionals and pilot projects to a replicable model for talent circulation across Africa.",
       "list": [
         "Onboard 200+ verified professionals in Year 1",
         "Partner with 10+ counties, universities, and NGOs",
@@ -439,8 +441,9 @@
     "beneficiaries": {
       "primary": {
         "title": "Primary Beneficiaries",
-        "returnees": "Study-abroad returnees seeking meaningful local work",
-        "diaspora": "Diaspora professionals contributing remotely"
+        "studyAbroad": "Study-abroad returnees seeking meaningful local work",
+        "diasporaReturnees": "Diaspora returnees reconnecting global experience with local opportunity",
+        "diasporaProfessionals": "Diaspora professionals contributing remotely"
       },
       "secondary": {
         "title": "Secondary Beneficiaries",

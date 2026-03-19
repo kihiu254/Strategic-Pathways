@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Loader2, ChevronLeft, ChevronRight, Check, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { AppNotificationService } from '../lib/appNotifications';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { onboardingSchema, type OnboardingData } from './onboarding/schema';
@@ -14,7 +15,7 @@ const getSteps = () => [
   { id: 'education', title: 'Education & Global', component: Steps.EducationEnhanced },
   { id: 'experience', title: 'Professional Experience', component: Steps.ProfessionalExperience },
   { id: 'interest', title: 'Areas of Interest', component: Steps.AreasOfInterest },
-  { id: 'premium', title: 'Recommended: Professional Details', component: Steps.PremiumDetails },
+  { id: 'premium', title: 'Professional Details', component: Steps.PremiumDetails },
   { id: 'contribution', title: 'Contribution & Value', component: Steps.ContributionValue },
   { id: 'income', title: 'Income & Venture', component: Steps.IncomeVenture },
   { id: 'category', title: 'User Category', component: Steps.UserCategorySelection },
@@ -46,18 +47,17 @@ const EditOnboardingPage = () => {
   const [isDraftSaving, setIsDraftSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset,
-    trigger,
-    setValue,
-  } = useForm<OnboardingData>({
+  const methods = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     mode: 'onChange'
   });
+
+  const {
+    handleSubmit,
+    control,
+    reset,
+    trigger,
+  } = methods;
 
   const steps = getSteps();
   const ActiveComponent = steps[currentStep].component as any;
@@ -243,6 +243,12 @@ const EditOnboardingPage = () => {
     setIsSaving(true);
     try {
       await persistProfile(data);
+      await AppNotificationService.notifySelf({
+        title: 'Profile updated',
+        message: 'Your professional profile changes have been saved successfully.',
+        type: 'success',
+        data: { action: 'profile_updated' },
+      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
       toast.success('Profile updated successfully!');
       navigate('/profile');
     } catch (error: any) {
@@ -257,7 +263,7 @@ const EditOnboardingPage = () => {
     if (!user) return;
     setIsDraftSaving(true);
     try {
-      const data = (await trigger()) ? undefined : undefined; // no-op to satisfy type
+      await trigger();
       const payload = (control as any)._formValues as OnboardingData;
       await persistProfile(payload);
       toast.success('Draft saved');
@@ -309,13 +315,11 @@ const EditOnboardingPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <div className="glass-card p-6">
             <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">{steps[currentStep].title}</h2>
-            <ActiveComponent
-              register={register}
-              errors={errors}
-              control={control}
-              setValue={setValue}
-              readOnlyFields={['fullName', 'email']}
-            />
+            <FormProvider {...methods}>
+              <ActiveComponent
+                readOnlyFields={['fullName', 'email']}
+              />
+            </FormProvider>
             <div className="mt-8 flex justify-between gap-4 pt-6 border-t border-white/10">
               <button
                 type="button"

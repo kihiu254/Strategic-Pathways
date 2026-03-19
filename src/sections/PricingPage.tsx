@@ -17,10 +17,10 @@ const PricingPage = () => {
       <div className="w-full px-6 lg:px-12">
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-6">
-            Membership & Tiers
+            Membership & Access
           </h1>
           <p className="text-[var(--text-secondary)] text-xl max-w-2xl mx-auto leading-relaxed">
-            Choose the membership tier that best fits your professional or institutional needs.
+            Choose the vetted membership path that best fits your professional or institutional goals.
           </p>
         </div>
         

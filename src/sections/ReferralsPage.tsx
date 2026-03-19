@@ -22,7 +22,7 @@ const ReferralsPage = () => {
 
   const handleShareEmail = () => {
     const subject = 'Join Strategic Pathways - Connect with Global Professionals';
-    const body = `I'm using Strategic Pathways to connect with diaspora professionals and access amazing opportunities. Join me using my referral link: ${referralLink}`;
+    const body = `I'm using Strategic Pathways to connect with study-abroad returnees, diaspora returnees, diaspora professionals, and high-impact opportunities. Join me using my referral link: ${referralLink}`;
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 

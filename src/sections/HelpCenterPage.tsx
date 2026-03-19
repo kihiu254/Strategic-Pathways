@@ -21,8 +21,8 @@ const HelpCenterPage = () => {
       answer: "We offer Community (Free), Professional ($100/year), and Institutional/Firm (Custom) tiers, each providing different levels of access to opportunities and verification badges."
     },
     {
-      question: "How can I post an opportunity?",
-      answer: "Verified members with Professional or Firm status can post opportunities directly from their dashboard for others to collaborate on."
+      question: "Who can join Strategic Pathways?",
+      answer: "The platform is designed for study-abroad returnees, diaspora returnees, diaspora professionals and development partners."
     }
   ];
 
@@ -44,8 +44,10 @@ const HelpCenterPage = () => {
           <div className="glass-card p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all">
             <Book className="w-12 h-12 text-[var(--sp-accent)] mb-6" />
             <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">Knowledge Base</h3>
-            <p className="text-[var(--text-secondary)] mb-6">Browse through our detailed documentation and guides to get the most out of the platform.</p>
-            <button className="sp-btn-glass w-full">Browse Articles</button>
+            <p className="text-[var(--text-secondary)] mb-6">Access the latest Strategic Pathways brief while the article library is being refreshed.</p>
+            <a href="/docs/Strategic_Pathways_Brief.pdf" target="_blank" rel="noopener noreferrer" className="sp-btn-glass w-full inline-flex items-center justify-center">
+              Open Brief
+            </a>
           </div>
           <div className="glass-card p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all">
             <MessageCircle className="w-12 h-12 text-[var(--sp-accent)] mb-6" />

@@ -10,14 +10,14 @@ const SitemapPage = () => {
       title: 'Main Platform',
       links: [
         { name: 'Home', path: '/', icon: Globe, desc: 'Entrance to the talent execution and venture-building platform for brain circulation.' },
-        { name: 'Concept Note', path: '/concept-note', icon: FileText, desc: 'Detailed background, problem statement, and proposed solution for Kenyan diaspora engagement.' },
+        { name: 'Concept Note', path: '/concept-note', icon: FileText, desc: 'Detailed background, problem statement, and proposed solution for study-abroad returnees, diaspora returnees, diaspora professionals, and partners.' },
         { name: 'Opportunities', path: '/opportunities', icon: Briefcase, desc: 'Vetted list of impactful local projects, consultancy engagements, and venture-building cohorts.' },
       ]
     },
     {
       title: 'User Experience',
       links: [
-        { name: 'Onboarding', path: '/', icon: Zap, desc: 'Digital onboarding and profile management for globally trained professionals.' },
+        { name: 'Onboarding', path: '/', icon: Zap, desc: 'Digital onboarding and profile management for study-abroad returnees, diaspora returnees, and diaspora professionals.' },
         { name: 'Login / Register', path: '/login', icon: Users, desc: 'Access the secure network to start collaborating on cross-functional teams.' },
         { name: 'User Dashboard', path: '/profile', icon: LayoutDashboard, desc: 'Manage your global-to-local skills profile and track your impact.' },
       ]
@@ -39,7 +39,7 @@ const SitemapPage = () => {
     <div className="min-h-screen pt-32 pb-20 px-6 lg:px-12 bg-[var(--bg-primary)]">
       <SEO 
         title="Sitemap" 
-        description="Structured overview of the Strategic Pathways platform. Navigate to our talent execution network, venture-building opportunities, and diaspora engagement portals."
+        description="Structured overview of the Strategic Pathways platform. Navigate pathways for study-abroad returnees, diaspora returnees, diaspora professionals, and development partners."
       />
       
       <div className="max-w-6xl mx-auto">
@@ -52,7 +52,7 @@ const SitemapPage = () => {
             Styled <span className="text-[var(--sp-accent)]">Sitemap</span>
           </h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-            Strategic Pathways is more than a job board; it is a collaborative ecosystem designed to mobilise diaspora professionals into locally impactful projects. Use this map to explore our structured collaboration pathways.
+            Strategic Pathways is more than a job board; it is a collaborative ecosystem designed to mobilise study-abroad returnees, diaspora returnees, and diaspora professionals into locally impactful projects. Use this map to explore our structured collaboration pathways.
           </p>
         </div>
 
@@ -92,7 +92,7 @@ const SitemapPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-sm text-[var(--text-secondary)]">
             <div className="flex flex-col gap-2">
               <span className="text-[var(--sp-accent)] font-medium">Mobility</span>
-              <p>Onboard at least 500 globally trained professionals annually into Kenya's ecosystem.</p>
+              <p>Onboard at least 500 study-abroad returnees, diaspora returnees, and diaspora professionals annually into Kenya's ecosystem.</p>
             </div>
             <div className="flex flex-col gap-2">
               <span className="text-[var(--sp-accent)] font-medium">Collaboration</span>

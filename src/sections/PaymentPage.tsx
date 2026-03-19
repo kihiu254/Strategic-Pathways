@@ -1,37 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowRight, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import SEO from '../components/SEO';
 
-declare global {
-  interface Window {
-    PaystackPop?: any;
-  }
-}
 
-const loadPaystack = () =>
-  new Promise<void>((resolve, reject) => {
-    if (window.PaystackPop) {
-      resolve();
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v1/inline.js';
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Paystack.'));
-    document.body.appendChild(script);
-  });
+
+
 
 const PaymentPage = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const [searchParams] = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isReady, setIsReady] = useState(false);
+
 
   const plan = useMemo(() => {
     const raw = (searchParams.get('tier') || '').toLowerCase();
@@ -40,7 +23,6 @@ const PaymentPage = () => {
     return { key: 'Professional', label: 'Professional', amountEnv: 'VITE_PAYSTACK_PROFESSIONAL_AMOUNT' };
   }, [searchParams]);
 
-  const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
   const currency = import.meta.env.VITE_PAYSTACK_CURRENCY || 'USD';
   const amount = Number((import.meta.env as any)[plan.amountEnv] || 0);
   const amountValid = Number.isFinite(amount) && amount > 0;
@@ -48,31 +30,10 @@ const PaymentPage = () => {
   useEffect(() => {
     if (!user) {
       navigate('/login');
-      return;
     }
-    loadPaystack()
-      .then(() => setIsReady(true))
-      .catch((err) => toast.error(err.message || 'Payment setup failed.'));
   }, [user, navigate]);
 
-  const handlePaymentSuccess = async () => {
-    if (!user) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        tier: plan.key,
-        profile_type: 'Premium (Verified)',
-        onboarding_completed: false,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
 
-    if (error) {
-      toast.error(error.message || 'Failed to update subscription.');
-      return;
-    }
-    navigate('/onboarding/full');
-  };
 
   const handlePaymentCancel = async () => {
     if (!user) return;
@@ -89,43 +50,7 @@ const PaymentPage = () => {
     navigate('/onboarding/basic');
   };
 
-  const handlePayNow = async () => {
-    if (!user) return;
-    if (!publicKey) {
-      toast.error('Paystack public key not configured.');
-      return;
-    }
-    if (!amountValid) {
-      toast.error('Payment amount not configured.');
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await loadPaystack();
-      const handler = window.PaystackPop?.setup({
-        key: publicKey,
-        email: user.email || '',
-        amount,
-        currency,
-        metadata: {
-          tier: plan.key,
-          user_id: user.id,
-        },
-        callback: () => {
-          handlePaymentSuccess();
-        },
-        onClose: () => {
-          handlePaymentCancel();
-        }
-      });
 
-      handler?.openIframe();
-    } catch (error: any) {
-      toast.error(error.message || 'Payment failed to start.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pt-28 pb-16">
@@ -138,7 +63,7 @@ const PaymentPage = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[var(--text-primary)]">Complete Payment</h1>
-              <p className="text-[var(--text-secondary)]">You’re upgrading to the {plan.label} plan.</p>
+              <p className="text-[var(--text-secondary)]">Choose your payment method to continue with the {plan.label} membership.</p>
             </div>
           </div>
 
@@ -157,18 +82,11 @@ const PaymentPage = () => {
 
           <button
             type="button"
-            onClick={handlePayNow}
-            disabled={!isReady || isLoading || !amountValid}
-            className="sp-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60"
+            className="sp-btn-primary w-full flex items-center justify-center gap-2 opacity-60 cursor-not-allowed"
+            disabled
           >
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                Pay with Paystack
-                <ArrowRight size={18} />
-              </>
-            )}
+            Paystack (Coming Soon)
+            <ArrowRight size={18} />
           </button>
 
           <button
@@ -178,6 +96,9 @@ const PaymentPage = () => {
           >
             Cancel and switch to Community
           </button>
+          <p className="mt-4 text-sm text-[var(--text-secondary)] text-center bg-white/5 p-4 rounded-xl border border-white/10">
+            Paystack checkout will be connected soon. In the meantime, contact the team for manual payment support.
+          </p>
         </div>
       </div>
     </div>
@@ -185,3 +106,4 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
+

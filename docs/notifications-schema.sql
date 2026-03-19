@@ -18,8 +18,27 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own notifications" ON notifications
   FOR SELECT USING (auth.uid() = user_id);
 
+CREATE POLICY "Users can insert their own notifications" ON notifications
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
 CREATE POLICY "Users can update their own notifications" ON notifications
   FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can manage all notifications" ON notifications
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1
+      FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- Indexes
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
