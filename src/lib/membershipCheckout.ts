@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { supabase } from './supabase';
 
 export type MembershipTier = 'professional' | 'firm';
+export type MembershipCurrency = string;
 
 type MembershipPlan = {
   queryTier: MembershipTier;
@@ -19,20 +20,85 @@ type VerificationResponse = {
 
 type MembershipCheckoutOptions = {
   tier: MembershipTier;
+  currency?: MembershipCurrency;
   user: User | null;
   session: Session | null;
   onCommunityFallback?: () => void;
 };
 
-const getMembershipPlan = (tier: MembershipTier): MembershipPlan => {
-  const currency = (import.meta.env.VITE_PAYSTACK_CURRENCY || 'USD').toUpperCase();
+type MembershipCurrencyOption = {
+  code: MembershipCurrency;
+  label: string;
+};
+
+const getPrimaryCurrency = () => (import.meta.env.VITE_PAYSTACK_CURRENCY || 'USD').toUpperCase();
+
+const getLocalCurrency = () => (import.meta.env.VITE_PAYSTACK_LOCAL_CURRENCY || '').toUpperCase().trim();
+
+export const getMembershipCurrencyOptions = (): MembershipCurrencyOption[] => {
+  const primaryCurrency = getPrimaryCurrency();
+  const localCurrency = getLocalCurrency();
+  const supportedCurrencies = [primaryCurrency];
+
+  if (localCurrency && localCurrency !== primaryCurrency) {
+    supportedCurrencies.push(localCurrency);
+  }
+
+  return supportedCurrencies.map((code) => ({
+    code,
+    label: code === primaryCurrency ? `${code} (International)` : `${code} (Local)`,
+  }));
+};
+
+export const getDefaultMembershipCurrency = () => getMembershipCurrencyOptions()[0]?.code || 'USD';
+
+const resolveMembershipAmount = (tier: MembershipTier, currency: MembershipCurrency) => {
+  const primaryCurrency = getPrimaryCurrency();
+  const isLocalCurrency = currency === getLocalCurrency() && currency !== primaryCurrency;
+
+  if (tier === 'firm') {
+    return Number(
+      isLocalCurrency
+        ? import.meta.env.VITE_PAYSTACK_CUSTOM_LOCAL_AMOUNT || 0
+        : import.meta.env.VITE_PAYSTACK_CUSTOM_AMOUNT || 0
+    );
+  }
+
+  return Number(
+    isLocalCurrency
+      ? import.meta.env.VITE_PAYSTACK_PROFESSIONAL_LOCAL_AMOUNT || 0
+      : import.meta.env.VITE_PAYSTACK_PROFESSIONAL_AMOUNT || 0
+  );
+};
+
+export const formatMembershipAmount = (currency: MembershipCurrency, amount: number) => {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return 'Not configured';
+  }
+
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 2,
+    }).format(amount / 100);
+  } catch {
+    return `${currency} ${(amount / 100).toLocaleString()}`;
+  }
+};
+
+export const getMembershipPlanDetails = (tier: MembershipTier, requestedCurrency?: MembershipCurrency): MembershipPlan => {
+  const currencyOptions = getMembershipCurrencyOptions();
+  const currency = currencyOptions.some((option) => option.code === requestedCurrency)
+    ? String(requestedCurrency)
+    : getDefaultMembershipCurrency();
 
   if (tier === 'firm') {
     return {
       queryTier: 'firm',
       label: 'Partners',
       dbTier: 'Firm',
-      amount: Number(import.meta.env.VITE_PAYSTACK_CUSTOM_AMOUNT || 0),
+      amount: resolveMembershipAmount('firm', currency),
       currency,
     };
   }
@@ -41,7 +107,7 @@ const getMembershipPlan = (tier: MembershipTier): MembershipPlan => {
     queryTier: 'professional',
     label: 'Professional',
     dbTier: 'Professional',
-    amount: Number(import.meta.env.VITE_PAYSTACK_PROFESSIONAL_AMOUNT || 0),
+    amount: resolveMembershipAmount('professional', currency),
     currency,
   };
 };
@@ -104,6 +170,7 @@ const shouldReturnToCommunityOnFailure = (message: string) => {
 
 export const launchMembershipCheckout = async ({
   tier,
+  currency,
   user,
   session,
 }: MembershipCheckoutOptions) => {
@@ -112,7 +179,7 @@ export const launchMembershipCheckout = async ({
     return;
   }
 
-  const plan = getMembershipPlan(tier);
+  const plan = getMembershipPlanDetails(tier, currency);
 
   if (!Number.isFinite(plan.amount) || plan.amount <= 0) {
     toast.error(`${plan.label} amount is not configured.`);
@@ -133,6 +200,7 @@ export const launchMembershipCheckout = async ({
       },
       body: JSON.stringify({
         tier: plan.queryTier,
+        currency: plan.currency,
         origin: window.location.origin,
       }),
     });

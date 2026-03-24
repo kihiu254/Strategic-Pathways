@@ -2,7 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, CreditCard, LoaderCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { handleMembershipVerificationFailure, launchMembershipCheckout, verifyMembershipPayment, type MembershipTier } from '../lib/membershipCheckout';
+import {
+  formatMembershipAmount,
+  getDefaultMembershipCurrency,
+  getMembershipCurrencyOptions,
+  getMembershipPlanDetails,
+  handleMembershipVerificationFailure,
+  launchMembershipCheckout,
+  verifyMembershipPayment,
+  type MembershipCurrency,
+  type MembershipTier,
+} from '../lib/membershipCheckout';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import SEO from '../components/SEO';
@@ -12,12 +22,17 @@ const PaymentPage = () => {
   const user = useAuthStore((state) => state.user);
   const session = useAuthStore((state) => state.session);
   const isLoading = useAuthStore((state) => state.isLoading);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const checkoutStartedRef = useRef(false);
   const verificationRef = useRef<string | null>(null);
-
+  const currencyOptions = getMembershipCurrencyOptions();
+  const requestedCurrency = (searchParams.get('currency') || '').toUpperCase();
+  const [selectedCurrency, setSelectedCurrency] = useState<MembershipCurrency>(() => {
+    const supportedCodes = currencyOptions.map((option) => option.code);
+    return supportedCodes.includes(requestedCurrency) ? requestedCurrency : getDefaultMembershipCurrency();
+  });
 
   const plan = useMemo(() => {
     const raw = (searchParams.get('tier') || '').toLowerCase();
@@ -26,16 +41,22 @@ const PaymentPage = () => {
     return { key: 'Professional', label: 'Professional', queryTier: 'professional', amountEnv: 'VITE_PAYSTACK_PROFESSIONAL_AMOUNT' } as const;
   }, [searchParams]);
 
-  const currency = import.meta.env.VITE_PAYSTACK_CURRENCY || 'USD';
-  const amountByPlan = {
-    VITE_PAYSTACK_PROFESSIONAL_AMOUNT: import.meta.env.VITE_PAYSTACK_PROFESSIONAL_AMOUNT,
-    VITE_PAYSTACK_CUSTOM_AMOUNT: import.meta.env.VITE_PAYSTACK_CUSTOM_AMOUNT,
-  } as const;
-  const amount = Number(amountByPlan[plan.amountEnv] || 0);
+  const paymentPlan = useMemo(
+    () => getMembershipPlanDetails(plan.queryTier as MembershipTier, selectedCurrency),
+    [plan.queryTier, selectedCurrency]
+  );
+  const amount = paymentPlan.amount;
   const amountValid = Number.isFinite(amount) && amount > 0;
   const paystackMode = (import.meta.env.VITE_PAYSTACK_MODE || 'test').toLowerCase() === 'live' ? 'live' : 'test';
   const paymentReference = searchParams.get('reference') || searchParams.get('trxref');
   const checkoutReady = amountValid && Boolean(session?.access_token);
+
+  useEffect(() => {
+    const supportedCodes = currencyOptions.map((option) => option.code);
+    if (supportedCodes.includes(requestedCurrency) && requestedCurrency !== selectedCurrency) {
+      setSelectedCurrency(requestedCurrency);
+    }
+  }, [currencyOptions, requestedCurrency, selectedCurrency]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -86,6 +107,7 @@ const PaymentPage = () => {
 
     void launchMembershipCheckout({
       tier: plan.queryTier as MembershipTier,
+      currency: selectedCurrency,
       user,
       session,
       onCommunityFallback: () => {
@@ -94,13 +116,14 @@ const PaymentPage = () => {
     }).finally(() => {
       setIsRedirecting(false);
     });
-  }, [amountValid, isLoading, navigate, paymentReference, plan.queryTier, session, user]);
+  }, [amountValid, isLoading, navigate, paymentReference, plan.queryTier, selectedCurrency, session, user]);
 
   const handleStartPayment = async () => {
     setIsRedirecting(true);
 
     await launchMembershipCheckout({
       tier: plan.queryTier as MembershipTier,
+      currency: selectedCurrency,
       user,
       session,
       onCommunityFallback: () => {
@@ -109,6 +132,15 @@ const PaymentPage = () => {
     });
 
     setIsRedirecting(false);
+  };
+
+  const handleCurrencyChange = (currency: MembershipCurrency) => {
+    setSelectedCurrency(currency);
+    checkoutStartedRef.current = false;
+
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.set('currency', currency);
+    setSearchParams(nextSearchParams, { replace: true });
   };
 
   const handlePaymentCancel = async () => {
@@ -151,13 +183,34 @@ const PaymentPage = () => {
             <div className="flex items-center justify-between mt-3">
               <span className="text-[var(--text-secondary)]">Amount</span>
               <span className="text-[var(--text-primary)] font-semibold">
-                {amountValid ? `${currency} ${(amount / 100).toLocaleString()}` : 'Not configured'}
+                {formatMembershipAmount(paymentPlan.currency, amount)}
               </span>
             </div>
             <div className="flex items-center justify-between mt-3">
               <span className="text-[var(--text-secondary)]">Mode</span>
               <span className="text-[var(--text-primary)] font-semibold capitalize">{paystackMode}</span>
             </div>
+            {currencyOptions.length > 1 && (
+              <div className="mt-4">
+                <span className="text-[var(--text-secondary)] text-sm">Currency</span>
+                <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-white/5 p-2">
+                  {currencyOptions.map((option) => (
+                    <button
+                      key={option.code}
+                      type="button"
+                      onClick={() => handleCurrencyChange(option.code)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                        option.code === selectedCurrency
+                          ? 'bg-[var(--sp-accent)] text-[var(--bg-primary)]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <button

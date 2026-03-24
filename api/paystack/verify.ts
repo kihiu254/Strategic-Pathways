@@ -37,13 +37,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!paystackResponse.ok || !payload?.status || !payload?.data) {
       console.error('Paystack verification failed:', payload);
       return res.status(502).json({
-        error: normalizePaystackErrorMessage(payload?.message, getPaystackPlan().currency),
+        error: normalizePaystackErrorMessage(payload?.message),
       });
     }
 
     const transaction = payload.data;
     const metadata = transaction.metadata ?? {};
-    const plan = getPaystackPlan(String(metadata.tier || metadata.dbTier || 'professional'));
+    const plan = getPaystackPlan(
+      String(metadata.tier || metadata.dbTier || 'professional'),
+      String(metadata.currency || transaction.currency || '')
+    );
     ensurePlanIsConfigured(plan);
 
     if (metadata.userId && metadata.userId !== user.id) {

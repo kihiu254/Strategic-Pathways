@@ -2,7 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Star, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { launchMembershipCheckout, type MembershipTier } from '../lib/membershipCheckout';
+import {
+  formatMembershipAmount,
+  getDefaultMembershipCurrency,
+  getMembershipCurrencyOptions,
+  getMembershipPlanDetails,
+  launchMembershipCheckout,
+  type MembershipCurrency,
+  type MembershipTier,
+} from '../lib/membershipCheckout';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 
@@ -16,6 +24,9 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
   const session = useAuthStore((state) => state.session);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [currentTier, setCurrentTier] = useState<string | null>(null);
+  const currencyOptions = getMembershipCurrencyOptions();
+  const [selectedCurrency, setSelectedCurrency] = useState<MembershipCurrency>(getDefaultMembershipCurrency());
+  const professionalPlan = getMembershipPlanDetails('professional', selectedCurrency);
 
   useEffect(() => {
     if (!user) return;
@@ -57,8 +68,8 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
     {
       id: 'professional',
       name: 'Professional (6)',
-      price: '$100/year',
-      period: '(or $10/month)',
+      price: formatMembershipAmount(professionalPlan.currency, professionalPlan.amount),
+      period: '/year',
       description: 'Advanced professional profile/Opportunity access/Collaboration tools/Income opportunities/Professional development/Analytics & personal insights',
       cta: 'Choose Professional',
       featured: true
@@ -109,6 +120,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
 
       await launchMembershipCheckout({
         tier: targetTier,
+        currency: selectedCurrency,
         user,
         session,
         onCommunityFallback: () => {
@@ -143,6 +155,27 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
             Start free. Upgrade when you are ready to win, work and grow.
           </p>
         </div>
+
+        {currencyOptions.length > 1 && (
+          <div className="mt-8 flex items-center justify-center">
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-white/5 p-2">
+              {currencyOptions.map((option) => (
+                <button
+                  key={option.code}
+                  type="button"
+                  onClick={() => setSelectedCurrency(option.code)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                    option.code === selectedCurrency
+                      ? 'bg-[var(--sp-accent)] text-[var(--bg-primary)]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-10 lg:mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3 items-stretch">
           {tiers.map((tier) => {
