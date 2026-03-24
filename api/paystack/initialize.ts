@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getActivePaystackConfig, getPaystackPlan, ensurePlanIsConfigured, normalizePaystackErrorMessage, resolvePaystackCallbackUrl } from '../_lib/paystack';
-import { getAuthContext } from '../_lib/supabase';
+import { getActivePaystackConfig, getPaystackPlan, ensurePlanIsConfigured, normalizePaystackErrorMessage, resolvePaystackCallbackUrl } from '../_lib/paystack.js';
+import { getAuthContext } from '../_lib/supabase.js';
 
 type InitializeRequestBody = {
   tier?: string;

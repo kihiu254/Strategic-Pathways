@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getActivePaystackConfig, getPaystackPlan, ensurePlanIsConfigured, normalizePaystackErrorMessage } from '../_lib/paystack';
-import { createAuthenticatedClient, getAuthContext } from '../_lib/supabase';
+import { getActivePaystackConfig, getPaystackPlan, ensurePlanIsConfigured, normalizePaystackErrorMessage } from '../_lib/paystack.js';
+import { createAuthenticatedClient, getAuthContext } from '../_lib/supabase.js';
 
 type VerifyRequestBody = {
   reference?: string;
