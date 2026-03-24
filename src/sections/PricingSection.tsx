@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Star, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { launchMembershipCheckout, type MembershipTier } from '../lib/membershipCheckout';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 
@@ -12,6 +13,7 @@ interface PricingSectionProps {
 const PricingSection = ({ className = '' }: PricingSectionProps) => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const session = useAuthStore((state) => state.session);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [currentTier, setCurrentTier] = useState<string | null>(null);
 
@@ -58,7 +60,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
       price: '$100/year',
       period: '(or $10/month)',
       description: 'Advanced professional profile/Opportunity access/Collaboration tools/Income opportunities/Professional development/Analytics & personal insights',
-      cta: 'Choose Professional (Coming Soon)',
+      cta: 'Choose Professional',
       featured: true
     },
     {
@@ -67,7 +69,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
       price: 'Custom',
       period: '',
       description: 'Talent access/Opportunity posting/Team assembly/Project execution support/Branding & visibility/Ecosystem intelligence/Custom programs',
-      cta: 'Contact Us (Coming Soon)',
+      cta: 'Choose Partners',
       featured: false
     }
   ];
@@ -103,13 +105,17 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
         return;
       }
 
-      if (tierId === 'professional' || tierId === 'firm') {
-        toast.info('Paystack integration is coming soon. Please contact the team for manual payment support.');
-        return;
-      }
+      const targetTier = (tierId === 'professional' ? 'professional' : 'firm') as MembershipTier;
 
-      const targetTier = tierId === 'professional' ? 'professional' : 'firm';
-      navigate(`/payment?tier=${targetTier}`);
+      await launchMembershipCheckout({
+        tier: targetTier,
+        user,
+        session,
+        onCommunityFallback: () => {
+          setCurrentTier('Community');
+          navigate('/onboarding/basic');
+        },
+      });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to select plan.';
       toast.error(errorMessage);

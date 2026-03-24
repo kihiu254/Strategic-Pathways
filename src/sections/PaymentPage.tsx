@@ -1,39 +1,115 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CreditCard } from 'lucide-react';
+import { ArrowRight, CheckCircle2, CreditCard, LoaderCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { handleMembershipVerificationFailure, launchMembershipCheckout, verifyMembershipPayment, type MembershipTier } from '../lib/membershipCheckout';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import SEO from '../components/SEO';
 
-
-
-
-
 const PaymentPage = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const session = useAuthStore((state) => state.session);
+  const isLoading = useAuthStore((state) => state.isLoading);
   const [searchParams] = useSearchParams();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const checkoutStartedRef = useRef(false);
+  const verificationRef = useRef<string | null>(null);
 
 
   const plan = useMemo(() => {
     const raw = (searchParams.get('tier') || '').toLowerCase();
-    if (raw === 'professional') return { key: 'Professional', label: 'Professional', amountEnv: 'VITE_PAYSTACK_PROFESSIONAL_AMOUNT' };
-    if (raw === 'firm' || raw === 'partners' || raw === 'custom') return { key: 'Firm', label: 'Partners', amountEnv: 'VITE_PAYSTACK_CUSTOM_AMOUNT' };
-    return { key: 'Professional', label: 'Professional', amountEnv: 'VITE_PAYSTACK_PROFESSIONAL_AMOUNT' };
+    if (raw === 'professional') return { key: 'Professional', label: 'Professional', queryTier: 'professional', amountEnv: 'VITE_PAYSTACK_PROFESSIONAL_AMOUNT' } as const;
+    if (raw === 'firm' || raw === 'partners' || raw === 'custom') return { key: 'Firm', label: 'Partners', queryTier: 'firm', amountEnv: 'VITE_PAYSTACK_CUSTOM_AMOUNT' } as const;
+    return { key: 'Professional', label: 'Professional', queryTier: 'professional', amountEnv: 'VITE_PAYSTACK_PROFESSIONAL_AMOUNT' } as const;
   }, [searchParams]);
 
   const currency = import.meta.env.VITE_PAYSTACK_CURRENCY || 'USD';
-  const amount = Number((import.meta.env as any)[plan.amountEnv] || 0);
+  const amountByPlan = {
+    VITE_PAYSTACK_PROFESSIONAL_AMOUNT: import.meta.env.VITE_PAYSTACK_PROFESSIONAL_AMOUNT,
+    VITE_PAYSTACK_CUSTOM_AMOUNT: import.meta.env.VITE_PAYSTACK_CUSTOM_AMOUNT,
+  } as const;
+  const amount = Number(amountByPlan[plan.amountEnv] || 0);
   const amountValid = Number.isFinite(amount) && amount > 0;
+  const paystackMode = (import.meta.env.VITE_PAYSTACK_MODE || 'test').toLowerCase() === 'live' ? 'live' : 'test';
+  const paymentReference = searchParams.get('reference') || searchParams.get('trxref');
+  const checkoutReady = amountValid && Boolean(session?.access_token);
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       navigate('/login');
     }
-  }, [user, navigate]);
+  }, [isLoading, user, navigate]);
 
+  useEffect(() => {
+    if (!user || !session?.access_token || !paymentReference || verificationRef.current === paymentReference) {
+      return;
+    }
 
+    verificationRef.current = paymentReference;
+    setIsVerifying(true);
+
+    const verifyPayment = async () => {
+      try {
+        const payload = await verifyMembershipPayment(session.access_token, paymentReference);
+        toast.success(`${plan.label} payment confirmed. Continue with your full onboarding.`);
+        navigate(payload.redirectTo || '/onboarding/full', { replace: true });
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unable to verify your payment.';
+        await handleMembershipVerificationFailure(user.id, errorMessage, () => {
+          navigate('/onboarding/basic', { replace: true });
+        });
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+
+    void verifyPayment();
+  }, [navigate, paymentReference, plan.label, plan.queryTier, session?.access_token, user]);
+
+  useEffect(() => {
+    if (
+      checkoutStartedRef.current ||
+      isLoading ||
+      !user ||
+      !session?.access_token ||
+      paymentReference ||
+      !amountValid
+    ) {
+      return;
+    }
+
+    checkoutStartedRef.current = true;
+    setIsRedirecting(true);
+
+    void launchMembershipCheckout({
+      tier: plan.queryTier as MembershipTier,
+      user,
+      session,
+      onCommunityFallback: () => {
+        navigate('/onboarding/basic');
+      },
+    }).finally(() => {
+      setIsRedirecting(false);
+    });
+  }, [amountValid, isLoading, navigate, paymentReference, plan.queryTier, session, user]);
+
+  const handleStartPayment = async () => {
+    setIsRedirecting(true);
+
+    await launchMembershipCheckout({
+      tier: plan.queryTier as MembershipTier,
+      user,
+      session,
+      onCommunityFallback: () => {
+        navigate('/onboarding/basic');
+      },
+    });
+
+    setIsRedirecting(false);
+  };
 
   const handlePaymentCancel = async () => {
     if (!user) return;
@@ -78,15 +154,34 @@ const PaymentPage = () => {
                 {amountValid ? `${currency} ${(amount / 100).toLocaleString()}` : 'Not configured'}
               </span>
             </div>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-[var(--text-secondary)]">Mode</span>
+              <span className="text-[var(--text-primary)] font-semibold capitalize">{paystackMode}</span>
+            </div>
           </div>
 
           <button
             type="button"
-            className="sp-btn-primary w-full flex items-center justify-center gap-2 opacity-60 cursor-not-allowed"
-            disabled
+            onClick={handleStartPayment}
+            disabled={!checkoutReady || isRedirecting || isVerifying}
+            className="sp-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Paystack (Coming Soon)
-            <ArrowRight size={18} />
+            {isVerifying ? (
+              <>
+                <LoaderCircle size={18} className="animate-spin" />
+                Verifying payment...
+              </>
+            ) : isRedirecting ? (
+              <>
+                <LoaderCircle size={18} className="animate-spin" />
+                Redirecting to Paystack...
+              </>
+            ) : (
+              <>
+                Pay with Paystack
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
 
           <button
@@ -97,8 +192,19 @@ const PaymentPage = () => {
             Cancel and switch to Community
           </button>
           <p className="mt-4 text-sm text-[var(--text-secondary)] text-center bg-white/5 p-4 rounded-xl border border-white/10">
-            Paystack checkout will be connected soon. In the meantime, contact the team for manual payment support.
+            Paystack launches automatically from this page as a fallback. After a successful payment, we will unlock your {plan.label} onboarding flow automatically.
           </p>
+          {paymentReference && !isVerifying && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-green-300 bg-green-500/10 p-4 rounded-xl border border-green-500/20">
+              <CheckCircle2 size={16} />
+              Payment reference received. Finalizing your membership...
+            </div>
+          )}
+          {!session?.access_token && (
+            <p className="mt-4 text-sm text-amber-200 text-center bg-amber-500/10 p-4 rounded-xl border border-amber-500/20">
+              Your session is still loading. If checkout stays disabled, refresh the page and try again.
+            </p>
+          )}
         </div>
       </div>
     </div>

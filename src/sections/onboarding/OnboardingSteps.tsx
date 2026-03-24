@@ -108,7 +108,7 @@ export const BasicInfo = ({ readOnlyFields = [] }: StepProps) => {
             </label>
             <select {...register('countryOfResidence')} className="input-glass-premium w-full appearance-none pr-10" title="Country of Residence">
               <option value="">Select Country</option>
-              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+              {countries.map((country) => <option key={country.name} value={country.name}>{country.name}</option>)}
             </select>
             {errors.countryOfResidence && <p className="text-red-400 text-xs mt-1">{errors.countryOfResidence.message}</p>}
           </div>
@@ -120,7 +120,7 @@ export const BasicInfo = ({ readOnlyFields = [] }: StepProps) => {
             </label>
             <select {...register('nationality')} className="input-glass-premium w-full appearance-none pr-10" title="Nationality">
               <option value="">Select Nationality</option>
-              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+              {countries.map((country) => <option key={country.name} value={country.name}>{country.name}</option>)}
             </select>
             {errors.nationality && <p className="text-red-400 text-xs mt-1">{errors.nationality.message}</p>}
           </div>
@@ -260,7 +260,7 @@ export const EducationEnhanced = () => {
             </label>
             <select {...register('studyCountry')} className="input-glass-premium w-full appearance-none pr-10" title="Country of Study">
               <option value="">Select Country</option>
-              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+              {countries.map((country) => <option key={country.name} value={country.name}>{country.name}</option>)}
             </select>
             {errors.studyCountry && <p className="text-red-400 text-xs mt-1">{errors.studyCountry.message}</p>}
           </div>
