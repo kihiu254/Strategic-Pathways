@@ -14,7 +14,7 @@ export interface UploadResult {
  */
 export const uploadFile = async (
   file: File,
-  folder: 'verification' | 'profiles' | 'opportunities'
+  folder: 'verification' | 'profiles' | 'opportunities' | 'stories'
 ): Promise<UploadResult> => {
   // Helper: upload to Supabase bucket (used for docs and fallback for images)
   const uploadToSupabase = async (bucket: string) => {

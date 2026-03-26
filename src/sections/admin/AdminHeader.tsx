@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   User, LayoutDashboard, Shield 
 } from 'lucide-react';
@@ -23,7 +24,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   adminMenuRef,
   userEmail,
 }) => {
-
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
 
@@ -38,22 +39,22 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
         <div className="flex items-center gap-3 ml-auto" ref={adminMenuRef}>
           <div className="hidden sm:block text-right">
             <p className="text-sm font-semibold text-[var(--text-primary)] leading-tight truncate max-w-[180px]">
-              {adminProfile?.full_name || 'Admin User'}
+              {adminProfile?.full_name || t('adminHeader.adminUser')}
             </p>
             <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-70">
-              Super Admin
+              {t('adminHeader.superAdmin')}
             </p>
           </div>
           <div 
             onClick={() => setIsAdminMenuOpen((prev) => !prev)}
             className="admin-profile-orb" 
-            title="Admin account settings"
+            title={t('adminHeader.accountSettings')}
           >
             {adminProfile?.avatar_url ? (
               <img src={adminProfile.avatar_url} alt="Admin" className="w-full h-full object-cover rounded-full" />
             ) : (
               <span className="text-[var(--text-inverse)] font-bold text-xs">
-                {(adminProfile?.full_name || 'Admin').charAt(0).toUpperCase()}
+                {(adminProfile?.full_name || t('adminHeader.adminShort')).charAt(0).toUpperCase()}
               </span>
             )}
             
@@ -61,7 +62,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
               <div className="absolute right-0 top-[110%] w-64 glass-card p-2 z-50 animate-in slide-in-from-top-4 shadow-2xl border border-white/10">
                 <div className="px-3 py-2 border-b border-white/10 mb-2">
                   <p className="text-[var(--text-primary)] font-medium truncate text-sm">
-                    {adminProfile?.full_name || 'Admin User'}
+                    {adminProfile?.full_name || t('adminHeader.adminUser')}
                   </p>
                   <p className="text-[var(--text-secondary)] text-[10px] truncate opacity-60">
                     {adminProfile?.email || userEmail}
@@ -69,13 +70,13 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
                 </div>
                 <button
                   onClick={() => {
-                    navigate('/profile');
+                    navigate('/admin/profile');
                     setIsAdminMenuOpen(false);
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
                 >
                   <User size={14} />
-                  <span className="text-xs">My Profile</span>
+                  <span className="text-xs">{t('adminHeader.myAdminProfile')}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -85,7 +86,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
                 >
                   <LayoutDashboard size={14} />
-                  <span className="text-xs">User Dashboard</span>
+                  <span className="text-xs">{t('adminHeader.userDashboard')}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -95,7 +96,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
                 >
                   <Shield size={14} />
-                  <span className="text-xs">Admin Dashboard</span>
+                  <span className="text-xs">{t('adminHeader.adminDashboard')}</span>
                 </button>
               </div>
             )}

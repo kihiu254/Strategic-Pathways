@@ -20,12 +20,25 @@ import AnimatedCursor from './components/ui/AnimatedCursor';
 import SEO from './components/SEO';
 import { Analytics } from '@vercel/analytics/react';
 import { CookieBanner } from './components/CookieBanner';
+import { captureReferralFromLocation } from './lib/referrals';
 
 // Lazy-loaded Pages
 const AdminDashboard = lazy(() => import('./sections/AdminDashboard'));
+const AdminOpportunitiesManager = lazy(() => import('./sections/AdminOpportunitiesManager'));
 const UserDashboard = lazy(() => import('./sections/UserDashboard'));
 const AdminUserDetailPage = lazy(() => import('./sections/AdminUserDetailPage'));
 const AdminOnboardingList = lazy(() => import('./sections/AdminOnboardingList'));
+const AdminOpportunityEditorPage = lazy(() => import('./sections/AdminOpportunityEditorPage'));
+const AdminOverviewPage = lazy(() => import('./sections/admin/pages/AdminOverviewPage'));
+const AdminMembersPage = lazy(() => import('./sections/admin/pages/AdminMembersPage'));
+const AdminProjectsPage = lazy(() => import('./sections/admin/pages/AdminProjectsPage'));
+const AdminApplicationsPage = lazy(() => import('./sections/admin/pages/AdminApplicationsPage'));
+const AdminAdminsPage = lazy(() => import('./sections/admin/pages/AdminAdminsPage'));
+const AdminSuccessStoriesPage = lazy(() => import('./sections/admin/pages/AdminSuccessStoriesPage'));
+const AdminReferralsPage = lazy(() => import('./sections/admin/pages/AdminReferralsPage'));
+const AdminSiteContentPage = lazy(() => import('./sections/admin/pages/AdminSiteContentPage'));
+const AdminSettingsPage = lazy(() => import('./sections/admin/pages/AdminSettingsPage'));
+const AdminMyProfilePage = lazy(() => import('./sections/admin/pages/AdminMyProfilePage'));
 const ConceptNotePage = lazy(() => import('./sections/ConceptNotePage'));
 const ProfilePage = lazy(() => import('./sections/ProfilePage'));
 const EditOnboardingPage = lazy(() => import('./sections/EditOnboardingPage'));
@@ -50,6 +63,7 @@ const ContactPage = lazy(() => import('./sections/ContactPage'));
 const HelpCenterPage = lazy(() => import('./sections/HelpCenterPage'));
 const PrivacyPolicyPage = lazy(() => import('./sections/PrivacyPolicyPage'));
 const PricingPage = lazy(() => import('./sections/PricingPage'));
+const NotificationsPage = lazy(() => import('./sections/NotificationsPage'));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -76,19 +90,11 @@ import ScrollToTop from './components/ScrollToTop';
 
 function MainLayout() {
   const mainRef = useRef<HTMLDivElement>(null);
-  const [onboardingComplete, setOnboardingComplete] = useState(false);
-  const [showContent, setShowContent] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(() => Boolean(sessionStorage.getItem('sp_onboarding_seen')));
+  const [showContent, setShowContent] = useState(() => Boolean(sessionStorage.getItem('sp_onboarding_seen')));
   
   const location = useLocation();
-
-  useEffect(() => {
-    // Check if user has already seen onboarding this session
-    const hasSeenOnboarding = sessionStorage.getItem('sp_onboarding_seen');
-    if (hasSeenOnboarding) {
-      setOnboardingComplete(true);
-      setShowContent(true);
-    }
-  }, []);
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     if (!onboardingComplete || location.pathname !== '/') return;
@@ -152,6 +158,10 @@ function MainLayout() {
     }
   }, [location.pathname]);
 
+  useEffect(() => {
+    captureReferralFromLocation(location.search);
+  }, [location.search]);
+
   const handleOnboardingComplete = () => {
     setOnboardingComplete(true);
     setTimeout(() => {
@@ -187,7 +197,7 @@ function MainLayout() {
           <div className="grain-overlay" />
           
           {/* Navigation */}
-          {location.pathname !== '/admin' && ( // Exclude the global nav on admin page since it has a sidebar
+          {!isAdminRoute && (
             <Navigation 
               currentPage={location.pathname === '/' ? 'home' : location.pathname.substring(1)} 
             />
@@ -222,20 +232,35 @@ function MainLayout() {
                     <Route path="/impact" element={<SuccessStoriesPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/help-center" element={<HelpCenterPage />} />
+                    <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/payment" element={<PaymentPage />} />
                     
                     {/* Protected Admin Route */}
                     <Route element={<AdminRoute />}>
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/admin/user/:userId" element={<AdminUserDetailPage />} />
-                      <Route path="/admin/onboarding" element={<AdminOnboardingList />} />
+                      <Route path="/admin" element={<AdminDashboard />}>
+                        <Route index element={<AdminOverviewPage />} />
+                        <Route path="members" element={<AdminMembersPage />} />
+                        <Route path="projects" element={<AdminProjectsPage />} />
+                        <Route path="applications" element={<AdminApplicationsPage />} />
+                        <Route path="opportunities" element={<AdminOpportunitiesManager />} />
+                        <Route path="opportunities/new" element={<AdminOpportunityEditorPage />} />
+                        <Route path="opportunities/:opportunityId/edit" element={<AdminOpportunityEditorPage />} />
+                        <Route path="onboarding" element={<AdminOnboardingList />} />
+                        <Route path="admins" element={<AdminAdminsPage />} />
+                        <Route path="success-stories" element={<AdminSuccessStoriesPage />} />
+                        <Route path="referrals" element={<AdminReferralsPage />} />
+                        <Route path="site-content" element={<AdminSiteContentPage />} />
+                        <Route path="settings" element={<AdminSettingsPage />} />
+                        <Route path="profile" element={<AdminMyProfilePage />} />
+                        <Route path="user/:userId" element={<AdminUserDetailPage />} />
+                      </Route>
                     </Route>
                   </Route>
                 </Routes>
               </main>
               {/* Hide footer on admin page, dashboard, and opportunities page */}
-              {location.pathname !== '/admin' && location.pathname !== '/dashboard' && location.pathname !== '/opportunities' && <Footer />}
+              {!isAdminRoute && location.pathname !== '/dashboard' && location.pathname !== '/opportunities' && <Footer />}
             </div>
           </Suspense>
         </>

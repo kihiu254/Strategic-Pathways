@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Bell, X, Check, CheckCheck, Trash2, AlertCircle, Info, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 
 const NotificationCenter = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const getIcon = (type: string) => {
@@ -21,11 +25,9 @@ const NotificationCenter = () => {
     if (!notification.read) {
       markAsRead(notification.id);
     }
-    
-    // Handle navigation based on notification type
-    if (notification.type === 'opportunity' && notification.data?.opportunityId) {
-      window.location.href = `/opportunities/${notification.data.opportunityId}`;
-    }
+
+    setIsOpen(false);
+    navigate('/notifications');
   };
 
   return (
@@ -47,7 +49,7 @@ const NotificationCenter = () => {
           <div className="fixed inset-0 z-[120]" onClick={() => setIsOpen(false)} />
           <div className="absolute right-0 top-full mt-2 w-[90vw] max-w-sm sm:w-96 sm:max-w-none max-h-[500px] glass-card p-4 z-[121] shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-[var(--text-primary)]">Notifications</h3>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">{t('notifications.title')}</h3>
               <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
                   <button
@@ -55,7 +57,7 @@ const NotificationCenter = () => {
                     className="text-xs text-[var(--sp-accent)] hover:underline flex items-center gap-1"
                   >
                     <CheckCheck size={12} />
-                    Mark all read
+                    {t('notifications.markAsRead')}
                   </button>
                 )}
                 <button
@@ -71,7 +73,7 @@ const NotificationCenter = () => {
               {notifications.length === 0 ? (
                 <div className="text-center py-8 text-[var(--text-secondary)]">
                   <Bell size={32} className="mx-auto mb-2 opacity-30" />
-                  <p>No notifications yet</p>
+                  <p>{t('notifications.empty')}</p>
                 </div>
               ) : (
                 notifications.map((notification) => (
@@ -112,8 +114,15 @@ const NotificationCenter = () => {
 
             {notifications.length > 0 && (
               <div className="border-t border-white/10 mt-4 pt-3">
-                <button className="w-full text-center text-sm text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors">
-                  View all notifications
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate('/notifications');
+                  }}
+                  className="w-full text-center text-sm text-[var(--text-secondary)] hover:text-[var(--sp-accent)] transition-colors"
+                >
+                  {t('notifications.viewAll')}
                 </button>
               </div>
             )}

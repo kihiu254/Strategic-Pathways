@@ -1,37 +1,64 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { calculateDynamicMatchScore } from '../utils/matchScoring';
 import type { MatchScores } from '../utils/matchScoring';
-import { rankOpportunities, MOCK_OPPORTUNITIES } from '../utils/opportunities';
+import { EmailAutomationService } from '../lib/emailAutomation';
 import { 
-  TrendingUp, Users, Calendar, Award, Target, Briefcase, 
-  CheckCircle, Clock, Star, ArrowRight, Zap, Globe, Heart, Gift, Copy, Share2,
-  FileText, Settings, Upload, ExternalLink, Shield, ChevronRight
+  Users, Calendar, Target, Briefcase, 
+  CheckCircle, Star, ArrowRight, Zap, Globe, Heart, Gift, Copy, Share2,
+  Settings, Upload, Shield, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+type DashboardOpportunity = {
+  id: string;
+  title: string;
+  org: string;
+  location: string;
+  sector: string;
+  type: string;
+  description: string;
+};
+
+type UserProfile = {
+  full_name?: string;
+  tier?: string;
+  created_at?: string;
+  verification_tier?: string;
+  expertise?: string[];
+  profile_completion_percentage?: number;
+  sector?: string;
+  primarySector?: string;
+  bio?: string;
+  location?: string;
+  countryOfResidence?: string;
+  years_of_experience?: number;
+  experience?: unknown[];
+  availability?: string;
+  seeking_income?: string | boolean;
+};
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  const [profile, setProfile] = useState<any>(null);
-  const [opportunities, setOpportunities] = useState<any[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [opportunities, setOpportunities] = useState<DashboardOpportunity[]>([]);
   const [referralLink, setReferralLink] = useState('');
   const [referralStats, setReferralStats] = useState({ total: 0, active: 0, rewards: 0 });
   const [matchScores, setMatchScores] = useState<MatchScores | null>(null);
   const [actionItems, setActionItems] = useState<{title: string, reward: number, actionPath: string}[]>([]);
+  const [activationEvents, setActivationEvents] = useState({
+    welcome: false,
+    spotlight_invite: false,
+    intro_call_invite: false
+  });
+  const [activationLoading, setActivationLoading] = useState(false);
+  const [activationError, setActivationError] = useState<string | null>(null);
   const editPath = profile?.tier === 'Community' ? '/profile/edit/basic' : '/profile/edit';
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    fetchDashboardData();
-  }, [user]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const { data: profileData } = await supabase
         .from('profiles')
@@ -43,9 +70,32 @@ const UserDashboard = () => {
 
       setProfile(profileData);
 
-      const refCode = user?.id?.substring(0, 8) || 'demo';
+      const refId = user?.id || 'demo';
       const origin = window.location.origin;
-      setReferralLink(`${origin}/signup?ref=${refCode}`);
+      setReferralLink(`${origin}/signup?ref=${encodeURIComponent(refId)}`);
+
+      const { data: opportunitiesData, error: opportunitiesError } = await supabase
+        .from('opportunities')
+        .select('id, title, organization, location, type, description, sector')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (opportunitiesError) {
+        console.error('Error fetching live opportunities:', opportunitiesError);
+      } else {
+        setOpportunities(
+          (opportunitiesData || []).map((opportunity) => ({
+            id: opportunity.id,
+            title: opportunity.title || 'Untitled opportunity',
+            org: opportunity.organization || 'Strategic Pathways',
+            location: opportunity.location || 'Location to be confirmed',
+            sector: opportunity.sector || 'General',
+            type: opportunity.type || 'Project-based',
+            description: opportunity.description || '',
+          }))
+        );
+      }
 
       // Calculate dynamic match score
       let hasCV = false;
@@ -62,15 +112,6 @@ const UserDashboard = () => {
 
           const { data: skillsData } = await supabase.from('user_skills').select('skill_name').eq('user_id', user.id);
           skillsCount = skillsData?.length || 0;
-          const userSkills = skillsData?.map(s => s.skill_name) || [];
-
-          const ranked = rankOpportunities(MOCK_OPPORTUNITIES, profileData, userSkills);
-          setOpportunities(ranked.slice(0, 2).map((opp: any) => ({
-            ...opp,
-            match: opp.score ? Math.min(99, opp.score * 10) : 80,
-            sector: opp.tags[0],
-            type: opp.tags[1]
-          })));
 
         } catch (e) {
           console.error("Error fetching dependencies for match score:", e);
@@ -99,16 +140,111 @@ const UserDashboard = () => {
         } else {
           setReferralStats({ total: 0, active: 0, rewards: 0 });
         }
-      } catch (e) {
+      } catch {
         setReferralStats({ total: 0, active: 0, rewards: 0 });
       }
 
     } catch (error) {
       console.error('Error fetching dashboard:', error);
     }
-  };
+  }, [user]);
 
-  const profileCompletion = profile?.profile_completion_percentage || 0;
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    const loadDashboard = async () => {
+      await fetchDashboardData();
+    };
+    void loadDashboard();
+  }, [fetchDashboardData, navigate, user]);
+
+  useEffect(() => {
+    const loadActivationEvents = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('community_activation_events')
+          .select('event_type')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        const events = (data || []).map((row) => row.event_type);
+        setActivationEvents({
+          welcome: events.includes('welcome'),
+          spotlight_invite: events.includes('spotlight_invite'),
+          intro_call_invite: events.includes('intro_call_invite')
+        });
+        setActivationError(null);
+      } catch (error) {
+        const err = error as Error;
+        console.warn('Community activation events unavailable:', err);
+        const message = err.message?.toLowerCase().includes('does not exist')
+          ? 'Community activation tracking is missing. Run docs/admin-dashboard-v2.sql to enable it.'
+          : err.message?.toLowerCase().includes('permission')
+            ? 'Community activation tracking is blocked by RLS policies. Run docs/admin-dashboard-v2.sql.'
+            : 'Community activation tracking could not be loaded.';
+        setActivationError(message);
+      }
+    };
+
+    void loadActivationEvents();
+  }, [user]);
+
+  const sendActivationEmail = async (eventType: 'welcome' | 'spotlight_invite' | 'intro_call_invite') => {
+    if (!user || activationLoading) return;
+
+    const displayName = profile?.full_name || user.user_metadata?.full_name || user.email || 'Member';
+    const recipient = user.email || profile?.email;
+
+    if (!recipient) {
+      toast.error('An email address is required to send this invite.');
+      return;
+    }
+
+    setActivationLoading(true);
+    setActivationError(null);
+    try {
+      const result = eventType === 'welcome'
+        ? await EmailAutomationService.onCommunityActivationWelcome(recipient, displayName)
+        : eventType === 'spotlight_invite'
+          ? await EmailAutomationService.onMemberSpotlightInvite(recipient, displayName)
+          : await EmailAutomationService.onIntroCallInvite(recipient, displayName);
+
+      if (!result?.success) {
+        toast.error(result?.error ? `Invite could not be sent: ${result.error}` : 'Invite could not be sent.');
+        return;
+      }
+
+      const { error } = await supabase.from('community_activation_events').insert({
+        user_id: user.id,
+        event_type: eventType
+      });
+
+      if (error) {
+        const message = error.message?.toLowerCase().includes('does not exist')
+          ? 'Activation tracking table is missing. Run docs/admin-dashboard-v2.sql to create it.'
+          : error.message?.toLowerCase().includes('permission')
+            ? 'Activation tracking is blocked by RLS policies. Run docs/admin-dashboard-v2.sql.'
+            : 'Activation tracking could not be updated. Confirm docs/admin-dashboard-v2.sql is applied.';
+        setActivationError(message);
+        toast.error('Invite sent but could not be logged.');
+        return;
+      }
+
+      setActivationEvents((current) => ({ ...current, [eventType]: true }));
+      setActivationError(null);
+      toast.success('Invite sent.');
+    } catch (error) {
+      console.error('Community activation email failed:', error);
+      toast.error('Invite could not be sent.');
+    } finally {
+      setActivationLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pt-24 pb-12">
@@ -162,40 +298,35 @@ const UserDashboard = () => {
             {/* Recommended Opportunities */}
             <div className="glass-card p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[var(--text-primary)]">Recommended for You</h2>
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">Open Opportunities</h2>
                 <button 
-                  onClick={() => (['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) ? navigate('/pricing') : navigate('/opportunities')}
+                  onClick={() => navigate('/opportunities')}
                   className="text-[var(--sp-accent)] hover:underline text-sm flex items-center gap-1"
                 >
-                  {(['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) ? 'Upgrade to view all' : 'View all matches'} <ArrowRight size={16} />
+                  View all opportunities <ArrowRight size={16} />
                 </button>
               </div>
               <div className="space-y-6">
-                {(['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier)) ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center glass-light rounded-xl border border-white/5">
-                    <Shield size={40} className="text-[var(--sp-accent)]/20 mb-3" />
-                    <p className="text-sm font-bold text-[var(--text-primary)] mb-1">Premium Feature</p>
-                    <p className="text-xs text-[var(--text-secondary)] max-w-[250px] mb-4">Upgrade to Premium to view personalized opportunities matched to your profile.</p>
-                    <button onClick={() => navigate('/pricing')} className="sp-btn-primary py-2 px-6 text-sm">Upgrade to Premium</button>
-                  </div>
-                ) : opportunities.length === 0 ? (
+                {opportunities.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center glass-light rounded-xl border border-[var(--sp-accent)]/20 border-dashed">
                     <div className="w-16 h-16 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center mb-4">
                        <Target size={32} className="text-[var(--sp-accent)]" />
                     </div>
-                    <p className="text-lg font-bold text-[var(--text-primary)] mb-2">No Matches Yet</p>
-                    <p className="text-sm text-[var(--text-secondary)] max-w-[300px] mb-6">Unlock your first recommendation by adding at least 3 relevant skills to your profile.</p>
-                    <button onClick={() => navigate(editPath)} className="sp-btn-primary py-2 px-6">Optimize Profile</button>
+                    <p className="text-lg font-bold text-[var(--text-primary)] mb-2">No live opportunities yet</p>
+                    <p className="text-sm text-[var(--text-secondary)] max-w-[300px] mb-6">New projects will appear here as soon as the admin team publishes them.</p>
+                    <button onClick={() => navigate('/opportunities')} className="sp-btn-primary py-2 px-6">Open Opportunities Dashboard</button>
                   </div>
                 ) : (
-                  opportunities.map(opp => (
+                  opportunities.slice(0, 3).map((opp) => (
                     <div 
                       key={opp.id} 
                       className="glass-light p-6 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
                       onClick={() => navigate('/opportunities')}
                     >
                       <h3 className="font-bold text-[var(--text-primary)] mb-2">{opp.title}</h3>
-                      <p className="text-sm text-[var(--text-secondary)] mb-4">{opp.org}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mb-2">{opp.org}</p>
+                      <p className="text-xs text-[var(--text-secondary)] opacity-80 mb-4">{opp.location}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">{opp.description || 'Open the opportunities dashboard to see full project details.'}</p>
                       <div className="flex flex-wrap gap-2">
                         <span className="px-3 py-1 rounded-full bg-[var(--sp-accent)]/10 text-[var(--sp-accent)] text-xs font-medium">
                           {opp.sector}
@@ -208,6 +339,11 @@ const UserDashboard = () => {
                   ))
                 )}
               </div>
+              {opportunities.length > 0 && (
+                <p className="mt-4 text-xs text-[var(--text-secondary)]">
+                  Members can browse all posted projects from the Opportunities dashboard and apply there.
+                </p>
+              )}
             </div>
 
             {/* Quick Actions */}
@@ -357,18 +493,74 @@ const UserDashboard = () => {
                 </h4>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />
-                    <span className="text-sm text-[var(--text-primary)] line-through opacity-70">Welcome to Strategic Pathways</span>
+                    {activationEvents.welcome ? (
+                      <CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-[var(--text-secondary)] flex-shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <span className={`text-sm ${activationEvents.welcome ? 'text-[var(--text-primary)] line-through opacity-70' : 'text-[var(--text-primary)]'}`}>
+                        Welcome to Strategic Pathways
+                      </span>
+                      {!activationEvents.welcome && (
+                        <button
+                          onClick={() => sendActivationEmail('welcome')}
+                          disabled={activationLoading}
+                          className="ml-2 text-xs text-[var(--sp-accent)] hover:underline disabled:opacity-60"
+                        >
+                          Send welcome email
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full border-2 border-[var(--text-secondary)] flex-shrink-0" />
-                    <span className="text-sm text-[var(--text-primary)]">Member Spotlight Invitation</span>
+                    {activationEvents.spotlight_invite ? (
+                      <CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-[var(--text-secondary)] flex-shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <span className={`text-sm ${activationEvents.spotlight_invite ? 'text-[var(--text-primary)] line-through opacity-70' : 'text-[var(--text-primary)]'}`}>
+                        Member Spotlight Invitation
+                      </span>
+                      {!activationEvents.spotlight_invite && (
+                        <button
+                          onClick={() => sendActivationEmail('spotlight_invite')}
+                          disabled={activationLoading}
+                          className="ml-2 text-xs text-[var(--sp-accent)] hover:underline disabled:opacity-60"
+                        >
+                          Send invite
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full border-2 border-[var(--text-secondary)] flex-shrink-0" />
-                    <span className="text-sm text-[var(--text-primary)]">Introductory Call Invite</span>
+                    {activationEvents.intro_call_invite ? (
+                      <CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-[var(--text-secondary)] flex-shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <span className={`text-sm ${activationEvents.intro_call_invite ? 'text-[var(--text-primary)] line-through opacity-70' : 'text-[var(--text-primary)]'}`}>
+                        Introductory Call Invite
+                      </span>
+                      {!activationEvents.intro_call_invite && (
+                        <button
+                          onClick={() => sendActivationEmail('intro_call_invite')}
+                          disabled={activationLoading}
+                          className="ml-2 text-xs text-[var(--sp-accent)] hover:underline disabled:opacity-60"
+                        >
+                          Send invite
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
+                {activationError && (
+                  <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                    <p className="text-xs text-amber-50/90">{activationError}</p>
+                  </div>
+                )}
              </div>
 
             {/* Match Score */}

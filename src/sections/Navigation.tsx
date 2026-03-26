@@ -22,7 +22,6 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isLightMode, setIsLightMode] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -94,7 +93,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
       if (error) throw error;
       toast.success(t('notifications.signOutSuccess'));
       navigate('/login');
-    } catch (error: any) {
+    } catch {
       toast.error(t('notifications.signOutError'));
     }
   };
@@ -215,6 +214,16 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                       <LayoutDashboard size={16} />
                       <span className="text-sm">{t('common.dashboard')}</span>
                     </button>
+                    <button
+                      onClick={() => {
+                        navigate('/notifications');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
+                    >
+                      <Bell size={16} />
+                      <span className="text-sm">{t('notifications.title')}</span>
+                    </button>
                     {userRole === 'admin' && (
                       <button 
                         onClick={() => {
@@ -224,7 +233,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
                       >
                         <LayoutDashboard size={16} />
-                        <span className="text-sm">Admin Dashboard</span>
+                        <span className="text-sm">{t('adminHeader.adminDashboard')}</span>
                       </button>
                     )}
                     <div className="border-t border-white/10 mt-2 pt-2">
@@ -326,6 +335,17 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                 {t('common.dashboard')}
               </button>
 
+              <button
+                onClick={() => {
+                  navigate('/notifications');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-[var(--text-primary)] text-2xl font-medium hover:text-[var(--sp-accent)] transition-colors flex items-center gap-2"
+              >
+                <Bell size={24} />
+                {t('notifications.title')}
+              </button>
+
               {userRole === 'admin' && (
                 <button 
                   onClick={() => {
@@ -335,7 +355,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                   className="text-[var(--text-primary)] text-2xl font-medium hover:text-[var(--sp-accent)] transition-colors flex items-center gap-2"
                 >
                   <LayoutDashboard size={24} />
-                  Admin Dashboard
+                  {t('adminHeader.adminDashboard')}
                 </button>
               )}
 

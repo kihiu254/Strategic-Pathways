@@ -57,6 +57,16 @@ export class EmailAutomationService {
     await this.triggerEmail('onboarding_complete', { email, name });
   }
 
+  // Trigger profile update email
+  static async onProfileUpdated(email: string, name: string) {
+    await this.triggerEmail('profile_updated', { email, name });
+  }
+
+  // Trigger login activity email
+  static async onLoginActivity(email: string, name: string, provider?: string) {
+    await this.triggerEmail('login_activity', { email, name, provider });
+  }
+
   // Trigger project added email
   static async onProjectAdded(email: string, name: string, projectTitle: string) {
     await this.triggerEmail('project_added', { email, name, projectTitle });
@@ -77,6 +87,17 @@ export class EmailAutomationService {
     await this.triggerEmail('application_status', { email, name, opportunityTitle, status });
   }
 
+  // Trigger opportunity interest / application email
+  static async onOpportunityInterest(
+    email: string,
+    name: string,
+    opportunityTitle: string,
+    organization: string,
+    mode: 'internal' | 'external' = 'internal'
+  ) {
+    await this.triggerEmail('opportunity_interest', { email, name, opportunityTitle, organization, mode });
+  }
+
   // Trigger verification document uploaded email
   static async onVerificationDocumentUploaded(email: string, name: string, documentType: string, tier: string) {
     await this.triggerEmail('verification_document_uploaded', { email, name, documentType, tier });
@@ -85,5 +106,29 @@ export class EmailAutomationService {
   // Trigger verification status update email
   static async onVerificationStatusUpdate(email: string, name: string, status: string, tier: string, reason?: string) {
     await this.triggerEmail('verification_status_update', { email, name, status, tier, reason });
+  }
+
+  // Trigger membership payment confirmation email
+  static async onPaymentConfirmed(
+    email: string,
+    name: string,
+    planLabel: string,
+    amountLabel: string,
+    currency: string
+  ) {
+    await this.triggerEmail('payment_confirmed', { email, name, planLabel, amountLabel, currency });
+  }
+
+  // Community activation sequence emails
+  static async onCommunityActivationWelcome(email: string, name: string) {
+    return this.triggerEmail('community_activation_welcome', { email, name });
+  }
+
+  static async onMemberSpotlightInvite(email: string, name: string) {
+    return this.triggerEmail('member_spotlight_invite', { email, name });
+  }
+
+  static async onIntroCallInvite(email: string, name: string) {
+    return this.triggerEmail('intro_call_invite', { email, name });
   }
 }

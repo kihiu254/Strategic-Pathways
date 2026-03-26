@@ -33,18 +33,18 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">{t('dashboard.settings.platformName')}</label>
-            <input type="text" defaultValue="Strategic Pathways" className="input-glass w-full px-4 py-3" aria-label="Platform name" title="Platform name" />
+            <input type="text" defaultValue="Strategic Pathways" className="input-glass w-full px-4 py-3" aria-label={t('dashboard.settings.platformName')} title={t('dashboard.settings.platformName')} />
           </div>
           <div className="space-y-2">
             <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">{t('dashboard.settings.contactEmail')}</label>
-            <input type="email" defaultValue="joinstrategicpathways@gmail.com" className="input-glass w-full px-4 py-3" aria-label="Contact email" title="Contact email" />
+            <input type="email" defaultValue="joinstrategicpathways@gmail.com" className="input-glass w-full px-4 py-3" aria-label={t('dashboard.settings.contactEmail')} title={t('dashboard.settings.contactEmail')} />
           </div>
           <div className="md:col-span-2 space-y-2">
             <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">{t('dashboard.settings.defaultCurrency')}</label>
-            <select className="input-glass w-full px-4 py-3" aria-label="Default currency" title="Default currency">
-              <option value="KES">Kenyan Shilling (KSh)</option>
-              <option value="USD">US Dollar ($)</option>
-              <option value="EUR">Euro (EUR)</option>
+            <select className="input-glass w-full px-4 py-3" aria-label={t('dashboard.settings.defaultCurrency')} title={t('dashboard.settings.defaultCurrency')}>
+              <option value="KES">{t('adminSettings.currencies.kes')}</option>
+              <option value="USD">{t('adminSettings.currencies.usd')}</option>
+              <option value="EUR">{t('adminSettings.currencies.eur')}</option>
             </select>
           </div>
         </div>
@@ -62,7 +62,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
                       value={tier.name}
                       onChange={(e) => setTierData({...tierData, [tier.name]: {...tier, name: e.target.value}})}
                       className="input-glass w-full px-4 py-2"
-                      placeholder="Tier Name"
+                      placeholder={t('adminSettings.tierName')}
                       aria-label={`Tier name for ${tier.name}`}
                       title={`Tier name for ${tier.name}`}
                     />
@@ -70,7 +70,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
                       value={tier.price}
                       onChange={(e) => setTierData({...tierData, [tier.name]: {...tier, price: e.target.value}})}
                       className="input-glass w-full px-4 py-2"
-                      placeholder="Price"
+                      placeholder={t('adminSettings.price')}
                       aria-label={`Tier price for ${tier.name}`}
                       title={`Tier price for ${tier.name}`}
                     />
@@ -80,16 +80,16 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
                     value={tier.features}
                     onChange={(e) => setTierData({...tierData, [tier.name]: {...tier, features: parseInt(e.target.value)}})}
                     className="input-glass w-full px-4 py-2"
-                    placeholder="Number of features"
+                    placeholder={t('adminSettings.numberOfFeatures')}
                     aria-label={`Number of features for ${tier.name}`}
                     title={`Number of features for ${tier.name}`}
                   />
                   <div className="flex gap-3">
                     <button onClick={() => handleSaveTier(tier.name)} className="sp-btn-primary px-6 py-2">
-                      Save Tier
+                      {t('adminSettings.saveTier')}
                     </button>
                     <button onClick={() => setEditingTier(null)} className="sp-btn-glass px-6 py-2">
-                      Cancel
+                      {t('dashboard.buttons.cancel')}
                     </button>
                   </div>
                 </div>
@@ -97,9 +97,9 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--sp-accent)] transition-colors">{tier.name}</h4>
-                    <p className="text-[var(--text-secondary)] text-sm opacity-70 font-medium mt-1">{tier.features} features &middot; {tier.price}</p>
+                    <p className="text-[var(--text-secondary)] text-sm opacity-70 font-medium mt-1">{t('adminSettings.featuresCount', { count: tier.features, price: tier.price })}</p>
                   </div>
-                  <button onClick={() => setEditingTier(tier.name)} className="sp-btn-glass px-6 py-2 font-bold tracking-wide">Edit</button>
+                  <button onClick={() => setEditingTier(tier.name)} className="sp-btn-glass px-6 py-2 font-bold tracking-wide">{t('dashboard.buttons.edit')}</button>
                 </div>
               )}
             </div>
@@ -111,10 +111,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
         <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">{t('dashboard.settings.notifications')}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            'Email notifications for new applications',
-            'Email notifications for project updates',
-            'Weekly summary reports',
-            'Member activity alerts',
+            t('adminSettings.notifications.newApplications'),
+            t('adminSettings.notifications.projectUpdates'),
+            t('adminSettings.notifications.weeklySummary'),
+            t('adminSettings.notifications.memberActivity'),
           ].map((setting, i) => (
             <label key={i} className="flex items-center gap-4 cursor-pointer glass-light p-4 rounded-2xl border border-white/5 hover:bg-white/5 transition-colors group">
               <input 

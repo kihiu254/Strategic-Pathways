@@ -7,7 +7,8 @@
     "opportunities": "Möglichkeiten",
     "impact": "Wirkung",
     "login": "Anmelden",
-    "register": "Registrieren"
+    "register": "Registrieren",
+    "contact": "Kontakt"
   },
   "hero": {
     "title": "Wo globale Fähigkeiten den Kreis schließen",
@@ -106,7 +107,11 @@
         "name": "Community",
         "price": "Kostenlos",
         "description": "Beginnen Sie Ihre Reise",
-        "features": ["Profil-Eintrag", "Monatlicher Newsletter", "Event-Einladungen"],
+        "features": [
+          "Profil-Eintrag",
+          "Monatlicher Newsletter",
+          "Event-Einladungen"
+        ],
         "cta": "Kostenlos beitreten"
       },
       "professional": {
@@ -114,14 +119,23 @@
         "price": "nur 100 $",
         "period": "/Jahr (oder 10 $/Monat)",
         "description": "Am beliebtesten",
-        "features": ["Alles in Community", "Projekt-Benachrichtigungen + früher Zugang", "Partner-Vorstellungen", "Glaubwürdigkeits-Abzeichen"],
+        "features": [
+          "Alles in Community",
+          "Projekt-Benachrichtigungen + früher Zugang",
+          "Partner-Vorstellungen",
+          "Glaubwürdigkeits-Abzeichen"
+        ],
         "cta": "Professional wählen"
       },
       "firm": {
         "name": "Firm",
         "price": "Individuell",
         "description": "Für Organisationen",
-        "features": ["Team-Onboarding", "Dedizierter Account-Support", "Co-Branding-Möglichkeiten"],
+        "features": [
+          "Team-Onboarding",
+          "Dedizierter Account-Support",
+          "Co-Branding-Möglichkeiten"
+        ],
         "cta": "Kontaktieren Sie uns"
       }
     },

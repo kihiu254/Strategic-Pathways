@@ -21,6 +21,19 @@ export const ProfileTypeSelection = ({ register, errors }: StepProps) => (
       <p className="text-[var(--text-secondary)] text-sm mb-8">
         Choose the Standard flow for a quick 5-minute setup, or the Premium flow for high-value consulting opportunities and verification.
       </p>
+      <div className="mb-8 rounded-[1.75rem] border border-[var(--sp-accent)]/30 bg-gradient-to-r from-[var(--sp-accent)]/14 to-white/5 px-5 py-4 text-left shadow-[0_10px_30px_rgba(200,159,94,0.08)]">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-[var(--sp-accent)]/30 bg-[var(--sp-accent)]/18">
+            <Shield size={18} className="text-[var(--sp-accent)]" />
+          </div>
+          <div>
+            <p className="text-[var(--text-primary)] text-sm font-semibold">Secure LinkedIn import</p>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--text-secondary)]">
+              Your professional data is imported securely from LinkedIn. Strategic Pathways does not post or share information without your permission.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <label className="cursor-pointer group relative">

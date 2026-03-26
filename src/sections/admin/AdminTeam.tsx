@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Search, Plus, Star, X 
 } from 'lucide-react';
@@ -38,6 +39,8 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
   handleAddAdmin,
   handleRemoveAdmin
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="admin-section-shell">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
@@ -45,10 +48,10 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
           <input 
             type="text"
-            placeholder="Search admins..."
+            placeholder={t('adminTeam.searchAdmins')}
             className="input-glass pl-10 pr-4 py-2.5 w-full text-sm"
-            aria-label="Search admins"
-            title="Search admins"
+            aria-label={t('adminTeam.searchAdmins')}
+            title={t('adminTeam.searchAdmins')}
           />
         </div>
         <div className="flex gap-3">
@@ -57,14 +60,14 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
             className={`sp-btn-glass flex items-center gap-2 text-sm px-4 ${showPromoteList ? 'bg-[var(--sp-accent)]/10 border-[var(--sp-accent)]/50' : ''}`}
           >
             <Star size={14} />
-            Promote Member
+            {t('adminTeam.promoteMember')}
           </button>
           <button 
             onClick={() => setShowAddAdmin(true)}
             className="sp-btn-primary flex items-center gap-2 text-sm px-4"
           >
             <Plus size={14} />
-            Add New Admin
+            {t('adminTeam.addNewAdmin')}
           </button>
         </div>
       </div>
@@ -72,17 +75,17 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
       {showPromoteList && (
         <div className="admin-surface-card premium-glass p-6 space-y-4 rounded-[28px] border border-[var(--sp-accent)]/20 animate-in zoom-in-95">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-[var(--text-primary)]">Select Member to Promote</h3>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">{t('adminTeam.selectMemberToPromote')}</h3>
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
               <input 
                 type="text"
-                placeholder="Search candidates..."
+                placeholder={t('adminTeam.searchCandidates')}
                 value={promoteSearch}
                 onChange={(e) => setPromoteSearch(e.target.value)}
                 className="input-glass pl-9 pr-4 py-1.5 text-xs w-64"
-                aria-label="Search members to promote"
-                title="Search members to promote"
+                aria-label={t('adminTeam.searchMembersToPromote')}
+                title={t('adminTeam.searchMembersToPromote')}
               />
             </div>
           </div>
@@ -108,7 +111,7 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
                     onClick={() => handleMakeAdmin(member.id, member.email)}
                     className="sp-btn-primary text-[10px] py-1.5 px-4"
                   >
-                    Grant Access
+                    {t('adminTeam.grantAccess')}
                   </button>
                 </div>
               ))}
@@ -119,12 +122,12 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
       {showAddAdmin && (
         <div className="admin-surface-card premium-glass p-8 rounded-[28px] border border-[var(--sp-accent)]/20 animate-in slide-in-from-top-4">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Add New Administrator</h3>
+            <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">{t('adminTeam.addNewAdministrator')}</h3>
             <button 
               onClick={() => setShowAddAdmin(false)} 
               className="text-[var(--text-secondary)] hover:text-white transition-colors"
-              title="Close add admin panel"
-              aria-label="Close add admin panel"
+              title={t('adminTeam.closeAddAdminPanel')}
+              aria-label={t('adminTeam.closeAddAdminPanel')}
             >
 
               <X size={20} />
@@ -133,46 +136,46 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">Email Address *</label>
+                <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">{t('adminTeam.emailAddressRequired')}</label>
                 <input
                   type="email"
                   value={newAdmin.email}
                   onChange={(e) => setNewAdmin({...newAdmin, email: e.target.value})}
                   className="input-glass w-full px-4 py-3"
-                  placeholder="admin@strategicpathways.co.ke"
-                  aria-label="New admin email"
-                  title="New admin email"
+                  placeholder={t('adminTeam.emailPlaceholder')}
+                  aria-label={t('adminTeam.newAdminEmail')}
+                  title={t('adminTeam.newAdminEmail')}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">Full Name *</label>
+                <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">{t('adminTeam.fullNameRequired')}</label>
                 <input
                   type="text"
                   value={newAdmin.full_name}
                   onChange={(e) => setNewAdmin({...newAdmin, full_name: e.target.value})}
                   className="input-glass w-full px-4 py-3"
-                  placeholder="John Doe"
-                  aria-label="New admin full name"
-                  title="New admin full name"
+                  placeholder={t('adminTeam.namePlaceholder')}
+                  aria-label={t('adminTeam.newAdminFullName')}
+                  title={t('adminTeam.newAdminFullName')}
                 />
               </div>
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">Temporary Password (optional)</label>
+                <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">{t('adminTeam.temporaryPassword')}</label>
                 <input
                   type="text"
                   value={newAdmin.password}
                   onChange={(e) => setNewAdmin({...newAdmin, password: e.target.value})}
                   className="input-glass w-full px-4 py-3"
-                  placeholder="Leave empty for auto-generation"
-                  aria-label="Temporary password"
-                  title="Temporary password"
+                  placeholder={t('adminTeam.passwordPlaceholder')}
+                  aria-label={t('adminTeam.temporaryPassword')}
+                  title={t('adminTeam.temporaryPassword')}
                 />
-                <p className="text-[10px] text-[var(--text-secondary)] opacity-60 pl-1">Password must be at least 8 characters with numbers and symbols if manual.</p>
+                <p className="text-[10px] text-[var(--text-secondary)] opacity-60 pl-1">{t('adminTeam.passwordHelp')}</p>
               </div>
             </div>
             <div className="flex gap-4 pt-2">
               <button onClick={handleAddAdmin} className="sp-btn-primary flex-1 py-3 font-bold">
-                Create Admin Account
+                {t('adminTeam.createAdminAccount')}
               </button>
               <button 
                 onClick={() => {
@@ -181,7 +184,7 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
                 }} 
                 className="sp-btn-glass px-8"
               >
-                Cancel
+                {t('dashboard.buttons.cancel')}
               </button>
             </div>
           </div>
@@ -193,10 +196,10 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
           <table className="w-full text-left">
             <thead className="bg-white/[0.02] text-[var(--text-secondary)] text-[10px] uppercase tracking-[0.2em] font-bold">
               <tr>
-                <th className="px-8 py-6">Admin Identity</th>
-                <th className="px-8 py-6">Control Level</th>
-                <th className="px-8 py-6">Activation Date</th>
-                <th className="px-8 py-6 text-right">Operations</th>
+                <th className="px-8 py-6">{t('adminTeam.adminIdentity')}</th>
+                <th className="px-8 py-6">{t('adminTeam.controlLevel')}</th>
+                <th className="px-8 py-6">{t('adminTeam.activationDate')}</th>
+                <th className="px-8 py-6 text-right">{t('adminTeam.operations')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.03]">
@@ -214,7 +217,7 @@ const AdminTeam: React.FC<AdminTeamProps> = ({
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--sp-accent)] transition-colors truncate">{admin.full_name || 'Admin User'}</p>
+                        <p className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--sp-accent)] transition-colors truncate">{admin.full_name || t('adminHeader.adminUser')}</p>
                         <p className="text-[10px] text-[var(--text-secondary)] opacity-60 font-medium tracking-tight uppercase truncate">{admin.email}</p>
                       </div>
                     </div>

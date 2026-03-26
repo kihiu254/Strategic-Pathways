@@ -6,6 +6,7 @@
     "audience": "Kwa Wataalamu",
     "opportunities": "Fursa",
     "impact": "Athari",
+    "contact": "Mawasiliano",
     "login": "Ingia",
     "register": "Jisajili"
   },
@@ -106,7 +107,11 @@
         "name": "Jumuiya",
         "price": "Bure",
         "description": "Anza safari yako",
-        "features": ["Kuorodheshwa kwa wasifu", "Jarida la kila mwezi", "Mialiko ya hafla"],
+        "features": [
+          "Kuorodheshwa kwa wasifu",
+          "Jarida la kila mwezi",
+          "Mialiko ya hafla"
+        ],
         "cta": "Jiunge bure"
       },
       "professional": {
@@ -114,14 +119,24 @@
         "price": "only $100",
         "period": "/mwaka (au $10/mwezi)",
         "description": "Maarufu zaidi",
-        "features": ["Kila kitu kwenye Jumuiya", "Arifa za mradi + ufikiaji wa mapema", "Utangulizi wa washirika", "Beji ya uaminifu"],
-        "cta": "Chagua Kitalu"
+        "features": [
+          "Kila kitu kwenye Jumuiya",
+          "Arifa za mradi + ufikiaji wa mapema",
+          "Utangulizi wa washirika",
+          "Beji ya uaminifu"
+        ],
+        "cta": "Chagua Kitalu",
+        "billingPeriod": "/mwaka"
       },
       "firm": {
         "name": "Kampuni",
         "price": "Maalum",
         "description": "Kwa mashirika",
-        "features": ["Kuingizwa kwa timu", "Msaada maalum wa akaunti", "Fursa zenye chapa mbili"],
+        "features": [
+          "Kuingizwa kwa timu",
+          "Msaada maalum wa akaunti",
+          "Fursa zenye chapa mbili"
+        ],
         "cta": "Wasiliana nasi"
       }
     },
@@ -133,6 +148,15 @@
       "orgLabel": "Shirika (Hiari)",
       "submit": "Tuma Ombi",
       "success": "Asante kwa maslahi yako katika uanachama wa {{tier}}! Tutawasiliana hivi karibuni."
+    },
+    "vettedMembership": "Uanachama uliokaguliwa",
+    "currentPlan": "Mpango wa sasa",
+    "page": {
+      "headline": "Uanachama na Ufikiaji",
+      "subheadline": "Chagua njia ya uanachama iliyokaguliwa inayofaa malengo yako ya kitaaluma au kitaasisi."
+    },
+    "errors": {
+      "selectPlan": "Imeshindikana kuchagua mpango."
     }
   },
   "oppsPage": {
@@ -200,7 +224,8 @@
       "projects": "Miradi",
       "applications": "Maombi",
       "analytics": "Unalitiki",
-      "settings": "Mipangilio"
+      "settings": "Mipangilio",
+      "opportunities": "Fursa"
     },
     "stats": {
       "totalMembers": "Jumla ya Wanachama",
@@ -239,7 +264,9 @@
       "edit": "Hariri",
       "delete": "Futa",
       "approve": "Idhinisha",
-      "reject": "Kataa"
+      "reject": "Kataa",
+      "bulkApprove": "Idhinisha kwa pamoja",
+      "bulkReject": "Kataa kwa pamoja"
     },
     "headers": {
       "member": "Mwanachama",
@@ -289,7 +316,8 @@
     "connect": "Je, uko tayari kuleta athari?",
     "madeWith": "Kuunganisha Vipaji vya Kimataifa vya Afrika na Athari za Kienyeji.",
     "rights": "Strategic Pathways. Haki zote zimehifadhiwa.",
-    "compliance": "Jukwaa la wataalamu, ushauri, na fursa za biashara nchini Kenya."
+    "compliance": "Jukwaa la wataalamu, ushauri, na fursa za biashara nchini Kenya.",
+    "tagline": "Mahali ambapo ujuzi wa kimataifa unakamilisha mzunguko wake"
   },
   "common": {
     "dashboard": "Dashibodi",
@@ -316,6 +344,9 @@
     "justNow": "Sasa hivi",
     "oneHourAgo": "Saa 1 lililopita",
     "markAsRead": "Weka zote kuwa zimesomwa",
+    "review": "Kagua kuingia kwako kwa hivi karibuni, masasisho ya akaunti, shughuli za miradi, malipo na hatua za fursa.",
+    "empty": "Bado hakuna arifa.",
+    "viewAll": "Angalia arifa zote",
     "signOutSuccess": "Umetoka kwa mafanikio",
     "signOutError": "Hitilafu wakati wa kutoka"
   },
@@ -355,16 +386,47 @@
       "certifications": "Vyeti",
       "connections": "Viunganisho",
       "rating": "Ukadiriaji",
-      "tier": "Daraja la Mwanachama"
+      "tier": "Daraja la Mwanachama",
+      "community": "Jumuiya",
+      "partners": "Washirika",
+      "professionalTier": "Mtaalamu",
+      "premiumFeature": "Kipengele cha Premium",
+      "premiumFeatureBody": "Boresha akaunti yako ili kuona fursa zilizolinganishwa binafsi na wasifu wako.",
+      "quickActions": "Hatua za Haraka",
+      "proTip": "Dokezo la Kitaalamu",
+      "proTipBody": "Wasifu wenye ujuzi uliothibitishwa hupata mwonekano mara 3 zaidi kwenye fursa zenye thamani kubwa. Fikiria kufanya tathmini ya ujuzi leo.",
+      "connect": "Unganisha",
+      "matchScore": "Alama ya Ulinganifu",
+      "premiumUnlock": "Ufunguzi wa Premium",
+      "premiumUnlockBody": "Kamilisha wasifu wako wa Premium ili kufungua ulinganishaji wa taasisi na uwekaji wa kina wa ujuzi.",
+      "membership": "Uanachama",
+      "memberSince": "Mwanachama Tangu",
+      "verification": "Uthibitishaji",
+      "statusLabel": "Hali",
+      "active": "Hai",
+      "verificationRequestSubmitted": "Ombi la uthibitishaji limetumwa. Timu yetu itakagua jalada lako."
     },
     "actions": {
       "edit": "Hariri Wasifu",
+      "editFull": "Hariri Wasifu Kamili",
+      "quickEdit": "Hariri Haraka",
       "save": "Hifadhi",
       "cancel": "Ghairi",
       "upload": "Pakia CV",
       "uploading": "Inapakia...",
       "download": "Pakua",
-      "noDocs": "Hakuna hati zilizopakiwa bado."
+      "noDocs": "Hakuna hati zilizopakiwa bado.",
+      "verifySkills": "Thibitisha Ujuzi",
+      "updateCv": "Sasisha CV",
+      "shareProfile": "Shiriki Wasifu",
+      "findWork": "Tafuta Kazi",
+      "upgradeToUnlock": "Boresha ili Kufungua",
+      "upgradeToPremium": "Boresha hadi Premium",
+      "upgradePlan": "Boresha Mpango",
+      "changePlan": "Badilisha Mpango",
+      "switchToCommunity": "Rudi Jumuiyani",
+      "switchToCommunitySuccess": "Umehamishiwa mpango wa Jumuiya.",
+      "switchToCommunityError": "Imeshindikana kubadilisha mpango."
     }
   },
   "auth": {
@@ -394,6 +456,306 @@
       "error": "Hitilafu ya uthibitishaji",
       "invalidEmail": "Tafadhali ingiza anwani halali ya barua pepe",
       "invalidName": "Tafadhali ingiza jina lako"
+    }
+  },
+  "about": {
+    "beneficiaries": {
+      "headline": "Tunaowahudumia"
+    }
+  },
+  "impactPage": {
+    "heroBody": "Gundua jinsi Strategic Pathways inavyobadilisha ushirikiano wa kitaaluma na athari ya ndani.",
+    "readyTitle": "Uko tayari kuleta athari yako mwenyewe?",
+    "stories": [
+      {
+        "name": "Sarah Mwangi",
+        "role": "Mshauri wa Mkakati",
+        "content": "Strategic Pathways iliniunganisha na mradi wa miundombinu wenye athari kubwa ambao uliendana kikamilifu na utaalamu wangu wa maendeleo endelevu.",
+        "image": "/images/impact_mentorship.jpg"
+      },
+      {
+        "name": "John Kamau",
+        "role": "Mchambuzi wa Fedha",
+        "content": "Mfumo wa uthibitishaji wa jukwaa ulinipa uaminifu niliouhitaji kushinda mikataba na washirika wa taasisi kote Afrika Mashariki.",
+        "image": "/images/impact_mentorship.jpg"
+      }
+    ]
+  },
+  "opportunitiesPage": {
+    "seoTitle": "Fursa",
+    "loading": "Inapakia fursa...",
+    "hero": {
+      "eyebrow": "Miradi na Fursa",
+      "headline": "Gundua miradi iliyokaguliwa inayounda uchumi wa athari wa Kenya.",
+      "body": "Jiunge bila malipo. Chunguza fursa za ushauri, advisory na ujenzi wa biashara zilizochaguliwa kwa wanachama waliokaguliwa na washirika wanaoaminika."
+    },
+    "metrics": {
+      "activeOpportunities": "{{count}} fursa hai",
+      "organizations": "mashirika {{count}}",
+      "sectors": "sekta {{count}}"
+    },
+    "filters": {
+      "refineSearch": "Boresha utafutaji",
+      "searchPlaceholder": "Tafuta kwa cheo, shirika au eneo",
+      "sector": "Sekta",
+      "type": "Aina",
+      "ownership": "Umiliki",
+      "sectors": {
+        "all": "Zote",
+        "agriculture": "Kilimo",
+        "technology": "Teknolojia",
+        "energy": "Nishati",
+        "health": "Afya",
+        "transport": "Usafiri",
+        "manufacturing": "Utengenezaji",
+        "education": "Elimu",
+        "tourism": "Utalii",
+        "finance": "Fedha",
+        "realEstate": "Mali isiyohamishika",
+        "mining": "Madini",
+        "trade": "Biashara",
+        "creatives": "Ubunifu",
+        "others": "Nyingine"
+      },
+      "types": {
+        "all": "Zote",
+        "fullTime": "Muda wote",
+        "partTime": "Muda wa sehemu",
+        "contract": "Mkataba",
+        "advisory": "Ushauri elekezi",
+        "consulting": "Ushauri",
+        "projectBased": "Kulingana na mradi"
+      },
+      "ownerships": {
+        "all": "Zote",
+        "private": "Binafsi",
+        "public": "Umma",
+        "ngos": "NGO"
+      }
+    },
+    "actions": {
+      "membership": "Uanachama",
+      "viewMembershipOptions": "Angalia chaguo za uanachama",
+      "partnerWithUs": "Shirikiana nasi",
+      "clearFilters": "Futa vichujio",
+      "resetFilters": "Weka upya vichujio",
+      "apply": "Tuma ombi",
+      "viewDetails": "Angalia maelezo",
+      "submitApplication": "Wasilisha ombi",
+      "openApplicationLink": "Fungua kiungo cha ombi",
+      "close": "Funga"
+    },
+    "labels": {
+      "match": "Ulinganifu wa {{score}}%",
+      "deadline": "Mwisho wa kutuma: {{value}}",
+      "externalApplicationLink": "Kiungo cha ombi la nje"
+    },
+    "values": {
+      "rolling": "Inaendelea",
+      "tbd": "Itatangazwa"
+    },
+    "modal": {
+      "leading": "Nani anaongoza hili?",
+      "where": "Wapi?",
+      "howLong": "Kwa muda gani?",
+      "when": "Lini?",
+      "projectSeeking": "Mradi unatafuta nini?",
+      "requirements": "Mahitaji",
+      "noRequirements": "Hakuna mahitaji maalum yaliyowekwa.",
+      "externalTitle": "Maombi ya fursa hii yanashughulikiwa kupitia kiungo cha nje.",
+      "externalBody": "Tumia kitufe kilicho hapa chini kufungua fomu ya maombi iliyotolewa na mwenye fursa."
+    },
+    "notifications": {
+      "selectedTitle": "Fursa imechaguliwa",
+      "selectedMessage": "Umefungua ombi la nje la \"{{title}}\".",
+      "receivedTitle": "Ombi limepokelewa",
+      "receivedMessage": "Ombi lako la \"{{title}}\" limewasilishwa na sasa linakaguliwa.",
+      "submitSuccess": "Ombi limewasilishwa kwa mafanikio!"
+    },
+    "errors": {
+      "load": "Imeshindikana kupakia fursa",
+      "loginToApply": "Tafadhali ingia ili kutuma ombi",
+      "profileLoading": "Tunapakia wasifu wako. Tafadhali jaribu tena baada ya muda mfupi.",
+      "upgradeToApply": "Boresha akaunti yako ili kutuma ombi la fursa.",
+      "completeOnboarding": "Kamilisha onboarding yako ili kutuma ombi la fursa.",
+      "submitFailed": "Imeshindikana kuwasilisha ombi: {{message}}"
+    },
+    "noResults": "Hakuna fursa zilizopatikana zinazolingana na vigezo vyako"
+  },
+  "adminHeader": {
+    "adminUser": "Msimamizi",
+    "superAdmin": "Msimamizi Mkuu",
+    "accountSettings": "Mipangilio ya akaunti ya msimamizi",
+    "adminShort": "M",
+    "userDashboard": "Dashibodi ya mtumiaji",
+    "adminDashboard": "Dashibodi ya msimamizi"
+  },
+  "adminSidebar": {
+    "goHome": "Nenda ukurasa wa nyumbani",
+    "pathwaysAdmin": "Admin wa Pathways",
+    "expand": "Panua upau wa pembeni"
+  },
+  "adminOverview": {
+    "platformStatus": "Hali ya jukwaa",
+    "platformHealthDashboard": "Dashibodi ya afya ya jukwaa",
+    "approvalsQueue": "Foleni ya idhini",
+    "memberDirectory": "Orodha ya wanachama",
+    "pendingApprovals": "Idhini zinazosubiri",
+    "underReview": "Inakaguliwa",
+    "possibleDuplicates": "Rudia zinazowezekana",
+    "totalMembers": "Jumla ya wanachama",
+    "verifiedProfessionals": "Wataalamu waliothibitishwa",
+    "diasporaExperts": "Wataalamu wa diaspora",
+    "studyAbroadReturnees": "Wanaorejea kutoka masomo nje ya nchi",
+    "averageRating": "Wastani wa ukadiriaji",
+    "membersDescription": "Wasifu, uthibitishaji, ngazi na beji.",
+    "opportunitiesDescription": "Chapisha na simamia fursa.",
+    "applicationsDescription": "Kagua onboarding na uthibitishaji.",
+    "projectsDescription": "Fuatilia miradi hai na iliyokamilika.",
+    "analyticsDescription": "Ripoti, ukuaji na maarifa.",
+    "adminTeam": "Timu ya admin",
+    "adminTeamDescription": "Alika na simamia maadmin.",
+    "settingsDescription": "Mipango, arifa na usanidi wa jukwaa.",
+    "onboardingRecords": "Rekodi za onboarding",
+    "onboardingRecordsDescription": "Kagua mawasilisho ya onboarding.",
+    "totalMembersMetric": "wanachama {{count}} jumla",
+    "createAndEditOpportunities": "Unda na uhariri fursa",
+    "pendingReviews": "mapitio {{count}} yanayosubiri",
+    "activeProjectsMetric": "miradi {{count}} hai",
+    "performanceDashboards": "Dashibodi za utendaji",
+    "adminsMetric": "maadmin {{count}}",
+    "platformControls": "Vidhibiti vya jukwaa",
+    "openOnboardingRecords": "Fungua rekodi za onboarding",
+    "open": "Fungua",
+    "workflowQueue": "Foleni ya kazi",
+    "openQueue": "Fungua foleni",
+    "duplicates": "Rudia",
+    "verified": "Imethibitishwa",
+    "systemHealth": "Afya ya mfumo",
+    "system": {
+      "payments": "Malipo",
+      "paystackConnected": "Paystack imeunganishwa",
+      "email": "Barua pepe",
+      "automationReady": "Otomesheni iko tayari",
+      "storage": "Hifadhi",
+      "verificationDocsOk": "Nyaraka za uthibitishaji ziko sawa",
+      "auth": "Uthibitishaji",
+      "loginOtpOk": "Kuingia na OTP ziko sawa"
+    }
+  },
+  "adminTeam": {
+    "searchAdmins": "Tafuta maadmin...",
+    "promoteMember": "Pandisha mwanachama",
+    "addNewAdmin": "Ongeza admin mpya",
+    "selectMemberToPromote": "Chagua mwanachama wa kupandisha",
+    "searchCandidates": "Tafuta wagombea...",
+    "searchMembersToPromote": "Tafuta wanachama wa kupandisha",
+    "grantAccess": "Toa ufikiaji",
+    "addNewAdministrator": "Ongeza msimamizi mpya",
+    "closeAddAdminPanel": "Funga paneli ya kuongeza admin",
+    "emailAddressRequired": "Anwani ya barua pepe *",
+    "emailPlaceholder": "admin@strategicpathways.co.ke",
+    "newAdminEmail": "Barua pepe ya admin mpya",
+    "fullNameRequired": "Jina kamili *",
+    "namePlaceholder": "John Doe",
+    "newAdminFullName": "Jina kamili la admin mpya",
+    "temporaryPassword": "Nenosiri la muda (hiari)",
+    "passwordPlaceholder": "Acha tupu kwa utengenezaji wa kiotomatiki",
+    "passwordHelp": "Nenosiri lazima liwe na angalau herufi 8 pamoja na nambari na alama ikiwa umeandika mwenyewe.",
+    "createAdminAccount": "Unda akaunti ya admin",
+    "adminIdentity": "Utambulisho wa admin",
+    "controlLevel": "Kiwango cha udhibiti",
+    "activationDate": "Tarehe ya kuanzishwa",
+    "operations": "Shughuli"
+  },
+  "adminApplications": {
+    "reviewIntro": "Kagua watu waliotuma maombi ya miradi na fursa zilizochapishwa.",
+    "reviewBody": "Idhini hapa zinahusu waombaji, si watumiaji waliounda au kuchapisha mradi.",
+    "searchApplications": "Tafuta maombi",
+    "appliedFor": "Ameomba {{title}}",
+    "daysAgo": "siku {{count}} zilizopita",
+    "viewApplicant": "Tazama mwombaji",
+    "markAsReviewed": "Weka kuwa imekaguliwa",
+    "noApplicants": "Hakuna waombaji wa miradi waliopatikana."
+  },
+  "adminMemberDirectory": {
+    "viewProfileFor": "Tazama wasifu wa {{name}}",
+    "viewDocumentsFor": "Tazama nyaraka za {{name}}",
+    "deleteMember": "Futa mwanachama {{name}}",
+    "noMembers": "Hakuna wanachama waliopatikana kwa vigezo vyako."
+  },
+  "adminProjects": {
+    "loadErrorTitle": "Miradi iliyochapishwa haikuweza kupakiwa kwa kipindi hiki cha admin.",
+    "loadErrorBody": "{{error}} Thibitisha jedwali la `opportunities` linapatikana na sera za admin zimetumika kwenye Supabase.",
+    "introTitle": "Sehemu hii inaonyesha miradi ya portfolio iliyopakiwa na wanachama kuhusu kazi zao.",
+    "introBody": "Tumia Fursa kuchapisha fursa za kina ambazo waombaji wanaweza kuziomba.",
+    "createOpportunity": "Unda fursa",
+    "projectDelivery": "Utekelezaji wa mradi",
+    "uploadedBy": "Imepakiwa na {{name}}",
+    "unknownMember": "Mwanachama asiyejulikana",
+    "noSummary": "Hakuna muhtasari wa mradi uliowekwa bado.",
+    "inspect": "Kagua",
+    "noProjects": "Hakuna miradi ya portfolio iliyopakiwa bado."
+  },
+  "adminAnalytics": {
+    "liveUpdate": "Takwimu zinasasishwa kiotomatiki kutoka kwa rekodi za moja kwa moja za jukwaa kwenye Supabase.",
+    "monthlyActivityDistribution": "Usambazaji wa shughuli za kila mwezi"
+  },
+  "adminProfile": {
+    "update": "Sasisha",
+    "superAdministrator": "Msimamizi Mkuu",
+    "fullName": "Jina kamili",
+    "emailAddress": "Anwani ya barua pepe",
+    "phoneNumber": "Nambari ya simu",
+    "roleType": "Aina ya jukumu",
+    "professionalBio": "Wasifu wa kitaaluma",
+    "bioDefault": "Msimamizi wa jukwaa anayesimamia shughuli za Strategic Pathways na mifumo ya uthibitishaji wa wanachama.",
+    "accessControlSecurity": "Udhibiti wa ufikiaji na usalama",
+    "currentPassword": "Nenosiri la sasa",
+    "newPassword": "Nenosiri jipya",
+    "newPasswordPlaceholder": "Angalau herufi 8",
+    "confirmIdentity": "Thibitisha utambulisho",
+    "confirmIdentityPlaceholder": "Rudia nenosiri",
+    "updateSecurityKeys": "Sasisha funguo za usalama",
+    "syncComplete": "Usawazishaji wa wasifu umekamilika.",
+    "saveIdentityChanges": "Hifadhi mabadiliko ya utambulisho"
+  },
+  "adminSettings": {
+    "currencies": {
+      "kes": "Shilingi ya Kenya (KSh)",
+      "usd": "Dola ya Marekani ($)",
+      "eur": "Euro (EUR)"
+    },
+    "tierName": "Jina la ngazi",
+    "price": "Bei",
+    "numberOfFeatures": "Idadi ya vipengele",
+    "saveTier": "Hifadhi ngazi",
+    "featuresCount": "vipengele {{count}} - {{price}}",
+    "notifications": {
+      "newApplications": "Arifa za barua pepe kwa maombi mapya",
+      "projectUpdates": "Arifa za barua pepe kwa masasisho ya miradi",
+      "weeklySummary": "Ripoti za muhtasari wa kila wiki",
+      "memberActivity": "Tahadhari za shughuli za wanachama"
+    }
+  },
+  "adminOnboardingList": {
+    "back": "Rudi",
+    "title": "Rekodi za onboarding",
+    "subtitle": "Data yote ya onboarding iliyowasilishwa kwa ukaguzi wa admin.",
+    "search": "Tafuta jina, barua pepe, aina...",
+    "csv": "CSV",
+    "loading": "Inapakia wasifu...",
+    "viewProfile": "Tazama wasifu",
+    "education": "Elimu",
+    "global": "Kimataifa",
+    "studied": "Amesoma: {{value}}",
+    "worked": "Amefanya kazi: {{value}}",
+    "languages": "Lugha",
+    "verificationDocs": "Nyaraka za uthibitishaji",
+    "noResults": "Hakuna rekodi za onboarding zinazolingana na kichujio chako.",
+    "errors": {
+      "load": "Imeshindikana kupakia rekodi za onboarding",
+      "noRecords": "Hakuna rekodi za kuhamisha"
     }
   }
 }

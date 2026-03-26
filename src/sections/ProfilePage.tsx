@@ -5,10 +5,11 @@ import {
   User, Mail, Phone, MapPin, Briefcase, GraduationCap, 
   Edit2, Camera, Linkedin, Twitter, Globe, Award, FileText,
   CheckCircle, Clock, Star, Upload, Trash2, Loader2, Shield, Zap, Search, Plus, Share2, Eye, X,
-  Activity, Settings, Heart
+  Activity, Settings, Heart, Sparkles, PenSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppNotificationService } from '../lib/appNotifications';
+import { EmailAutomationService } from '../lib/emailAutomation';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { calculateDynamicMatchScore } from '../utils/matchScoring';
@@ -39,6 +40,15 @@ type ProjectActivityRow = {
   project_title: string | null;
   created_at: string | null;
   is_current: boolean | null;
+};
+
+type ImpactStoryRow = {
+  id: string;
+  role: string | null;
+  organization: string | null;
+  story: string | null;
+  is_published: boolean | null;
+  created_at: string | null;
 };
 
 const normalizeDocument = (file: {
@@ -72,6 +82,16 @@ const ProfilePage = () => {
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [userProjects, setUserProjects] = useState<{id: string, project_title: string, organization?: string, project_description?: string, is_current: boolean, created_at: string, tags?: string[]}[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [impactStoryCount, setImpactStoryCount] = useState(0);
+  const [impactStories, setImpactStories] = useState<ImpactStoryRow[]>([]);
+  const [impactStoriesLoading, setImpactStoriesLoading] = useState(false);
+  const [impactStoriesError, setImpactStoriesError] = useState<string | null>(null);
+  const [isImpactSubmitting, setIsImpactSubmitting] = useState(false);
+  const [impactStoryForm, setImpactStoryForm] = useState({
+    role: '',
+    organization: '',
+    story: ''
+  });
   const [showAddProject, setShowAddProject] = useState(false);
   const [newProject, setNewProject] = useState({
     project_title: '',
@@ -115,6 +135,8 @@ const ProfilePage = () => {
     matchScoresDetails: MatchScores | null;
     sector?: string;
     primarySector?: string;
+    professionalTitle?: string;
+    organisation?: string;
   }>({
     name: user?.user_metadata?.full_name || t('common.loading'),
     title: t('profilePage.status.professional'),
@@ -180,6 +202,8 @@ const ProfilePage = () => {
             userCategory: data.user_category || '',
             verificationTier: data.verification_tier || 'Tier 1 – Self-Declared',
             matchScore: data.profile_completion_percentage || 0,
+            professionalTitle: data.professional_title || '',
+            organisation: data.organisation || '',
             education: data.education && typeof data.education === 'object' && !Array.isArray(data.education) 
               ? [{
                   degree: data.education.level || 'Not specified',
@@ -371,6 +395,50 @@ const ProfilePage = () => {
     loadAllData();
   }, [isLoading, navigate, t, user]);
 
+  useEffect(() => {
+    const loadImpactStories = async () => {
+      if (!user) return;
+
+      setImpactStoriesLoading(true);
+      setImpactStoriesError(null);
+
+      const { data, error } = await supabase
+        .from('impact_stories')
+        .select('id, role, organization, story, is_published, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('Could not load impact stories:', error);
+        const message = error.message?.toLowerCase().includes('does not exist')
+          ? 'Impact stories table is missing. Run docs/admin-dashboard-v2.sql to install it.'
+          : error.message?.toLowerCase().includes('permission')
+            ? 'Impact stories are blocked by RLS policies. Run docs/admin-dashboard-v2.sql to enable access.'
+            : 'Impact stories could not be loaded. Confirm docs/admin-dashboard-v2.sql has been applied.';
+        setImpactStories([]);
+        setImpactStoryCount(0);
+        setImpactStoriesError(message);
+        setImpactStoriesLoading(false);
+        return;
+      }
+
+      const rows = (data || []) as ImpactStoryRow[];
+      setImpactStories(rows);
+      setImpactStoryCount(rows.length);
+      setImpactStoriesLoading(false);
+    };
+
+    void loadImpactStories();
+  }, [user]);
+
+  useEffect(() => {
+    setImpactStoryForm((current) => ({
+      role: current.role || profile.professionalTitle || profile.title || '',
+      organization: current.organization || profile.organisation || '',
+      story: current.story
+    }));
+  }, [profile]);
+
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   const handleSave = async () => {
@@ -395,12 +463,81 @@ const ProfilePage = () => {
 
       if (error) throw error;
 
+      await AppNotificationService.notifySelf({
+        title: 'Profile updated',
+        message: 'Your profile changes were saved successfully.',
+        type: 'success',
+        data: { action: 'profile_updated' },
+      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+      await EmailAutomationService.onProfileUpdated(profile.email, profile.name);
       setIsEditing(false);
       toast.success('Profile updated successfully!');
     } catch (e) {
       const err = e as Error;
       console.error('Save error:', err);
       toast.error('Failed to update profile: ' + err.message);
+    }
+  };
+
+  const handleSubmitImpactStory = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!user) {
+      toast.error('Please log in to share an impact story.');
+      return;
+    }
+
+    if (!impactStoryForm.story.trim()) {
+      toast.error('Please share a short story before submitting.');
+      return;
+    }
+
+    setIsImpactSubmitting(true);
+    try {
+      const displayName =
+        profile.name ||
+        user.user_metadata?.full_name ||
+        user.email ||
+        'Strategic Pathways Member';
+
+      const { data, error } = await supabase
+        .from('impact_stories')
+        .insert({
+          user_id: user.id,
+          full_name: displayName,
+          role: impactStoryForm.role.trim() || profile.professionalTitle || 'Strategic Pathways Member',
+          organization: impactStoryForm.organization.trim() || profile.organisation || null,
+          story: impactStoryForm.story.trim(),
+          image_url: profile.avatar_url || null,
+          is_published: false
+        })
+        .select('id, role, organization, story, is_published, created_at')
+        .single();
+
+      if (error) throw error;
+
+      await AppNotificationService.notifySelf({
+        title: 'Impact story submitted',
+        message: 'Thanks for sharing your story. It is now waiting for admin review.',
+        type: 'success',
+        data: { action: 'impact_story_submitted' }
+      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+
+      toast.success('Your story has been sent for admin review.');
+      setImpactStoriesError(null);
+      if (data) {
+        setImpactStories((current) => [data as ImpactStoryRow, ...current]);
+        setImpactStoryCount((current) => current + 1);
+      } else {
+        setImpactStoryCount((current) => current + 1);
+      }
+      setImpactStoryForm((current) => ({ ...current, story: '' }));
+    } catch (e) {
+      const err = e as Error;
+      console.error('Error saving impact story:', err);
+      toast.error('Failed to save your story. Make sure the impact stories table is installed.');
+    } finally {
+      setIsImpactSubmitting(false);
     }
   };
 
@@ -429,12 +566,12 @@ const ProfilePage = () => {
       if (error) throw error;
 
       await AppNotificationService.notifySelf({
-        title: 'Project added',
-        message: `"${newProject.project_title}" was added to your profile.`,
+        title: 'Portfolio project added',
+        message: `"${newProject.project_title}" was added to your portfolio.`,
         type: 'success',
         data: { action: 'project_added', projectTitle: newProject.project_title },
       }).catch((notificationError) => console.warn('Notification failed:', notificationError));
-      toast.success('Project added successfully!');
+      toast.success('Portfolio project added successfully!');
       setShowAddProject(false);
       setNewProject({
         project_title: '',
@@ -452,7 +589,6 @@ const ProfilePage = () => {
       }
 
       // Trigger email notification
-      const { EmailAutomationService } = await import('../lib/emailAutomation');
       await EmailAutomationService.onProjectAdded(
         user.email || '',
         profile.name,
@@ -545,7 +681,6 @@ const ProfilePage = () => {
       }
 
       // Trigger email notification
-      const { EmailAutomationService } = await import('../lib/emailAutomation');
       await EmailAutomationService.onCVUploaded(
         user.email || '',
         profile.name,
@@ -599,7 +734,19 @@ const ProfilePage = () => {
 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const isCommunityTier = profile.tier === 'Community';
-  const displayTier = profile.tier === 'Firm' ? 'Partners' : profile.tier;
+  const getDisplayTier = (tier: string) => {
+    if (tier === 'Firm') return t('profilePage.labels.partners');
+    if (tier === 'Community') return t('profilePage.labels.community');
+    if (tier === 'Professional') return t('profilePage.labels.professionalTier');
+    return tier;
+  };
+  const getDisplayVerification = (verificationTier: string) => {
+    if (verificationTier.includes('Self-Declared')) return t('profilePage.status.selfDeclared');
+    if (verificationTier.includes('Institutional Ready')) return t('profilePage.status.institutionalReady');
+    if (verificationTier.includes('Verified Professional')) return t('profilePage.status.verified');
+    return verificationTier;
+  };
+  const displayTier = getDisplayTier(profile.tier);
 
   const getEditPath = () => (isCommunityTier ? '/profile/edit/basic' : '/profile/edit');
   const getMatchScoreOpacityClass = (weight: number) => {
@@ -622,10 +769,10 @@ const ProfilePage = () => {
 
       if (error) throw error;
       setProfile(prev => ({ ...prev, tier: 'Community', profileType: 'Standard Member' }));
-      toast.success('Switched to Community plan.');
+      toast.success(t('profilePage.actions.switchToCommunitySuccess'));
     } catch (e) {
       const err = e as Error;
-      toast.error(err.message || 'Failed to switch plan.');
+      toast.error(err.message || t('profilePage.actions.switchToCommunityError'));
     }
   };
 
@@ -670,7 +817,8 @@ const ProfilePage = () => {
 
   const tabs = [
     { id: 'overview', label: t('profilePage.tabs.overview'), icon: User },
-    { id: 'projects', label: t('profilePage.tabs.projects'), icon: Briefcase },
+    { id: 'projects', label: 'Portfolio Projects', icon: Briefcase },
+    { id: 'impact', label: 'Impact Story', icon: Sparkles },
     { id: 'documents', label: t('profilePage.tabs.documents'), icon: FileText },
     { id: 'activity', label: t('profilePage.tabs.activity'), icon: Clock },
   ];
@@ -819,12 +967,12 @@ const ProfilePage = () => {
                       <div className="flex flex-wrap gap-2">
                         <span className="px-3 py-1.5 rounded-xl bg-[var(--sp-accent)]/20 text-[var(--sp-accent)] text-xs font-bold flex items-center gap-1.5 border border-[var(--sp-accent)]/30 shadow-lg shadow-[var(--sp-accent)]/10">
                           <Shield size={14} className="fill-[var(--sp-accent)]/20" />
-                          {profile.verificationTier === 'Tier 3 – Institutional Ready' ? 'Institutional Ready' : 'Verified Professional'}
+                          {profile.verificationTier.includes('Institutional Ready') ? t('profilePage.status.institutionalReady') : t('profilePage.status.verified')}
                         </span>
                         {profile.profileType === 'Premium (Verified)' && (
                           <span className="px-3 py-1.5 rounded-xl bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center gap-1.5 border border-blue-500/30 shadow-lg shadow-blue-500/10">
                             <Zap size={14} />
-                            Venture Builder
+                            {t('profilePage.status.ventureBuilder')}
                           </span>
                         )}
                       </div>
@@ -905,14 +1053,14 @@ const ProfilePage = () => {
                     className="sp-btn-primary flex items-center gap-2"
                   >
                     <Edit2 size={16} />
-                    Edit Full Profile
+                    {t('profilePage.actions.editFull')}
                   </button>
                   <button 
                     onClick={() => setIsEditing(!isEditing)}
                     className="sp-btn-glass flex items-center gap-2"
                   >
                     <Edit2 size={16} />
-                    {isEditing ? t('profilePage.actions.cancel') : 'Quick Edit'}
+                    {isEditing ? t('profilePage.actions.cancel') : t('profilePage.actions.quickEdit')}
                   </button>
                   {isEditing && (
                     <button 
@@ -1043,21 +1191,24 @@ const ProfilePage = () => {
             {activeTab === 'projects' && (
               <div className="glass-card p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">{t('profilePage.labels.myProjects')}</h3>
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">My Portfolio Projects</h3>
                   <button
                     onClick={() => setShowAddProject(!showAddProject)}
                     className="sp-btn-primary flex items-center gap-2 text-sm"
                   >
                     <Plus size={16} />
-                    Add Project
+                    Add Portfolio Project
                   </button>
                 </div>
 
                 {showAddProject && (
                   <div className="glass-light p-6 rounded-xl mb-6 space-y-4">
-                    <h4 className="text-[var(--text-primary)] font-medium mb-4">New Project</h4>
+                    <h4 className="text-[var(--text-primary)] font-medium mb-1">Add Portfolio Project</h4>
+                    <p className="text-sm text-[var(--text-secondary)] mb-4">
+                      Showcase work you personally created, contributed to, or led. These are portfolio items, not public opportunities for applicants.
+                    </p>
                     <input
-                      placeholder="Project Title *"
+                      placeholder="Portfolio Project Title *"
                       value={newProject.project_title}
                       onChange={(e) => setNewProject({...newProject, project_title: e.target.value})}
                       className="input-glass w-full"
@@ -1065,7 +1216,7 @@ const ProfilePage = () => {
                       title="Project title"
                     />
                     <textarea
-                      placeholder="Description"
+                      placeholder="Describe what you built, your contribution, and the outcome"
                       value={newProject.project_description}
                       onChange={(e) => setNewProject({...newProject, project_description: e.target.value})}
                       className="input-glass w-full min-h-[100px]"
@@ -1074,7 +1225,7 @@ const ProfilePage = () => {
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <input
-                        placeholder="Organization"
+                        placeholder="Organization / Client"
                         value={newProject.organization}
                         onChange={(e) => setNewProject({...newProject, organization: e.target.value})}
                         className="input-glass w-full"
@@ -1104,7 +1255,7 @@ const ProfilePage = () => {
                     </p>
                     <div className="flex gap-2">
                       <button onClick={handleAddProject} className="sp-btn-primary">
-                        Save Project
+                        Save Portfolio Project
                       </button>
                       <button onClick={() => setShowAddProject(false)} className="sp-btn-glass">
                         Cancel
@@ -1115,7 +1266,7 @@ const ProfilePage = () => {
 
                 {userProjects.length === 0 ? (
                   <div className="text-center py-8 text-[var(--text-secondary)]">
-                    No projects yet. Start adding your work!
+                    No portfolio projects yet. Start adding your self-created work.
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1161,6 +1312,124 @@ const ProfilePage = () => {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'impact' && (
+              <div className="glass-card p-6 space-y-6">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                      <Sparkles size={18} className="text-[var(--sp-accent)]" />
+                      Submit an Impact Story
+                    </h3>
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      Share a short story about work, projects, or outcomes you unlocked through Strategic Pathways. Stories are reviewed by admins before appearing on the public Impact page.
+                    </p>
+                  </div>
+                  <div className="glass-light rounded-xl border border-white/10 px-4 py-3 text-sm text-[var(--text-secondary)]">
+                    <span className="text-[var(--text-primary)] font-semibold">{impactStoryCount}</span> submissions
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmitImpactStory} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-[var(--text-primary)]">Your role</label>
+                      <input
+                        value={impactStoryForm.role}
+                        onChange={(event) => setImpactStoryForm((current) => ({ ...current, role: event.target.value }))}
+                        className="input-glass w-full"
+                        placeholder="Example: Strategy Consultant"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-[var(--text-primary)]">Organization or project</label>
+                      <input
+                        value={impactStoryForm.organization}
+                        onChange={(event) => setImpactStoryForm((current) => ({ ...current, organization: event.target.value }))}
+                        className="input-glass w-full"
+                        placeholder="Example: Nairobi County / client / project"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-[var(--text-primary)]">Your story</label>
+                    <textarea
+                      value={impactStoryForm.story}
+                      onChange={(event) => setImpactStoryForm((current) => ({ ...current, story: event.target.value }))}
+                      className="input-glass w-full min-h-[160px]"
+                      placeholder="Explain what happened, why it mattered, and what result you unlocked."
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button type="submit" disabled={isImpactSubmitting} className="sp-btn-primary flex items-center gap-2 px-6 py-3 disabled:opacity-60">
+                      <PenSquare size={16} />
+                      {isImpactSubmitting ? 'Submitting...' : 'Submit story'}
+                    </button>
+                    <span className="text-xs text-[var(--text-secondary)] self-center">
+                      You can submit more than one story. Each submission is reviewed before publishing.
+                    </span>
+                  </div>
+                </form>
+
+                <div className="glass-light rounded-2xl border border-white/10 p-5 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h4 className="text-base font-semibold text-[var(--text-primary)]">My Impact Stories</h4>
+                    <span className="text-xs text-[var(--text-secondary)]">
+                      {impactStories.length} total
+                    </span>
+                  </div>
+                  {impactStoriesError && (
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                      <p className="text-xs text-amber-50/90">{impactStoriesError}</p>
+                    </div>
+                  )}
+                  {impactStoriesLoading ? (
+                    <p className="text-sm text-[var(--text-secondary)]">Loading your submissions...</p>
+                  ) : impactStories.length === 0 ? (
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      You have not submitted an impact story yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {impactStories.map((story) => {
+                        const statusLabel = story.is_published ? 'Published' : 'Pending review';
+                        const statusClasses = story.is_published
+                          ? 'bg-green-500/10 text-green-400'
+                          : 'bg-amber-500/10 text-amber-300';
+                        return (
+                          <div key={story.id} className="glass-light rounded-2xl p-4 border border-white/5">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-[var(--text-primary)]">
+                                  {story.role || 'Strategic Pathways Member'}
+                                  {story.organization ? ` - ${story.organization}` : ''}
+                                </p>
+                                <p className="text-xs text-[var(--text-secondary)] mt-2 line-clamp-2">
+                                  {story.story || 'No story text provided.'}
+                                </p>
+                              </div>
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${statusClasses}`}>
+                                {statusLabel}
+                              </span>
+                            </div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)] mt-3">
+                              Submitted{' '}
+                              {story.created_at
+                                ? new Date(story.created_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })
+                                : 'recently'}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1304,8 +1573,8 @@ const ProfilePage = () => {
                 {(profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <Shield size={40} className="text-[var(--sp-accent)]/20 mb-3" />
-                    <p className="text-sm font-bold text-[var(--text-primary)] mb-1">Premium Feature</p>
-                    <p className="text-[10px] text-[var(--text-secondary)] max-w-[180px]">Upgrade to view personalized opportunities matched to your profile.</p>
+                    <p className="text-sm font-bold text-[var(--text-primary)] mb-1">{t('profilePage.labels.premiumFeature')}</p>
+                    <p className="text-[10px] text-[var(--text-secondary)] max-w-[180px]">{t('profilePage.labels.premiumFeatureBody')}</p>
                   </div>
                 ) : (
                   (() => {
@@ -1329,7 +1598,7 @@ const ProfilePage = () => {
                 onClick={() => (profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) ? navigate('/pricing') : navigate('/opportunities')} 
                 className="w-full mt-6 py-3 rounded-2xl bg-[var(--sp-accent)] text-[var(--text-inverse)] font-bold text-xs uppercase tracking-widest shadow-lg shadow-[var(--sp-accent)]/20 hover:scale-[1.02] active:scale-95 transition-all"
               >
-                {(profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) ? 'Upgrade to Unlock' : t('profilePage.labels.viewMatches')}
+                {(profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) ? t('profilePage.actions.upgradeToUnlock') : t('profilePage.labels.viewMatches')}
               </button>
             </div>
 
@@ -1337,14 +1606,14 @@ const ProfilePage = () => {
             <div className="premium-glass p-8 rounded-[32px] border border-white/5 relative overflow-hidden">
                <h3 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-3 relative z-10 tracking-tight">
                 <Zap size={20} className="text-[var(--sp-accent)]" />
-                Quick Actions
+                {t('profilePage.labels.quickActions')}
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { icon: FileText, label: 'Update CV', color: 'bg-blue-500/10 text-blue-400', action: () => { setActiveTab('documents'); setTimeout(() => document.getElementById('cv-upload')?.click(), 100); } },
-                  { icon: Share2, label: 'Share Profile', color: 'bg-purple-500/10 text-purple-400', action: () => handleShareDocument('profile') },
-                  { icon: Search, label: 'Find Work', color: 'bg-green-500/10 text-green-400', action: () => navigate('/opportunities') },
-                  { icon: Settings, label: 'Edit Profile', color: 'bg-orange-500/10 text-orange-400', action: () => navigate(getEditPath()) },
+                  { icon: FileText, label: t('profilePage.actions.updateCv'), color: 'bg-blue-500/10 text-blue-400', action: () => { setActiveTab('documents'); setTimeout(() => document.getElementById('cv-upload')?.click(), 100); } },
+                  { icon: Share2, label: t('profilePage.actions.shareProfile'), color: 'bg-purple-500/10 text-purple-400', action: () => handleShareDocument('profile') },
+                  { icon: Search, label: t('profilePage.actions.findWork'), color: 'bg-green-500/10 text-green-400', action: () => navigate('/opportunities') },
+                  { icon: Settings, label: t('profilePage.actions.edit'), color: 'bg-orange-500/10 text-orange-400', action: () => navigate(getEditPath()) },
                 ].map((action, i) => (
                   <button key={i} onClick={action.action} className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[var(--sp-accent)]/20 hover:bg-white/[0.05] transition-all group">
                     <div className={`p-2 rounded-xl mb-2 ${action.color} group-hover:scale-110 transition-transform`}>
@@ -1363,9 +1632,9 @@ const ProfilePage = () => {
                   <Heart size={20} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[var(--text-primary)] mb-2">Pro Tip</h4>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)] mb-2">{t('profilePage.labels.proTip')}</h4>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed opacity-80">
-                    Profiles with verified skills get 3x more visibility from high-value opportunities. Consider taking a skill assessment today!
+                    {t('profilePage.labels.proTipBody')}
                   </p>
                 </div>
               </div>
@@ -1378,8 +1647,8 @@ const ProfilePage = () => {
                   <Award size={18} className="text-[var(--sp-accent)]" />
                   {t('profilePage.labels.skills')}
                 </h3>
-                <button onClick={() => toast.success('Verification request submitted. Our team will review your portfolio.')} className="text-[var(--text-secondary)] hover:text-green-400 transition-colors text-xs font-bold flex items-center gap-1 bg-white/5 py-1 px-2 rounded-lg">
-                  <Shield size={14} /> Verify Skills
+                <button onClick={() => toast.success(t('profilePage.labels.verificationRequestSubmitted'))} className="text-[var(--text-secondary)] hover:text-green-400 transition-colors text-xs font-bold flex items-center gap-1 bg-white/5 py-1 px-2 rounded-lg">
+                  <Shield size={14} /> {t('profilePage.actions.verifySkills')}
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1415,7 +1684,7 @@ const ProfilePage = () => {
 
             {/* Social Links */}
             <div className="glass-card p-6">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Connect</h3>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('profilePage.labels.connect')}</h3>
               <div className="flex gap-3">
                 <button title="LinkedIn Profile" aria-label="LinkedIn Profile" className="w-10 h-10 rounded-xl glass-light flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors">
                   <Linkedin size={18} />
@@ -1434,7 +1703,7 @@ const ProfilePage = () => {
               <div className="flex justify-between items-start mb-6">
                 <h3 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
                   <Search size={18} className="text-[var(--sp-accent)]" />
-                  Match Score
+                  {t('profilePage.labels.matchScore')}
                 </h3>
                 <div className="text-2xl font-bold text-[var(--sp-accent)]">{profile.matchScore}%</div>
               </div>
@@ -1464,54 +1733,54 @@ const ProfilePage = () => {
               {(profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) && (
                 <div className="mt-8 p-4 rounded-xl bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/20">
                   <p className="text-[10px] text-[var(--sp-accent)] font-bold mb-2 uppercase flex items-center gap-1">
-                    <Star size={10} /> Premium Unlock
+                    <Star size={10} /> {t('profilePage.labels.premiumUnlock')}
                   </p>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
-                    Complete your Premium profile to unlock institutional matching and detailed skill indexing.
+                    {t('profilePage.labels.premiumUnlockBody')}
                   </p>
-                  <button onClick={() => navigate('/pricing')} className="w-full sp-btn-primary py-2 text-xs">Upgrade to Premium</button>
+                  <button onClick={() => navigate('/pricing')} className="w-full sp-btn-primary py-2 text-xs">{t('profilePage.actions.upgradeToPremium')}</button>
                 </div>
               )}
             </div>
 
             {/* Member Info */}
             <div className="glass-card p-6">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Membership</h3>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">{t('profilePage.labels.membership')}</h3>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-secondary)]">Member Since</span>
+                  <span className="text-[var(--text-secondary)]">{t('profilePage.labels.memberSince')}</span>
                   <span className="text-[var(--text-primary)]">{profile.memberSince}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-secondary)]">Tier</span>
+                  <span className="text-[var(--text-secondary)]">{t('profilePage.labels.tier')}</span>
                   <span className="text-[var(--sp-accent)]">{displayTier}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-secondary)]">Verification</span>
+                  <span className="text-[var(--text-secondary)]">{t('profilePage.labels.verification')}</span>
                   <span className={`text-xs font-bold ${profile.verificationTier === 'Tier 1 – Self-Declared' ? 'text-[var(--text-secondary)]' : 'text-[var(--sp-accent)]'}`}>
-                    {profile.verificationTier.split(' – ')[1] || profile.verificationTier}
+                    {getDisplayVerification(profile.verificationTier)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-secondary)]">Status</span>
+                  <span className="text-[var(--text-secondary)]">{t('profilePage.labels.statusLabel')}</span>
                   <span className="text-green-400 flex items-center gap-1">
                     <div className="w-2 h-2 rounded-full bg-green-400" />
-                    Active
+                    {t('profilePage.labels.active')}
                   </span>
                 </div>
               </div>
               <div className="mt-6 space-y-2">
                 {isCommunityTier ? (
                   <button onClick={() => navigate('/pricing')} className="w-full sp-btn-primary py-2 text-xs">
-                    Upgrade Plan
+                    {t('profilePage.actions.upgradePlan')}
                   </button>
                 ) : (
                   <>
                     <button onClick={() => navigate('/pricing')} className="w-full sp-btn-secondary py-2 text-xs">
-                      Change Plan
+                      {t('profilePage.actions.changePlan')}
                     </button>
                     <button onClick={handleSwitchToCommunity} className="w-full sp-btn-glass py-2 text-xs">
-                      Switch to Community
+                      {t('profilePage.actions.switchToCommunity')}
                     </button>
                   </>
                 )}

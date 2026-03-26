@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronLeft, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import SEO from '../../components/SEO';
+import { AppNotificationService } from '../../lib/appNotifications';
+import { EmailAutomationService } from '../../lib/emailAutomation';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { basicOnboardingSchema, type BasicOnboardingData } from './basicSchema';
@@ -85,6 +87,13 @@ const BasicEditOnboarding = () => {
         .eq('id', user.id);
 
       if (error) throw error;
+      await AppNotificationService.notifySelf({
+        title: 'Profile updated',
+        message: 'Your basic profile details were updated successfully.',
+        type: 'success',
+        data: { action: 'profile_updated' },
+      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+      await EmailAutomationService.onProfileUpdated(data.email, data.fullName);
       toast.success('Profile updated.');
       navigate('/profile');
     } catch (error: unknown) {

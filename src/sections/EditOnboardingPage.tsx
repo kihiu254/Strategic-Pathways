@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Loader2, ChevronLeft, ChevronRight, Check, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppNotificationService } from '../lib/appNotifications';
+import { EmailAutomationService } from '../lib/emailAutomation';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { onboardingSchema, type OnboardingData } from './onboarding/schema';
@@ -249,6 +250,10 @@ const EditOnboardingPage = () => {
         type: 'success',
         data: { action: 'profile_updated' },
       }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+      await EmailAutomationService.onProfileUpdated(
+        data.email,
+        data.fullName
+      );
       toast.success('Profile updated successfully!');
       navigate('/profile');
     } catch (error: any) {

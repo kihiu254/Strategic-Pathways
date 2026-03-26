@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { clearReferralCookie, persistPendingReferral } from '../lib/referrals';
 
 declare global {
   interface Window {
@@ -37,12 +38,15 @@ export const CookieBanner = () => {
   const handleAcceptAll = () => {
     localStorage.setItem('cookie_consent', 'granted');
     updateConsent(true);
+    persistPendingReferral();
+    window.dispatchEvent(new CustomEvent('sp-referral-consent-granted'));
     setIsVisible(false);
   };
 
   const handleDeclineAll = () => {
     localStorage.setItem('cookie_consent', 'denied');
     updateConsent(false);
+    clearReferralCookie();
     setIsVisible(false);
   };
 

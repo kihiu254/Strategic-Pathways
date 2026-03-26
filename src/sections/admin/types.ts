@@ -8,6 +8,19 @@ export type DashboardProject = {
   progress: number;
   description?: string;
   role?: string;
+  ownerName?: string;
+  ownerEmail?: string;
+};
+
+export type OpportunityApplication = {
+  id: string;
+  userId: string;
+  opportunityId: string;
+  applicantName: string;
+  applicantEmail: string;
+  opportunityTitle: string;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  appliedAt: string;
 };
 
 export type RecentApplication = {

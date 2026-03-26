@@ -7,7 +7,8 @@
     "opportunities": "Opportunités",
     "impact": "Impact",
     "login": "Connexion",
-    "register": "S'inscrire"
+    "register": "S'inscrire",
+    "contact": "Contact"
   },
   "hero": {
     "title": "Où les compétences mondiales bouclent la boucle",
@@ -106,7 +107,11 @@
         "name": "Communauté",
         "price": "Gratuit",
         "description": "Commencez votre voyage",
-        "features": ["Inscription au profil", "Bulletin mensuel", "Invitations aux événements"],
+        "features": [
+          "Inscription au profil",
+          "Bulletin mensuel",
+          "Invitations aux événements"
+        ],
         "cta": "Rejoindre gratuitement"
       },
       "professional": {
@@ -114,14 +119,23 @@
         "price": "seulement 100 $",
         "period": "/an (ou 10 $/mois)",
         "description": "Le plus populaire",
-        "features": ["Tout de la Communauté", "Alertes de projet + accès anticipé", "Introductions aux partenaires", "Badge de crédibilité"],
+        "features": [
+          "Tout de la Communauté",
+          "Alertes de projet + accès anticipé",
+          "Introductions aux partenaires",
+          "Badge de crédibilité"
+        ],
         "cta": "Choisir Professionnel"
       },
       "firm": {
         "name": "Entreprise",
         "price": "Sur mesure",
         "description": "Pour les organisations",
-        "features": ["Intégration d'équipe", "Support de compte dédié", "Opportunités co-marquées"],
+        "features": [
+          "Intégration d'équipe",
+          "Support de compte dédié",
+          "Opportunités co-marquées"
+        ],
         "cta": "Nous contacter"
       }
     },

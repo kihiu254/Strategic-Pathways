@@ -109,7 +109,11 @@
         "name": "Community",
         "price": "Free",
         "description": "Core profile features/Community access/Learning/Insights",
-        "features": ["Profile listing", "Monthly newsletter", "Event invites"],
+        "features": [
+          "Profile listing",
+          "Monthly newsletter",
+          "Event invites"
+        ],
         "cta": "Join free"
       },
       "professional": {
@@ -117,14 +121,30 @@
         "price": "$100/year",
         "period": "(or $10/month)",
         "description": "Advanced professional profile/Opportunity access/Collaboration tools/Income opportunities/Professional development/Analytics & personal insights",
-        "features": ["Everything in Community", "Project alerts + early access", "Partner introductions", "Credibility badge", "Direct messaging to partners", "Access to impact analytics"],
-        "cta": "Choose Professional"
+        "features": [
+          "Everything in Community",
+          "Project alerts + early access",
+          "Partner introductions",
+          "Credibility badge",
+          "Direct messaging to partners",
+          "Access to impact analytics"
+        ],
+        "cta": "Choose Professional",
+        "billingPeriod": "/year"
       },
       "firm": {
         "name": "Partners",
         "price": "Custom",
         "description": "Talent access/Opportunity posting/Team assembly/Project execution support/Branding & visibility/Ecosystem intelligence/Custom programs",
-        "features": ["Team onboarding", "Dedicated account support", "Co-branded opportunities", "Custom integration pipeline", "Bespoke analytics reports", "Priority program placement", "Quarterly strategy review"],
+        "features": [
+          "Team onboarding",
+          "Dedicated account support",
+          "Co-branded opportunities",
+          "Custom integration pipeline",
+          "Bespoke analytics reports",
+          "Priority program placement",
+          "Quarterly strategy review"
+        ],
         "cta": "Contact us"
       }
     },
@@ -136,6 +156,15 @@
       "orgLabel": "Organization (Optional)",
       "submit": "Submit Application",
       "success": "Thank you for your interest in the {{tier}} tier! We'll be in touch soon."
+    },
+    "vettedMembership": "Vetted Membership",
+    "currentPlan": "Current plan",
+    "page": {
+      "headline": "Membership & Access",
+      "subheadline": "Choose the vetted membership path that best fits your professional or institutional goals."
+    },
+    "errors": {
+      "selectPlan": "Failed to select plan."
     }
   },
   "oppsPage": {
@@ -204,7 +233,8 @@
       "applications": "Applications",
       "analytics": "Analytics",
       "admins": "Admins",
-      "settings": "Settings"
+      "settings": "Settings",
+      "opportunities": "Opportunities"
     },
     "stats": {
       "totalMembers": "Total Members",
@@ -243,7 +273,9 @@
       "edit": "Edit",
       "delete": "Delete",
       "approve": "Approve",
-      "reject": "Reject"
+      "reject": "Reject",
+      "bulkApprove": "Bulk Approve",
+      "bulkReject": "Bulk Reject"
     },
     "headers": {
       "member": "Member",
@@ -324,6 +356,9 @@
     "justNow": "Just now",
     "oneHourAgo": "1 hour ago",
     "markAsRead": "Mark all as read",
+    "review": "Review your latest logins, account updates, project activity, payments, and opportunity actions.",
+    "empty": "No notifications yet.",
+    "viewAll": "View all notifications",
     "signOutSuccess": "Signed out successfully",
     "signOutError": "Error signing out"
   },
@@ -345,7 +380,7 @@
     },
     "tabs": {
       "overview": "Overview",
-      "projects": "Projects",
+      "projects": "Portfolio",
       "documents": "Documents",
       "activity": "Activity"
     },
@@ -354,8 +389,8 @@
       "about": "About",
       "experience": "Experience",
       "education": "Education",
-      "myProjects": "My Projects",
-      "projects": "Projects",
+      "myProjects": "Portfolio Projects",
+      "projects": "Portfolio Projects",
       "recentActivity": "Recent Activity",
       "recommended": "Recommended for You",
       "viewMatches": "View all matches →",
@@ -363,16 +398,47 @@
       "certifications": "Certifications",
       "connections": "Connections",
       "rating": "Rating",
-      "tier": "Member Tier"
+      "tier": "Member Tier",
+      "community": "Community",
+      "partners": "Partners",
+      "professionalTier": "Professional",
+      "premiumFeature": "Premium Feature",
+      "premiumFeatureBody": "Upgrade to view personalized opportunities matched to your profile.",
+      "quickActions": "Quick Actions",
+      "proTip": "Pro Tip",
+      "proTipBody": "Profiles with verified skills get 3x more visibility from high-value opportunities. Consider taking a skill assessment today!",
+      "connect": "Connect",
+      "matchScore": "Match Score",
+      "premiumUnlock": "Premium Unlock",
+      "premiumUnlockBody": "Complete your Premium profile to unlock institutional matching and detailed skill indexing.",
+      "membership": "Membership",
+      "memberSince": "Member Since",
+      "verification": "Verification",
+      "statusLabel": "Status",
+      "active": "Active",
+      "verificationRequestSubmitted": "Verification request submitted. Our team will review your portfolio."
     },
     "actions": {
       "edit": "Edit Profile",
+      "editFull": "Edit Full Profile",
+      "quickEdit": "Quick Edit",
       "save": "Save",
       "cancel": "Cancel",
       "upload": "Upload CV",
       "uploading": "Uploading...",
       "download": "Download",
-      "noDocs": "No documents uploaded yet."
+      "noDocs": "No documents uploaded yet.",
+      "verifySkills": "Verify Skills",
+      "updateCv": "Update CV",
+      "shareProfile": "Share Profile",
+      "findWork": "Find Work",
+      "upgradeToUnlock": "Upgrade to Unlock",
+      "upgradeToPremium": "Upgrade to Premium",
+      "upgradePlan": "Upgrade Plan",
+      "changePlan": "Change Plan",
+      "switchToCommunity": "Switch to Community",
+      "switchToCommunitySuccess": "Switched to Community plan.",
+      "switchToCommunityError": "Failed to switch plan."
     }
   },
   "about": {
@@ -451,7 +517,8 @@
         "universities": "Universities seeking research partnerships",
         "ngos": "NGOs requiring program design support",
         "smes": "SMEs and startups needing strategic guidance"
-      }
+      },
+      "headline": "Who We Serve"
     },
     "impactAbout": {
       "headline": "Expected Impact",
@@ -499,6 +566,466 @@
       "invalidEmail": "Please enter a valid email address",
       "invalidName": "Please enter your name"
     }
+  },
+  "impactPage": {
+    "heroBody": "Discover how Strategic Pathways is transforming professional collaboration and local impact.",
+    "readyTitle": "Ready to make your own impact?",
+    "stories": [
+      {
+        "name": "Sarah Mwangi",
+        "role": "Strategy Consultant",
+        "content": "Strategic Pathways connected me with a high-impact infrastructure project that perfectly matched my expertise in sustainable development.",
+        "image": "/images/impact_mentorship.jpg"
+      },
+      {
+        "name": "John Kamau",
+        "role": "Financial Analyst",
+        "content": "The platform's verification system gave me the credibility I needed to win contracts with institutional partners across East Africa.",
+        "image": "/images/impact_mentorship.jpg"
+      }
+    ]
+  },
+  "opportunitiesPage": {
+    "seoTitle": "Opportunities",
+    "loading": "Loading opportunities...",
+    "hero": {
+      "eyebrow": "Projects & Opportunities",
+      "headline": "Discover vetted projects shaping Kenya's impact economy.",
+      "body": "Free to join. Explore consulting, advisory, and venture-building opportunities curated for vetted members and trusted partners."
+    },
+    "metrics": {
+      "activeOpportunities": "{{count}} active opportunities",
+      "organizations": "{{count}} organizations",
+      "sectors": "{{count}} sectors"
+    },
+    "filters": {
+      "refineSearch": "Refine search",
+      "searchPlaceholder": "Search by title, organization, or location",
+      "sector": "Sector",
+      "type": "Type",
+      "ownership": "Ownership",
+      "sectors": {
+        "all": "All",
+        "agriculture": "Agriculture",
+        "technology": "Technology",
+        "energy": "Energy",
+        "health": "Health",
+        "transport": "Transport",
+        "manufacturing": "Manufacturing",
+        "education": "Education",
+        "tourism": "Tourism",
+        "finance": "Finance",
+        "realEstate": "Real Estate",
+        "mining": "Mining",
+        "trade": "Trade",
+        "creatives": "Creatives",
+        "others": "Others"
+      },
+      "types": {
+        "all": "All",
+        "fullTime": "Full-time",
+        "partTime": "Part-time",
+        "contract": "Contract",
+        "advisory": "Advisory",
+        "consulting": "Consulting",
+        "projectBased": "Project-based"
+      },
+      "ownerships": {
+        "all": "All",
+        "private": "Private",
+        "public": "Public",
+        "ngos": "NGOs"
+      }
+    },
+    "actions": {
+      "membership": "Membership",
+      "viewMembershipOptions": "View membership options",
+      "partnerWithUs": "Partner with us",
+      "clearFilters": "Clear filters",
+      "resetFilters": "Reset filters",
+      "apply": "Apply",
+      "viewDetails": "View details",
+      "submitApplication": "Submit Application",
+      "openApplicationLink": "Open application link",
+      "close": "Close"
+    },
+    "labels": {
+      "match": "{{score}}% Match",
+      "deadline": "Deadline: {{value}}",
+      "externalApplicationLink": "External application link"
+    },
+    "values": {
+      "rolling": "Rolling",
+      "tbd": "TBD"
+    },
+    "modal": {
+      "leading": "Who is leading this?",
+      "where": "Where?",
+      "howLong": "How long?",
+      "when": "When?",
+      "projectSeeking": "What is the project seeking?",
+      "requirements": "Requirements",
+      "noRequirements": "No specific requirements listed.",
+      "externalTitle": "Applications for this opportunity are handled through an external link.",
+      "externalBody": "Use the button below to open the application form provided by the opportunity owner."
+    },
+    "notifications": {
+      "selectedTitle": "Opportunity selected",
+      "selectedMessage": "You opened the external application for \"{{title}}\".",
+      "receivedTitle": "Application received",
+      "receivedMessage": "Your application for \"{{title}}\" has been submitted and is now under review.",
+      "submitSuccess": "Application submitted successfully!"
+    },
+    "errors": {
+      "load": "Failed to load opportunities",
+      "loginToApply": "Please login to apply",
+      "profileLoading": "Loading your profile. Please try again in a moment.",
+      "upgradeToApply": "Upgrade to apply for opportunities.",
+      "completeOnboarding": "Complete your onboarding to apply for opportunities.",
+      "submitFailed": "Failed to submit application: {{message}}"
+    },
+    "noResults": "No opportunities found matching your criteria"
+  },
+  "adminHeader": {
+    "adminUser": "Admin User",
+    "superAdmin": "Super Admin",
+    "accountSettings": "Admin account settings",
+    "adminShort": "Admin",
+    "myAdminProfile": "My Admin Profile",
+    "userDashboard": "User Dashboard",
+    "adminDashboard": "Admin Dashboard"
+  },
+  "adminDashboard": {
+    "booting": "Opening admin workspace...",
+    "backToOverview": "Back to Overview"
+  },
+  "adminSidebar": {
+    "goHome": "Go to homepage",
+    "pathwaysAdmin": "Pathways Admin",
+    "expand": "Expand sidebar",
+    "groups": {
+      "operations": "Operations",
+      "community": "Community",
+      "content": "Content",
+      "governance": "Governance",
+      "account": "Account"
+    },
+    "items": {
+      "overview": {
+        "label": "Overview",
+        "description": "Cross-platform command center for operations, moderation, and workflows."
+      },
+      "opportunities": {
+        "label": "Opportunities",
+        "description": "Create, edit, publish, and close opportunity listings."
+      },
+      "applications": {
+        "label": "Opportunity Applications",
+        "description": "Review applicants, save notes, and make approval decisions."
+      },
+      "projects": {
+        "label": "Portfolio Projects",
+        "description": "Moderate portfolio projects, contact owners, and archive entries."
+      },
+      "members": {
+        "label": "Members",
+        "description": "Browse the member directory and jump into detailed profile review."
+      },
+      "onboarding": {
+        "label": "Onboarding Records",
+        "description": "Inspect onboarding records, print files, and archive reviewed entries."
+      },
+      "admins": {
+        "label": "Admins",
+        "description": "Add, remove, and manage trusted operators across the platform."
+      },
+      "successStories": {
+        "label": "Success Stories",
+        "description": "Moderate member-submitted stories before they go live on Impact."
+      },
+      "referrals": {
+        "label": "Referrals",
+        "description": "Track referral activity, outcomes, and consent readiness."
+      },
+      "siteContent": {
+        "label": "Site Content",
+        "description": "Prepare homepage, values, and subscription copy in one workspace."
+      },
+      "settings": {
+        "label": "Settings",
+        "description": "Control platform-level defaults, tiers, and notification settings."
+      },
+      "profile": {
+        "label": "My Admin Profile",
+        "description": "Update your admin identity and security preferences."
+      },
+      "memberDetail": {
+        "label": "Member Detail",
+        "description": "Review onboarding details, verification evidence, and profile quality."
+      }
+    }
+  },
+  "adminSettingsPage": {
+    "title": "Platform settings",
+    "subtitle": "Keep system defaults, notifications, and membership tiers separate from public-site copy.",
+    "saved": "{{tier}} settings saved."
+  },
+  "siteContent": {
+    "bannerTitle": "Draft CMS workspace",
+    "bannerBody": "This page is ready for content operations now and saves admin drafts locally. It is intentionally staged until a live Supabase content table is connected to the public site.",
+    "status": {
+      "autosaving": "Autosaving...",
+      "saved": "Last saved at {{time}}",
+      "notSaved": "Not saved yet",
+      "localOnly": "Local-only draft storage"
+    },
+    "sections": {
+      "hero": {
+        "title": "Homepage hero",
+        "description": "Top-of-page headline and subheadline for the public homepage."
+      },
+      "heroCta": {
+        "title": "Hero CTA buttons",
+        "description": "Primary and secondary actions shown in the hero section."
+      },
+      "values": {
+        "title": "Values section",
+        "description": "Value proposition and supporting copy for the values block."
+      },
+      "subscription": {
+        "title": "Subscription copy",
+        "description": "Membership positioning and supporting language for tiers."
+      },
+      "impact": {
+        "title": "Impact intro",
+        "description": "Opening copy and CTA for the Impact / Success Stories section."
+      },
+      "announcement": {
+        "title": "Announcement banner",
+        "description": "Optional announcement or campaign banner text."
+      },
+      "seo": {
+        "title": "SEO metadata",
+        "description": "Metadata used for search preview titles and descriptions."
+      },
+      "footer": {
+        "title": "Footer tagline",
+        "description": "Short tagline used in the footer and share cards."
+      }
+    },
+    "fields": {
+      "heroHeadline": "Hero headline",
+      "heroSubheadline": "Hero subheadline",
+      "heroCtaPrimary": "Primary CTA",
+      "heroCtaSecondary": "Secondary CTA",
+      "valuesHeadline": "Values headline",
+      "valuesBody": "Values body",
+      "valuesCta": "Values CTA",
+      "subscriptionHeadline": "Subscription headline",
+      "subscriptionBody": "Subscription body",
+      "subscriptionCta": "Subscription CTA",
+      "impactIntro": "Impact intro",
+      "impactCta": "Impact CTA",
+      "announcementHeadline": "Announcement headline",
+      "announcementBody": "Announcement body",
+      "seoTitle": "SEO title",
+      "seoDescription": "SEO description",
+      "footerTagline": "Footer tagline"
+    },
+    "counters": {
+      "words": "{{count}} words"
+    },
+    "actions": {
+      "save": "Save draft",
+      "export": "Export JSON",
+      "copy": "Copy JSON",
+      "resetButton": "Reset",
+      "saved": "Site content draft saved locally for the admin workspace.",
+      "reset": "Site content draft reset to the baseline copy.",
+      "copied": "Site content copied to clipboard.",
+      "copyFailed": "Unable to copy site content."
+    },
+    "defaults": {
+      "heroHeadline": "Strategic Pathways is building brain circulation into a national operating system.",
+      "heroSubheadline": "Connect diaspora professionals, study-abroad returnees, and mission-aligned institutions through high-trust opportunities.",
+      "heroCtaPrimary": "Explore opportunities",
+      "heroCtaSecondary": "Download the brief",
+      "valuesHeadline": "A network shaped by trust, relevance, and long-term contribution.",
+      "valuesBody": "Strategic Pathways helps skilled professionals turn experience into practical national outcomes, not just directory listings.",
+      "valuesCta": "See how it works",
+      "subscriptionHeadline": "Choose the membership tier that matches your level of engagement.",
+      "subscriptionBody": "Keep pricing language clear, high-trust, and focused on value creation for members and institutions.",
+      "subscriptionCta": "View membership options",
+      "impactIntro": "Impact stories should demonstrate real pathways from verified talent to meaningful results.",
+      "impactCta": "View success stories",
+      "announcementHeadline": "New intake now open",
+      "announcementBody": "Applications for the next cohort close on May 31. Priority review for verified profiles.",
+      "seoTitle": "Strategic Pathways | Talent, Opportunities, Impact",
+      "seoDescription": "Connect with vetted opportunities, verified members, and mission-aligned institutions through Strategic Pathways.",
+      "footerTagline": "Where global skills come full circle."
+    }
+  },
+  "adminOverview": {
+    "platformStatus": "Platform Status",
+    "platformHealthDashboard": "Platform Health Dashboard",
+    "approvalsQueue": "Approvals Queue",
+    "memberDirectory": "Member Directory",
+    "pendingApprovals": "Pending approvals",
+    "underReview": "Under review",
+    "possibleDuplicates": "Possible duplicates",
+    "totalMembers": "Total members",
+    "verifiedProfessionals": "Verified Professionals",
+    "diasporaExperts": "Diaspora Experts",
+    "studyAbroadReturnees": "Study-Abroad Returnees",
+    "averageRating": "Average Rating",
+    "membersDescription": "Profiles, verification, tiers, and badges.",
+    "opportunitiesDescription": "Publish and manage opportunities.",
+    "applicationsDescription": "Review onboarding and verification.",
+    "projectsDescription": "Track active and completed projects.",
+    "analyticsDescription": "Reports, growth, and insights.",
+    "adminTeam": "Admin Team",
+    "adminTeamDescription": "Invite and manage admins.",
+    "settingsDescription": "Plans, notifications, and platform config.",
+    "onboardingRecords": "Onboarding Records",
+    "onboardingRecordsDescription": "Review onboarding submissions.",
+    "totalMembersMetric": "{{count}} total members",
+    "createAndEditOpportunities": "Create and edit opportunities",
+    "pendingReviews": "{{count}} pending reviews",
+    "activeProjectsMetric": "{{count}} active projects",
+    "performanceDashboards": "Performance dashboards",
+    "adminsMetric": "{{count}} admins",
+    "platformControls": "Platform controls",
+    "openOnboardingRecords": "Open onboarding records",
+    "open": "Open",
+    "workflowQueue": "Workflow Queue",
+    "openQueue": "Open queue",
+    "duplicates": "Duplicates",
+    "verified": "Verified",
+    "systemHealth": "System Health",
+    "system": {
+      "payments": "Payments",
+      "paystackConnected": "Paystack connected",
+      "email": "Email",
+      "automationReady": "Automation ready",
+      "storage": "Storage",
+      "verificationDocsOk": "Verification docs OK",
+      "auth": "Auth",
+      "loginOtpOk": "Login and OTP OK"
+    }
+  },
+  "adminTeam": {
+    "searchAdmins": "Search admins...",
+    "promoteMember": "Promote Member",
+    "addNewAdmin": "Add New Admin",
+    "selectMemberToPromote": "Select Member to Promote",
+    "searchCandidates": "Search candidates...",
+    "searchMembersToPromote": "Search members to promote",
+    "grantAccess": "Grant Access",
+    "addNewAdministrator": "Add New Administrator",
+    "closeAddAdminPanel": "Close add admin panel",
+    "emailAddressRequired": "Email Address *",
+    "emailPlaceholder": "admin@strategicpathways.co.ke",
+    "newAdminEmail": "New admin email",
+    "fullNameRequired": "Full Name *",
+    "namePlaceholder": "John Doe",
+    "newAdminFullName": "New admin full name",
+    "temporaryPassword": "Temporary Password (optional)",
+    "passwordPlaceholder": "Leave empty for auto-generation",
+    "passwordHelp": "Password must be at least 8 characters with numbers and symbols if manual.",
+    "createAdminAccount": "Create Admin Account",
+    "adminIdentity": "Admin Identity",
+    "controlLevel": "Control Level",
+    "activationDate": "Activation Date",
+    "operations": "Operations"
+  },
+  "adminApplications": {
+    "reviewIntro": "Review the people who applied for posted projects and opportunities.",
+    "reviewBody": "Approvals here apply to applicants, not to the users who created or published the project.",
+    "searchApplications": "Search applications",
+    "appliedFor": "Applied for {{title}}",
+    "daysAgo": "{{count}}d ago",
+    "viewApplicant": "View applicant",
+    "markAsReviewed": "Mark as reviewed",
+    "noApplicants": "No project applicants found."
+  },
+  "adminMemberDirectory": {
+    "viewProfileFor": "View profile for {{name}}",
+    "viewDocumentsFor": "View documents for {{name}}",
+    "deleteMember": "Delete member {{name}}",
+    "noMembers": "No members found matching your criteria."
+  },
+  "adminProjects": {
+    "loadErrorTitle": "Published projects could not be loaded for this admin session.",
+    "loadErrorBody": "{{error}} Confirm the `opportunities` table is available and admin policies are applied in Supabase.",
+    "introTitle": "This section shows portfolio projects uploaded by members about their own work.",
+    "introBody": "Use Opportunities to publish detailed opportunities that applicants can apply for.",
+    "createOpportunity": "Create Opportunity",
+    "projectDelivery": "Project Delivery",
+    "uploadedBy": "Uploaded by {{name}}",
+    "unknownMember": "Unknown member",
+    "noSummary": "No project summary added yet.",
+    "inspect": "Inspect",
+    "noProjects": "No portfolio projects have been uploaded yet."
+  },
+  "adminAnalytics": {
+    "liveUpdate": "Analytics update automatically from the latest live platform records in Supabase.",
+    "monthlyActivityDistribution": "Monthly Activity Distribution"
+  },
+  "adminProfile": {
+    "update": "Update",
+    "superAdministrator": "Super Administrator",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "phoneNumber": "Phone Number",
+    "roleType": "Role Type",
+    "professionalBio": "Professional Bio",
+    "bioDefault": "Platform administrator managing Strategic Pathways operations and member verification workflows.",
+    "accessControlSecurity": "Access Control & Security",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Min 8 characters",
+    "confirmIdentity": "Confirm Identity",
+    "confirmIdentityPlaceholder": "Repeat password",
+    "updateSecurityKeys": "Update Security Keys",
+    "syncComplete": "Profile synchronization complete.",
+    "saveIdentityChanges": "Save Identity Changes"
+  },
+  "adminSettings": {
+    "currencies": {
+      "kes": "Kenyan Shilling (KSh)",
+      "usd": "US Dollar ($)",
+      "eur": "Euro (EUR)"
+    },
+    "tierName": "Tier Name",
+    "price": "Price",
+    "numberOfFeatures": "Number of features",
+    "saveTier": "Save Tier",
+    "featuresCount": "{{count}} features - {{price}}",
+    "notifications": {
+      "newApplications": "Email notifications for new applications",
+      "projectUpdates": "Email notifications for project updates",
+      "weeklySummary": "Weekly summary reports",
+      "memberActivity": "Member activity alerts"
+    }
+  },
+  "adminOnboardingList": {
+    "back": "Back",
+    "title": "Onboarding Records",
+    "subtitle": "All submitted onboarding data for admin review.",
+    "search": "Search name, email, type...",
+    "csv": "CSV",
+    "loading": "Loading profiles...",
+    "viewProfile": "View profile",
+    "education": "Education",
+    "global": "Global",
+    "studied": "Studied: {{value}}",
+    "worked": "Worked: {{value}}",
+    "languages": "Languages",
+    "verificationDocs": "Verification docs",
+    "noResults": "No onboarding records match your filter.",
+    "errors": {
+      "load": "Failed to load onboarding records",
+      "noRecords": "No records to export"
+    }
   }
 }
-

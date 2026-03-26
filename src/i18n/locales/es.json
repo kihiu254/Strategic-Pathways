@@ -7,7 +7,8 @@
     "opportunities": "Oportunidades",
     "impact": "Impacto",
     "login": "Iniciar sesión",
-    "register": "Registrarse"
+    "register": "Registrarse",
+    "contact": "Contacto"
   },
   "hero": {
     "title": "Donde las habilidades globales completan el círculo",
@@ -106,7 +107,11 @@
         "name": "Comunidad",
         "price": "Gratis",
         "description": "Comienza tu viaje",
-        "features": ["Listado de perfil", "Boletín mensual", "Invitaciones a eventos"],
+        "features": [
+          "Listado de perfil",
+          "Boletín mensual",
+          "Invitaciones a eventos"
+        ],
         "cta": "Únete gratis"
       },
       "professional": {
@@ -114,14 +119,23 @@
         "price": "solo $100",
         "period": "/año (o $10/mes)",
         "description": "Más popular",
-        "features": ["Todo en Comunidad", "Alertas de proyectos + acceso temprano", "Introducciones de socios", "Insignia de credibilidad"],
+        "features": [
+          "Todo en Comunidad",
+          "Alertas de proyectos + acceso temprano",
+          "Introducciones de socios",
+          "Insignia de credibilidad"
+        ],
         "cta": "Elegir Profesional"
       },
       "firm": {
         "name": "Firma",
         "price": "Personalizado",
         "description": "Para organizaciones",
-        "features": ["Incorporación de equipo", "Soporte de cuenta dedicado", "Oportunidades de marca compartida"],
+        "features": [
+          "Incorporación de equipo",
+          "Soporte de cuenta dedicado",
+          "Oportunidades de marca compartida"
+        ],
         "cta": "Contáctanos"
       }
     },

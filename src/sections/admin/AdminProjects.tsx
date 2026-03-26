@@ -9,7 +9,7 @@ interface AdminProjectsProps {
   projects: DashboardProject[];
   projectsError?: string | null;
   getStatusBadge: (status: string) => string;
-  onNewProject: () => void;
+  onOpenOpportunities: () => void;
   onInspectProject: (project: DashboardProject) => void;
   onEditProject: (project: DashboardProject) => void;
 }
@@ -18,7 +18,7 @@ const AdminProjects: React.FC<AdminProjectsProps> = ({
   projects,
   projectsError,
   getStatusBadge,
-  onNewProject,
+  onOpenOpportunities,
   onInspectProject,
   onEditProject
 }) => {
@@ -28,13 +28,17 @@ const AdminProjects: React.FC<AdminProjectsProps> = ({
     <div className="admin-section-shell">
       {projectsError && (
         <div className="mb-6 rounded-[24px] border border-amber-500/30 bg-amber-500/10 px-5 py-4">
-          <p className="text-sm font-semibold text-amber-200">Projects could not be loaded for this admin session.</p>
+          <p className="text-sm font-semibold text-amber-200">{t('adminProjects.loadErrorTitle')}</p>
           <p className="mt-1 text-xs text-amber-100/80">
-            {projectsError} Run `app/docs/complete-schema-update.sql` or `app/docs/fix-user-projects-and-admin-view.sql`
-            in Supabase if the `user_projects` table still only allows owners to read their own rows.
+            {t('adminProjects.loadErrorBody', { error: projectsError })}
           </p>
         </div>
       )}
+
+      <div className="mb-6 rounded-[24px] border border-white/10 bg-white/5 px-5 py-4">
+        <p className="text-sm font-semibold text-[var(--text-primary)]">{t('adminProjects.introTitle')}</p>
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">{t('adminProjects.introBody')}</p>
+      </div>
 
       <div className="flex flex-wrap gap-3 md:gap-4 items-stretch md:items-center justify-between mb-6">
         <div className="relative w-full sm:w-72">
@@ -43,8 +47,8 @@ const AdminProjects: React.FC<AdminProjectsProps> = ({
             type="text"
             placeholder={t('dashboard.placeholders.searchProjects')}
             className="input-glass pl-10 pr-4 py-2 w-full"
-            aria-label="Search projects"
-            title="Search projects"
+            aria-label={t('dashboard.placeholders.searchProjects')}
+            title={t('dashboard.placeholders.searchProjects')}
           />
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
@@ -53,11 +57,11 @@ const AdminProjects: React.FC<AdminProjectsProps> = ({
             {t('dashboard.buttons.filter')}
           </button>
           <button 
-            onClick={onNewProject}
+            onClick={onOpenOpportunities}
             className="sp-btn-primary flex items-center gap-2 justify-center w-full sm:w-auto"
           >
             <Plus size={16} />
-            {t('dashboard.buttons.newProject')}
+            {t('adminProjects.createOpportunity')}
           </button>
         </div>
       </div>
@@ -67,9 +71,12 @@ const AdminProjects: React.FC<AdminProjectsProps> = ({
           <div key={project.id} className="admin-project-card glass-card p-6 group hover:border-[var(--sp-accent)]/30 transition-all border-white/5">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--sp-accent)] mb-2 font-bold opacity-80 transition-opacity group-hover:opacity-100">Project Delivery</p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--sp-accent)] mb-2 font-bold opacity-80 transition-opacity group-hover:opacity-100">{t('adminProjects.projectDelivery')}</p>
                 <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight group-hover:text-[var(--sp-accent)] transition-colors">{project.title}</h3>
                 <p className="text-[var(--text-secondary)] text-sm opacity-70">{project.client}</p>
+                <p className="text-[var(--text-secondary)] text-xs opacity-60 mt-1">
+                  {t('adminProjects.uploadedBy', { name: project.ownerName || t('adminProjects.unknownMember') })}
+                </p>
               </div>
               <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusBadge(project.status)}`}>
                 {project.status}
@@ -78,20 +85,22 @@ const AdminProjects: React.FC<AdminProjectsProps> = ({
             
             <div className="flex flex-wrap items-center gap-3 mb-6 text-sm">
               <span className="admin-stat-pill text-[var(--sp-accent)] font-bold text-xs ring-1 ring-[var(--sp-accent)]/20">{project.budget}</span>
-              <span className="admin-stat-pill text-[var(--text-secondary)] flex items-center gap-2 text-xs font-medium">
-                <Users size={14} />
-                {project.members} staff
-              </span>
-              <span className="admin-stat-pill text-[var(--text-secondary)] text-xs font-medium">{project.progress}% velocity</span>
+              {project.role && (
+                <span className="admin-stat-pill text-[var(--text-secondary)] text-xs font-medium">
+                  {project.role}
+                </span>
+              )}
+              {project.ownerEmail && project.ownerEmail !== 'No email available' && (
+                <span className="admin-stat-pill text-[var(--text-secondary)] flex items-center gap-2 text-xs font-medium">
+                  <Users size={14} />
+                  {project.ownerEmail}
+                </span>
+              )}
             </div>
 
-            <div className="mb-6">
-              <div className="flex justify-between text-xs font-bold uppercase tracking-widest mb-2">
-                <span className="text-[var(--text-secondary)] opacity-60">Execution Progress</span>
-                <span className="text-[var(--text-primary)]">{project.progress}%</span>
-              </div>
-              <progress className="admin-progress h-2 w-full" value={project.progress} max={100} aria-label={`Progress for ${project.title}`} />
-            </div>
+            <p className="mb-6 text-sm leading-relaxed text-[var(--text-secondary)]">
+              {project.description?.trim() ? project.description : t('adminProjects.noSummary')}
+            </p>
 
             <div className="flex gap-3">
               <button 
@@ -99,7 +108,7 @@ const AdminProjects: React.FC<AdminProjectsProps> = ({
                 className="sp-btn-glass flex-1 flex items-center justify-center gap-2 py-2.5 font-bold transition-transform active:scale-95"
               >
                 <Eye size={16} />
-                Inspect
+                {t('adminProjects.inspect')}
               </button>
               <button 
                 onClick={() => onEditProject(project)}
@@ -114,7 +123,7 @@ const AdminProjects: React.FC<AdminProjectsProps> = ({
         ))}
         {projects.length === 0 && !projectsError && (
           <div className="lg:col-span-2 text-center py-20 bg-white/5 rounded-[32px] border border-dashed border-white/10">
-            <p className="text-[var(--text-secondary)]">No active projects found in the pipeline.</p>
+            <p className="text-[var(--text-secondary)]">{t('adminProjects.noProjects')}</p>
           </div>
         )}
       </div>

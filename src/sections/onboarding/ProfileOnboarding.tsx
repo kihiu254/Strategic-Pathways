@@ -13,6 +13,7 @@ import {
 import { ChevronRight, ChevronLeft, Check, Star } from 'lucide-react';
 import SEO from '../../components/SEO';
 import { AppNotificationService } from '../../lib/appNotifications';
+import { EmailAutomationService } from '../../lib/emailAutomation';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { calculateProfileCompletion } from '../../utils/profileScoring';
@@ -327,6 +328,10 @@ const ProfileOnboarding = () => {
         type: 'success',
         data: { action: 'profile_onboarding_complete' },
       }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+      await EmailAutomationService.onOnboardingComplete(
+        data.email,
+        data.fullName
+      );
       toast.success('Onboarding complete! Welcome to the network.');
       navigate('/profile');
     } catch (error: unknown) {

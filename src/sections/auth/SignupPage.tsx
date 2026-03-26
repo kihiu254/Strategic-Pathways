@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { EmailAutomationService } from '../../lib/emailAutomation';
+import { AppNotificationService } from '../../lib/appNotifications';
+import { applyReferralAttribution } from '../../lib/referrals';
 
 const SignupPage = () => {
   const { t } = useTranslation();
@@ -36,6 +38,11 @@ const SignupPage = () => {
           profile_type: 'Standard Member',
           onboarding_completed: false,
           updated_at: new Date().toISOString(),
+        });
+        void applyReferralAttribution({
+          supabase,
+          userId: session.user.id,
+          email: session.user.email,
         });
       }
       navigate('/pricing');
@@ -124,6 +131,13 @@ const SignupPage = () => {
         formData.email,
         formData.name
       );
+
+      await AppNotificationService.notifySelf({
+        title: 'Account created',
+        message: 'Your account has been created successfully and you are now signed in.',
+        type: 'success',
+        data: { action: 'account_created' },
+      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
       
       setSession(data.session);
       setUser(data.user);
@@ -135,6 +149,11 @@ const SignupPage = () => {
         profile_type: 'Standard Member',
         onboarding_completed: false,
         updated_at: new Date().toISOString(),
+      });
+      void applyReferralAttribution({
+        supabase,
+        userId: data.user.id,
+        email: formData.email,
       });
       navigate('/pricing');
     } catch (error: any) {

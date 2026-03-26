@@ -219,7 +219,7 @@ const AboutPage = () => {
           
           {/* Target Beneficiaries */}
           <div className="animate-section">
-            <h2 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-8">Who We Serve</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-8">{t('about.beneficiaries.headline')}</h2>
             <div className="space-y-6">
               <div className="premium-glass rounded-3xl p-8 border border-white/10 shadow-2xl">
                 <h3 className="text-2xl font-bold mb-4 text-[var(--sp-accent)]">{t('about.beneficiaries.primary.title')}</h3>

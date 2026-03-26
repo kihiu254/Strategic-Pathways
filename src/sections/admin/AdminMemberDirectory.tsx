@@ -30,7 +30,7 @@ const AdminMemberDirectory: React.FC<AdminMemberDirectoryProps> = ({
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <div className="relative w-full sm:w-64">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
-            <input type="text" placeholder={t('dashboard.placeholders.searchMembers')} className="input-glass pl-10 pr-4 py-2 w-full text-sm" aria-label="Search members" title="Search members" />
+            <input type="text" placeholder={t('dashboard.placeholders.searchMembers')} className="input-glass pl-10 pr-4 py-2 w-full text-sm" aria-label={t('dashboard.placeholders.searchMembers')} title={t('dashboard.placeholders.searchMembers')} />
           </div>
           <button className="sp-btn-glass flex items-center gap-2 text-sm"><Filter size={14} /> {t('dashboard.buttons.filter')}</button>
         </div>
@@ -44,10 +44,10 @@ const AdminMemberDirectory: React.FC<AdminMemberDirectoryProps> = ({
           <table className="w-full text-left">
             <thead className="bg-white/[0.02] text-[var(--text-secondary)] text-[10px] uppercase tracking-[0.2em] font-bold">
               <tr>
-                <th className="px-8 py-5">Member</th>
-                <th className="px-8 py-5">Status</th>
-                <th className="px-8 py-5">Tier</th>
-                <th className="px-8 py-5 text-right">Actions</th>
+                <th className="px-8 py-5">{t('dashboard.headers.member')}</th>
+                <th className="px-8 py-5">{t('dashboard.headers.status')}</th>
+                <th className="px-8 py-5">{t('dashboard.headers.tier')}</th>
+                <th className="px-8 py-5 text-right">{t('dashboard.recentApps.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.03]">
@@ -70,34 +70,34 @@ const AdminMemberDirectory: React.FC<AdminMemberDirectoryProps> = ({
                     </span>
                   </td>
                   <td className="px-8 py-5">
-                    <span className="text-xs text-[var(--text-secondary)]">{member.tier || 'Community'}</span>
+                    <span className="text-xs text-[var(--text-secondary)]">{member.tier || t('pricing.tiers.community.name')}</span>
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex justify-end gap-2">
-                      <button 
-                        onClick={() => navigate(`/admin/user/${member.id}`)} 
-                        className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-[var(--sp-accent)] hover:text-[var(--text-inverse)] transition-all" 
-                        aria-label={`View profile for ${member.name}`} 
-                        title={`View profile for ${member.name}`}
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleViewDocs({ id: member.id, name: member.name, email: member.email, docs: member.docs || {} })} 
-                        className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-purple-500 hover:text-white transition-all" 
-                        aria-label={`View documents for ${member.name}`} 
-                        title={`View documents for ${member.name}`}
-                      >
-                        <FileText size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteMember(member.id)} 
-                        className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-red-500 hover:text-white transition-all" 
-                        aria-label={`Delete member ${member.name}`} 
-                        title={`Delete member ${member.name}`}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                    <button 
+                      onClick={() => navigate(`/admin/user/${member.id}`)} 
+                      className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-[var(--sp-accent)] hover:text-[var(--text-inverse)] transition-all" 
+                      aria-label={t('adminMemberDirectory.viewProfileFor', { name: member.name })} 
+                      title={t('adminMemberDirectory.viewProfileFor', { name: member.name })}
+                    >
+                      <Eye size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleViewDocs({ id: member.id, name: member.name, email: member.email, docs: member.docs || {} })} 
+                      className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-purple-500 hover:text-white transition-all" 
+                      aria-label={t('adminMemberDirectory.viewDocumentsFor', { name: member.name })} 
+                      title={t('adminMemberDirectory.viewDocumentsFor', { name: member.name })}
+                    >
+                      <FileText size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteMember(member.id)} 
+                      className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:bg-red-500 hover:text-white transition-all" 
+                      aria-label={t('adminMemberDirectory.deleteMember', { name: member.name })} 
+                      title={t('adminMemberDirectory.deleteMember', { name: member.name })}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                     </div>
                   </td>
                 </tr>
@@ -105,7 +105,7 @@ const AdminMemberDirectory: React.FC<AdminMemberDirectoryProps> = ({
               {members.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-8 py-12 text-center text-[var(--text-secondary)]">
-                    No members found matching your criteria.
+                    {t('adminMemberDirectory.noMembers')}
                   </td>
                 </tr>
               )}

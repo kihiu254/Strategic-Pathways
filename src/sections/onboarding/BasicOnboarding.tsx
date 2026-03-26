@@ -6,6 +6,7 @@ import { ChevronLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import SEO from '../../components/SEO';
 import { AppNotificationService } from '../../lib/appNotifications';
+import { EmailAutomationService } from '../../lib/emailAutomation';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { basicOnboardingSchema, type BasicOnboardingData } from './basicSchema';
@@ -81,6 +82,7 @@ const BasicOnboarding = () => {
         type: 'success',
         data: { action: 'basic_onboarding_complete' },
       }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+      await EmailAutomationService.onOnboardingComplete(data.email, data.fullName);
       toast.success('Basic profile saved. Welcome!');
       navigate('/profile');
     } catch (error: unknown) {

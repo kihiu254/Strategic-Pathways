@@ -5,7 +5,10 @@ import {
   FileText, CheckCircle, X, Shield, Globe, Heart, TrendingUp, Target
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { AppNotificationService } from '../lib/appNotifications';
+import {
+  notifyVerificationStatusChange,
+  VERIFIED_TIER_LABEL,
+} from '../lib/verificationStatus';
 import { supabase } from '../lib/supabase';
 
 const AdminUserDetailPage = () => {
@@ -40,64 +43,56 @@ const AdminUserDetailPage = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           verification_status: 'approved',
-          verification_tier: 'Tier 2 – Verified Professional'
+          verification_tier: VERIFIED_TIER_LABEL,
         })
         .eq('id', userId);
-      
+
       if (error) throw error;
       toast.success('User approved successfully!');
       setUserData({ ...userData, verification_status: 'approved' });
-      if (userId) {
-        await AppNotificationService.notifyUser(userId, {
-          title: 'Verification approved',
-          message: 'Your profile verification has been approved. You can now access verified opportunities.',
-          type: 'success',
-          data: { action: 'verification_status_update', status: 'approved' },
-        }).catch((notificationError) => console.warn('Notification failed:', notificationError));
-      }
-      
-      await fetch('/api/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'verification_update',
-          data: { email: userData.email, name: userData.full_name, status: 'approved' }
-        })
-      }).catch(err => console.error("Failed to send email", err));
+
+      await notifyVerificationStatusChange({
+        userId,
+        email: userData.email,
+        name: userData.full_name,
+        status: 'approved',
+        tier: VERIFIED_TIER_LABEL,
+      });
     } catch (error: any) {
       toast.error('Failed to approve user');
     }
   };
 
   const handleReject = async () => {
+    const reasonInput = window.prompt('Reason for rejection (required):', 'Criteria not met');
+    if (reasonInput === null) return;
+
+    const reason = reasonInput.trim();
+    if (!reason) {
+      toast.error('A rejection reason is required.');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
         .update({ verification_status: 'rejected' })
         .eq('id', userId);
-      
+
       if (error) throw error;
       toast.error('User rejected');
       setUserData({ ...userData, verification_status: 'rejected' });
-      if (userId) {
-        await AppNotificationService.notifyUser(userId, {
-          title: 'Verification update',
-          message: 'Your verification submission was not approved. Please review your documents and try again.',
-          type: 'warning',
-          data: { action: 'verification_status_update', status: 'rejected' },
-        }).catch((notificationError) => console.warn('Notification failed:', notificationError));
-      }
-      
-      await fetch('/api/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'verification_update',
-          data: { email: userData.email, name: userData.full_name, status: 'rejected' }
-        })
-      }).catch(err => console.error("Failed to send email", err));
+
+      await notifyVerificationStatusChange({
+        userId,
+        email: userData.email,
+        name: userData.full_name,
+        status: 'rejected',
+        tier: VERIFIED_TIER_LABEL,
+        reason,
+      });
     } catch (error: any) {
       toast.error('Failed to reject user');
     }
@@ -140,7 +135,7 @@ const AdminUserDetailPage = () => {
     <div className="min-h-screen bg-[var(--bg-primary)] pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-6">
         <button 
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate('/admin/members')}
           className="sp-btn-glass mb-6 flex items-center gap-2"
         >
           <ArrowLeft size={18} />

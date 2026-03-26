@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Check, Star, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
@@ -19,6 +20,7 @@ interface PricingSectionProps {
 }
 
 const PricingSection = ({ className = '' }: PricingSectionProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const session = useAuthStore((state) => state.session);
@@ -52,35 +54,35 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
         setCurrentTier(data.tier);
       }
     };
-    ensureProfile();
+    void ensureProfile();
   }, [user]);
 
   const tiers = [
     {
       id: 'community',
-      name: 'Community (3)',
-      price: 'Free',
+      name: t('pricing.tiers.community.name'),
+      price: t('pricing.tiers.community.price'),
       period: '',
-      description: 'Core profile features/Community access/Learning & insights',
-      cta: 'Free to Join',
+      description: t('pricing.tiers.community.description'),
+      cta: t('pricing.tiers.community.cta'),
       featured: false
     },
     {
       id: 'professional',
-      name: 'Professional (6)',
+      name: t('pricing.tiers.professional.name'),
       price: formatMembershipAmount(professionalPlan.currency, professionalPlan.amount),
-      period: '/year',
-      description: 'Advanced professional profile/Opportunity access/Collaboration tools/Income opportunities/Professional development/Analytics & personal insights',
-      cta: 'Choose Professional',
+      period: t('pricing.tiers.professional.billingPeriod'),
+      description: t('pricing.tiers.professional.description'),
+      cta: t('pricing.tiers.professional.cta'),
       featured: true
     },
     {
       id: 'firm',
-      name: 'Partners (7)',
-      price: 'Custom',
+      name: t('pricing.tiers.firm.name'),
+      price: t('pricing.tiers.firm.price'),
       period: '',
-      description: 'Talent access/Opportunity posting/Team assembly/Project execution support/Branding & visibility/Ecosystem intelligence/Custom programs',
-      cta: 'Choose Partners',
+      description: t('pricing.tiers.firm.description'),
+      cta: t('pricing.tiers.firm.cta'),
       featured: false
     }
   ];
@@ -124,7 +126,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
         session,
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to select plan.';
+      const errorMessage = error instanceof Error ? error.message : t('pricing.errors.selectPlan');
       toast.error(errorMessage);
     } finally {
       setIsProcessing(null);
@@ -144,10 +146,10 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 lg:py-20 relative z-10">
         <div className="text-center space-y-3">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-            Membership that fits
+            {t('pricing.headline')}
           </h2>
           <p className="text-[var(--text-secondary)] text-base sm:text-lg max-w-2xl mx-auto">
-            Start free. Upgrade when you are ready to win, work and grow.
+            {t('pricing.subheadline')}
           </p>
         </div>
 
@@ -182,68 +184,69 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
                 (tier.id === 'firm' && (currentTier === 'Firm' || currentTier === 'Custom')));
 
             return (
-            <div
-              key={tier.id}
-              className={`rounded-2xl border shadow-md transition-transform duration-200 hover:-translate-y-1 ${
-                tier.featured
-                  ? 'border-[var(--sp-accent)]/60 glass-card backdrop-blur-md shadow-[0_24px_60px_rgba(0,0,0,0.25)]'
-                  : 'glass-light border-transparent shadow-none'
-              }`}
-            >
-              {tier.featured && (
-                <div className="flex items-center justify-center gap-2 text-[var(--sp-accent)] font-semibold text-xs uppercase tracking-wide bg-[var(--sp-accent)]/10 border-b border-[var(--sp-accent)]/40 rounded-t-2xl px-4 py-2">
-                  <Star size={14} className="fill-current" />
-                  Vetted Membership
-                </div>
-              )}
-
-              <div className="p-6 sm:p-8 flex flex-col h-full">
-                <div className="mb-6">
-                  <h3 className={`text-xl font-semibold ${tier.featured ? 'text-[var(--sp-accent)]' : 'text-[var(--text-primary)]'}`}>
-                    {tier.name}
-                  </h3>
-                  {isCurrent && (
-                    <span className="mt-2 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--sp-accent)] bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/30 px-2.5 py-1 rounded-full">
-                      Current plan
-                    </span>
-                  )}
-                  <div className="mt-3 flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">{tier.price}</span>
-                    {tier.period && <span className="text-[var(--text-secondary)] text-sm">{tier.period}</span>}
+              <div
+                key={tier.id}
+                className={`rounded-2xl border shadow-md transition-transform duration-200 hover:-translate-y-1 ${
+                  tier.featured
+                    ? 'border-[var(--sp-accent)]/60 glass-card backdrop-blur-md shadow-[0_24px_60px_rgba(0,0,0,0.25)]'
+                    : 'glass-light border-transparent shadow-none'
+                }`}
+              >
+                {tier.featured && (
+                  <div className="flex items-center justify-center gap-2 text-[var(--sp-accent)] font-semibold text-xs uppercase tracking-wide bg-[var(--sp-accent)]/10 border-b border-[var(--sp-accent)]/40 rounded-t-2xl px-4 py-2">
+                    <Star size={14} className="fill-current" />
+                    {t('pricing.vettedMembership')}
                   </div>
-                </div>
+                )}
 
-                <ul className="space-y-3 text-sm text-[var(--text-secondary)] flex-1">
-                  {getPoints(tier.description).map((point, index) => (
-                    <li key={`${tier.id}-${index}`} className="flex items-start gap-3">
-                      <span className="mt-[2px] rounded-full bg-[var(--sp-accent)]/15 text-[var(--sp-accent)] p-1">
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                <div className="p-6 sm:p-8 flex flex-col h-full">
+                  <div className="mb-6">
+                    <h3 className={`text-xl font-semibold ${tier.featured ? 'text-[var(--sp-accent)]' : 'text-[var(--text-primary)]'}`}>
+                      {tier.name}
+                    </h3>
+                    {isCurrent && (
+                      <span className="mt-2 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--sp-accent)] bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/30 px-2.5 py-1 rounded-full">
+                        {t('pricing.currentPlan')}
                       </span>
-                      <span className="leading-relaxed">{point}</span>
-                    </li>
-                  ))}
-                </ul>
+                    )}
+                    <div className="mt-3 flex items-baseline gap-2">
+                      <span className="text-4xl font-bold">{tier.price}</span>
+                      {tier.period && <span className="text-[var(--text-secondary)] text-sm">{tier.period}</span>}
+                    </div>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    void handleSelectTier(tier.id);
-                  }}
-                  disabled={isProcessing === tier.id || isCurrent}
-                  className={`mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition-colors disabled:opacity-60 ${
-                    tier.featured
-                      ? 'bg-[var(--sp-accent)] text-[var(--bg-primary)] hover:bg-[#e5c285]'
-                      : 'sp-btn-secondary border-transparent'
-                  }`}
-                >
-                  {isCurrent ? 'Current plan' : tier.cta}
-                  {tier.featured && <ArrowRight size={16} />}
-                </button>
+                  <ul className="space-y-3 text-sm text-[var(--text-secondary)] flex-1">
+                    {getPoints(tier.description).map((point, index) => (
+                      <li key={`${tier.id}-${index}`} className="flex items-start gap-3">
+                        <span className="mt-[2px] rounded-full bg-[var(--sp-accent)]/15 text-[var(--sp-accent)] p-1">
+                          <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                        </span>
+                        <span className="leading-relaxed">{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      void handleSelectTier(tier.id);
+                    }}
+                    disabled={isProcessing === tier.id || isCurrent}
+                    className={`mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition-colors disabled:opacity-60 ${
+                      tier.featured
+                        ? 'bg-[var(--sp-accent)] text-[var(--bg-primary)] hover:bg-[#e5c285]'
+                        : 'sp-btn-secondary border-transparent'
+                    }`}
+                  >
+                    {isCurrent ? t('pricing.currentPlan') : tier.cta}
+                    {tier.featured && <ArrowRight size={16} />}
+                  </button>
+                </div>
               </div>
-            </div>
-          )})}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -16,6 +16,8 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import SEO from '../components/SEO';
+import { AppNotificationService } from '../lib/appNotifications';
+import { EmailAutomationService } from '../lib/emailAutomation';
 
 const PaymentPage = () => {
   const navigate = useNavigate();
@@ -74,6 +76,25 @@ const PaymentPage = () => {
     const verifyPayment = async () => {
       try {
         const payload = await verifyMembershipPayment(session.access_token, paymentReference);
+        const amountLabel = formatMembershipAmount(paymentPlan.currency, amount);
+        await AppNotificationService.notifySelf({
+          title: 'Payment confirmed',
+          message: `${plan.label} membership payment confirmed successfully.`,
+          type: 'success',
+          data: {
+            action: 'payment_confirmed',
+            tier: plan.queryTier,
+            currency: paymentPlan.currency,
+            amount: amountLabel,
+          },
+        }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+        await EmailAutomationService.onPaymentConfirmed(
+          user.email || '',
+          user.user_metadata?.full_name || user.email || 'Member',
+          plan.label,
+          amountLabel,
+          paymentPlan.currency
+        );
         toast.success(`${plan.label} payment confirmed. Continue with your full onboarding.`);
         navigate(payload.redirectTo || '/onboarding/full', { replace: true });
       } catch (error: unknown) {
@@ -87,7 +108,7 @@ const PaymentPage = () => {
     };
 
     void verifyPayment();
-  }, [navigate, paymentReference, plan.label, plan.queryTier, session?.access_token, user]);
+  }, [amount, navigate, paymentPlan.currency, paymentReference, plan.label, plan.queryTier, session?.access_token, user]);
 
   const handleStartPayment = async () => {
     setIsRedirecting(true);

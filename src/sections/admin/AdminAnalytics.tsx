@@ -29,7 +29,7 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
   return (
     <div className="admin-section-shell">
       <div className="rounded-[24px] border border-white/10 bg-white/5 px-5 py-4 text-sm text-[var(--text-secondary)]">
-        Analytics update automatically from the latest live platform records in Supabase.
+        {t('adminAnalytics.liveUpdate')}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="admin-surface-card premium-glass p-8 rounded-[32px] border border-white/5 relative overflow-hidden group hover:border-[var(--sp-accent)]/30 transition-all">
@@ -62,7 +62,7 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
       </div>
 
       <div className="admin-surface-card premium-glass p-8 rounded-[32px] border border-white/5">
-        <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-8">Monthly Activity Distribution</h3>
+        <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-8">{t('adminAnalytics.monthlyActivityDistribution')}</h3>
         <div className="admin-monthly-chart">
           {monthlyActivity.map((month) => (
             <div key={month.label} className="admin-bar-column">
@@ -83,11 +83,11 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         <div className="flex justify-center gap-8 mt-10">
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded-md bg-gradient-to-br from-[#C89F5E] to-[#D4B76E]" />
-            <span className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider">New Members</span>
+            <span className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider">{t('dashboard.analytics.newMembers')}</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded-md bg-[#8B7355]" />
-            <span className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider">Projects</span>
+            <span className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider">{t('dashboard.sections.projects')}</span>
           </div>
         </div>
       </div>

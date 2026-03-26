@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mail, ArrowRight, Linkedin, KeyRound, CheckCircle2 } from 'lucide-react';
+import { Mail, ArrowRight, Linkedin, KeyRound, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
+import { consumeRejectionNotice } from '../../lib/verificationStatus';
+import { AppNotificationService } from '../../lib/appNotifications';
 
 const LoginPage = () => {
   const { t } = useTranslation();
@@ -75,6 +77,7 @@ const LoginPage = () => {
 
             const tier = existingProfile?.tier || 'Community';
             const completed = !!existingProfile?.onboarding_completed;
+            await notifyLoginActivity(metadata.provider || (searchParams.get('code') ? 'OAuth' : undefined));
 
             if (currentSession.user.email?.includes('admin') || currentSession.user.email?.includes('joinstrategicpathways')) {
               navigate('/admin');
@@ -160,12 +163,30 @@ const LoginPage = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [accountExists, setAccountExists] = useState<boolean | null>(null);
+  const [rejectionNotice, setRejectionNotice] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     token: ''
   });
+
+  const notifyLoginActivity = async (provider?: string) => {
+    await AppNotificationService.notifySelf({
+      title: 'Login successful',
+      message: `You signed in successfully${provider ? ` using ${provider}` : ''}.`,
+      type: 'info',
+      data: { action: 'login_activity', provider: provider || null },
+    }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+  };
+
+  useEffect(() => {
+    const notice = consumeRejectionNotice();
+    if (!notice) return;
+
+    setRejectionNotice(notice);
+    toast.error(notice);
+  }, []);
 
   const handleOAuth = async (provider: 'google' | 'linkedin_oidc') => {
     try {
@@ -298,6 +319,7 @@ const LoginPage = () => {
       
       setSession(data.session);
       setUser(data.user);
+      await notifyLoginActivity('Email code');
       toast.success(t('auth.toast.success'));
 
       const { data: profile } = await supabase
@@ -360,6 +382,18 @@ const LoginPage = () => {
         </div>
 
         <div className="glass-card p-8">
+          {rejectionNotice && (
+            <div className="mb-6 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-left">
+              <div className="flex items-start gap-3">
+                <ShieldAlert className="mt-0.5 h-5 w-5 text-red-300" />
+                <div>
+                  <h2 className="text-sm font-semibold text-red-100">Access Restricted</h2>
+                  <p className="mt-1 text-sm leading-6 text-red-100/90">{rejectionNotice}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {!otpSent ? (
             <>
               {/* OAuth Buttons */}

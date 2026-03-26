@@ -10,8 +10,11 @@ const ReferralsPage = () => {
   const user = useAuthStore((state) => state.user);
   const [copied, setCopied] = useState(false);
 
-  const referralCode = user?.id?.slice(0, 8).toUpperCase() || 'SPXXXXXX';
-  const referralLink = `${window.location.origin}/signup?ref=${referralCode}`;
+  const referralId = user?.id || '';
+  const referralCode = referralId ? referralId.slice(0, 8).toUpperCase() : 'SPXXXXXX';
+  const referralLink = referralId
+    ? `${window.location.origin}/signup?ref=${encodeURIComponent(referralId)}`
+    : `${window.location.origin}/signup?ref=${referralCode}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -68,6 +71,9 @@ const ReferralsPage = () => {
               {copied ? 'Copied!' : 'Copy'}
             </button>
           </div>
+          <p className="text-xs text-[var(--text-secondary)]">
+            Referral code: <span className="text-[var(--text-primary)] font-semibold">{referralCode}</span>
+          </p>
 
           <button
             onClick={handleShareEmail}
