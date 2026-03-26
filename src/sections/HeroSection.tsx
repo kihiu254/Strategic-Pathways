@@ -74,10 +74,10 @@ const HeroSection = ({ className = '' }: HeroSectionProps) => {
     <section 
       ref={sectionRef}
       id="hero"
-      className={`sp-section-pinned min-h-0 bg-[var(--bg-primary)] relative pt-20 lg:pt-28 ${className}`}
+      className={`sp-section-pinned min-h-0 bg-[var(--bg-primary)] relative pt-24 sm:pt-[5.5rem] md:pt-24 lg:pt-28 ${className}`}
     >
       <div className="w-full h-full flex items-start lg:items-center justify-center px-6 lg:px-12">
-        <div className="relative w-full max-w-[1400px] h-auto lg:min-h-[64vh] mt-6 lg:mt-8 flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8">
+        <div className="relative w-full max-w-[1400px] h-auto lg:min-h-[64vh] mt-6 sm:mt-2 md:mt-4 lg:mt-8 flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8">
           
           {/* Left Photo Card */}
           <div 

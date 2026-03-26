@@ -123,14 +123,15 @@ const BasicEditOnboarding = () => {
             Back to Profile
           </button>
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Edit Basic Information</h1>
-          <p className="text-[var(--text-secondary)]">Community members can update their basic profile details here.</p>
+          <p className="text-[var(--text-secondary)]">Review and update your saved basic profile details here.</p>
         </div>
 
         <div className="glass-card p-8 lg:p-10 border border-[var(--sp-accent)]/10 shadow-2xl backdrop-blur-xl">
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit, onError)}>
               <BasicInfo
-                readOnlyFields={['email', ...(user?.user_metadata?.full_name ? ['fullName'] : [])]}
+                readOnlyFields={['email']}
+                showProfileTypeSelection={false}
               />
 
               <div className="mt-10 flex justify-end gap-4 pt-8 border-t border-[var(--sp-accent)]/10">

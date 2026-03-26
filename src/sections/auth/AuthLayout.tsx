@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+import { clearSupabaseAuthStorage, isInvalidRefreshTokenError, supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 
 const AuthLayout = () => {
@@ -18,6 +18,15 @@ const AuthLayout = () => {
         setSession(session);
         setUser(session?.user ?? null);
       } catch (error) {
+        if (isInvalidRefreshTokenError(error)) {
+          clearSupabaseAuthStorage();
+          await supabase.auth.signOut({ scope: 'local' });
+          setSession(null);
+          setUser(null);
+          console.warn('Cleared stale Supabase session after invalid refresh token.');
+          return;
+        }
+
         console.error('Error fetching session:', error);
       } finally {
         setLoading(false);

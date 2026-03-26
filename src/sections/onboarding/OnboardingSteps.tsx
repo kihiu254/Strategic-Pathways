@@ -13,6 +13,7 @@ import { useGSAP } from '@gsap/react';
 
 interface StepProps {
   readOnlyFields?: string[];
+  showProfileTypeSelection?: boolean;
 }
 
 const EntryAnimation = ({ children }: { children: React.ReactNode }) => {
@@ -31,7 +32,7 @@ const EntryAnimation = ({ children }: { children: React.ReactNode }) => {
   return <div ref={container}>{children}</div>;
 };
 
-export const BasicInfo = ({ readOnlyFields = [] }: StepProps) => {
+export const BasicInfo = ({ readOnlyFields = [], showProfileTypeSelection = false }: StepProps) => {
   const { register, formState: { errors } } = useFormContext<OnboardingData>();
   
   return (
@@ -158,36 +159,38 @@ export const BasicInfo = ({ readOnlyFields = [] }: StepProps) => {
           </div>
         </div>
 
-        <div className="space-y-4">
-          <p className="text-[var(--text-secondary)] text-sm font-semibold ml-1">Profile Type Selection</p>
-          <div className="rounded-2xl border border-[var(--sp-accent)]/20 bg-[var(--sp-accent)]/8 px-4 py-3 text-sm text-[var(--text-secondary)]">
-            Your professional data is imported securely from LinkedIn. Strategic Pathways does not post or share information without your permission.
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              { id: 'Standard Member' as const, title: 'Standard Member', icon: Shield, desc: 'Free lifetime access to the basic network features.', color: 'from-blue-500/10 to-transparent' },
-              { id: 'Premium (Verified)' as const, title: 'Premium (Verified)', icon: Award, desc: 'Highest level of trust. Unlocks exclusive features & visibility.', color: 'from-[var(--sp-accent)]/20 to-transparent' }
-            ].map((type) => (
-              <label key={type.id} className="cursor-pointer group relative">
-                <input type="radio" value={type.id} {...register('profileType')} className="sr-only peer" />
-                <div className={`p-6 rounded-2xl border border-[var(--sp-accent)]/10 bg-white/5 backdrop-blur-md transition-all duration-300 peer-checked:border-[var(--sp-accent)] peer-checked:shadow-[0_0_20px_rgba(var(--sp-accent-rgb),0.2)] group-hover:bg-white/10 h-full flex flex-col gap-4 relative overflow-hidden`}>
-                  <div className={`absolute inset-0 bg-gradient-to-br ${type.color} opacity-0 peer-checked:opacity-100 transition-opacity`} />
-                  <div className="relative z-10 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--sp-accent)]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <type.icon size={22} className="text-[var(--sp-accent)]" />
+        {showProfileTypeSelection && (
+          <div className="space-y-4">
+            <p className="text-[var(--text-secondary)] text-sm font-semibold ml-1">Profile Type Selection</p>
+            <div className="rounded-2xl border border-[var(--sp-accent)]/20 bg-[var(--sp-accent)]/8 px-4 py-3 text-sm text-[var(--text-secondary)]">
+              Your professional data is imported securely from LinkedIn. Strategic Pathways does not post or share information without your permission.
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {[
+                { id: 'Standard Member' as const, title: 'Standard Member', icon: Shield, desc: 'Free lifetime access to the basic network features.', color: 'from-blue-500/10 to-transparent' },
+                { id: 'Premium (Verified)' as const, title: 'Premium (Verified)', icon: Award, desc: 'Highest level of trust. Unlocks exclusive features & visibility.', color: 'from-[var(--sp-accent)]/20 to-transparent' }
+              ].map((type) => (
+                <label key={type.id} className="cursor-pointer group relative">
+                  <input type="radio" value={type.id} {...register('profileType')} className="sr-only peer" />
+                  <div className={`p-6 rounded-2xl border border-[var(--sp-accent)]/10 bg-white/5 backdrop-blur-md transition-all duration-300 peer-checked:border-[var(--sp-accent)] peer-checked:shadow-[0_0_20px_rgba(var(--sp-accent-rgb),0.2)] group-hover:bg-white/10 h-full flex flex-col gap-4 relative overflow-hidden`}>
+                    <div className={`absolute inset-0 bg-gradient-to-br ${type.color} opacity-0 peer-checked:opacity-100 transition-opacity`} />
+                    <div className="relative z-10 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[var(--sp-accent)]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <type.icon size={22} className="text-[var(--sp-accent)]" />
+                      </div>
+                      <span className="font-bold text-lg text-[var(--text-primary)]">{type.title}</span>
                     </div>
-                    <span className="font-bold text-lg text-[var(--text-primary)]">{type.title}</span>
+                    <p className="relative z-10 text-xs text-[var(--text-secondary)] leading-relaxed">{type.desc}</p>
+                    <div className="relative z-10 mt-auto flex items-center gap-2 text-[var(--sp-accent)] opacity-0 peer-checked:opacity-100 transition-opacity">
+                      <Check size={14} />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Selected</span>
+                    </div>
                   </div>
-                  <p className="relative z-10 text-xs text-[var(--text-secondary)] leading-relaxed">{type.desc}</p>
-                  <div className="relative z-10 mt-auto flex items-center gap-2 text-[var(--sp-accent)] opacity-0 peer-checked:opacity-100 transition-opacity">
-                    <Check size={14} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Selected</span>
-                  </div>
-                </div>
-              </label>
-            ))}
+                </label>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </EntryAnimation>
   );

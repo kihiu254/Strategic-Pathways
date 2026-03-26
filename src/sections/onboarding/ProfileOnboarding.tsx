@@ -313,7 +313,7 @@ const ProfileOnboarding = () => {
               </div>
 
               <ActiveComponent 
-                readOnlyFields={['email', ...(user?.user_metadata?.full_name ? ['fullName'] : [])]}
+                readOnlyFields={['email']}
               />
 
               <div className="mt-12 flex justify-between gap-4 pt-8 border-t border-[var(--sp-accent)]/10">

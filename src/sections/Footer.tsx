@@ -70,11 +70,11 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative bg-[var(--bg-primary)] border-t border-white/5 py-16">
-      <div className="w-full px-6 lg:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
+    <footer className="relative bg-[var(--bg-primary)] border-t border-white/5 py-14 md:py-16">
+      <div className="w-full max-w-[88rem] mx-auto px-6 lg:px-10 xl:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] gap-10 md:gap-12 xl:gap-16 mb-14 md:mb-16">
           {/* Brand & Social */}
-          <div className="lg:col-span-4 flex flex-col items-start">
+          <div className="flex flex-col items-start md:max-w-lg xl:pr-10">
             <button
               type="button"
               onClick={() => navigate('/')}
@@ -119,7 +119,7 @@ const Footer = () => {
           </div>
 
           {/* Links Columns */}
-          <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 gap-8 md:gap-10 xl:gap-14 w-full md:max-w-xl xl:max-w-2xl md:justify-self-end">
             {Object.entries(footerLinks).map(([key, section]) => (
               <div key={key} className="flex flex-col">
                 <h4 className="text-[var(--text-primary)] font-bold mb-6 text-xs uppercase tracking-[0.2em]">{section.title}</h4>
@@ -191,13 +191,13 @@ const Footer = () => {
         )}
 
         {/* Bottom Bar */}
-        <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex flex-col md:flex-row items-center gap-6 text-[var(--text-secondary)] text-xs font-medium order-2 md:order-1 text-center md:text-left">
+        <div className="pt-10 border-t border-white/5 flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-8">
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-[var(--text-secondary)] text-xs font-medium order-2 lg:order-1 text-center md:text-left">
             <span>© 2026 {t('footer.rights')}</span>
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-8 order-1 md:order-2">
-            <p className="text-[var(--text-secondary)] text-sm md:text-md leading-relaxed max-w-sm text-center md:text-right opacity-60">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 order-1 lg:order-2 w-full lg:w-auto">
+            <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed max-w-sm text-center lg:text-right opacity-60">
               {t('footer.tagline')}
             </p>
             <div className="flex items-center gap-3 glass-light px-4 py-2 rounded-full border border-white/5">

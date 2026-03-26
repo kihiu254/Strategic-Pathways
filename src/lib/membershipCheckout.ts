@@ -38,16 +38,22 @@ const getLocalCurrency = () => (import.meta.env.VITE_PAYSTACK_LOCAL_CURRENCY || 
 export const getMembershipCurrencyOptions = (): MembershipCurrencyOption[] => {
   const primaryCurrency = getPrimaryCurrency();
   const localCurrency = getLocalCurrency();
-  const supportedCurrencies = [primaryCurrency];
+  const options: MembershipCurrencyOption[] = [];
 
+  // If local currency is KES, we want to prioritize it for M-Pesa visibility
   if (localCurrency && localCurrency !== primaryCurrency) {
-    supportedCurrencies.push(localCurrency);
+    options.push({
+      code: localCurrency,
+      label: localCurrency === 'KES' ? 'KES (M-Pesa / Local Cards)' : `${localCurrency} (Local)`,
+    });
   }
 
-  return supportedCurrencies.map((code) => ({
-    code,
-    label: code === primaryCurrency ? `${code} (International)` : `${code} (Local)`,
-  }));
+  options.push({
+    code: primaryCurrency,
+    label: primaryCurrency === 'USD' ? 'USD (International Cards)' : `${primaryCurrency} (International)`,
+  });
+
+  return options;
 };
 
 export const getDefaultMembershipCurrency = () => getMembershipCurrencyOptions()[0]?.code || 'USD';

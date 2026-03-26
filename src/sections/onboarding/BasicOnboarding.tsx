@@ -104,14 +104,15 @@ const BasicOnboarding = () => {
       <div className="max-w-4xl mx-auto px-6 relative z-10">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Basic Information</h1>
-          <p className="text-[var(--text-secondary)]">Complete your community profile to access your dashboard.</p>
+          <p className="text-[var(--text-secondary)]">Complete your community profile to access your dashboard. You can update these details later from your profile.</p>
         </div>
 
         <div className="glass-card p-8 lg:p-10 border border-[var(--sp-accent)]/10 shadow-2xl backdrop-blur-xl">
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit, onError)}>
               <BasicInfo
-                readOnlyFields={['email', ...(user?.user_metadata?.full_name ? ['fullName'] : [])]}
+                readOnlyFields={['email']}
+                showProfileTypeSelection={false}
               />
 
               <div className="mt-10 flex justify-between gap-4 pt-8 border-t border-[var(--sp-accent)]/10">

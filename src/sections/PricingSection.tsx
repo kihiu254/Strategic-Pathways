@@ -117,16 +117,11 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
       }
 
       const targetTier = (tierId === 'professional' ? 'professional' : 'firm') as MembershipTier;
-
       await launchMembershipCheckout({
         tier: targetTier,
         currency: selectedCurrency,
         user,
         session,
-        onCommunityFallback: () => {
-          setCurrentTier('Community');
-          navigate('/onboarding/basic');
-        },
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to select plan.';
@@ -177,7 +172,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
           </div>
         )}
 
-        <div className="mt-10 lg:mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3 items-stretch">
+        <div className="mt-10 lg:mt-12 grid gap-4 lg:gap-6 md:grid-cols-3 items-stretch">
           {tiers.map((tier) => {
             const isCurrent =
               !!user &&
@@ -230,7 +225,12 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
                 </ul>
 
                 <button
-                  onClick={() => handleSelectTier(tier.id)}
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void handleSelectTier(tier.id);
+                  }}
                   disabled={isProcessing === tier.id || isCurrent}
                   className={`mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition-colors disabled:opacity-60 ${
                     tier.featured

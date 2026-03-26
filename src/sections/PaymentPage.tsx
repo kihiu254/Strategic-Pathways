@@ -25,7 +25,6 @@ const PaymentPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const checkoutStartedRef = useRef(false);
   const verificationRef = useRef<string | null>(null);
   const currencyOptions = getMembershipCurrencyOptions();
   const requestedCurrency = (searchParams.get('currency') || '').toUpperCase();
@@ -90,34 +89,6 @@ const PaymentPage = () => {
     void verifyPayment();
   }, [navigate, paymentReference, plan.label, plan.queryTier, session?.access_token, user]);
 
-  useEffect(() => {
-    if (
-      checkoutStartedRef.current ||
-      isLoading ||
-      !user ||
-      !session?.access_token ||
-      paymentReference ||
-      !amountValid
-    ) {
-      return;
-    }
-
-    checkoutStartedRef.current = true;
-    setIsRedirecting(true);
-
-    void launchMembershipCheckout({
-      tier: plan.queryTier as MembershipTier,
-      currency: selectedCurrency,
-      user,
-      session,
-      onCommunityFallback: () => {
-        navigate('/onboarding/basic');
-      },
-    }).finally(() => {
-      setIsRedirecting(false);
-    });
-  }, [amountValid, isLoading, navigate, paymentReference, plan.queryTier, selectedCurrency, session, user]);
-
   const handleStartPayment = async () => {
     setIsRedirecting(true);
 
@@ -136,7 +107,6 @@ const PaymentPage = () => {
 
   const handleCurrencyChange = (currency: MembershipCurrency) => {
     setSelectedCurrency(currency);
-    checkoutStartedRef.current = false;
 
     const nextSearchParams = new URLSearchParams(searchParams);
     nextSearchParams.set('currency', currency);
@@ -191,23 +161,40 @@ const PaymentPage = () => {
               <span className="text-[var(--text-primary)] font-semibold capitalize">{paystackMode}</span>
             </div>
             {currencyOptions.length > 1 && (
-              <div className="mt-4">
-                <span className="text-[var(--text-secondary)] text-sm">Currency</span>
-                <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-white/5 p-2">
-                  {currencyOptions.map((option) => (
-                    <button
-                      key={option.code}
-                      type="button"
-                      onClick={() => handleCurrencyChange(option.code)}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                        option.code === selectedCurrency
-                          ? 'bg-[var(--sp-accent)] text-[var(--bg-primary)]'
-                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+              <div className="mt-6 border-t border-white/5 pt-6">
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <span className="text-[var(--text-primary)] font-medium">Select Currency</span>
+                    <p className="text-[var(--text-secondary)] text-xs mt-1">
+                      Choose <strong>KES</strong> for M-Pesa and Kenyan cards. Choose <strong>USD</strong> for international cards.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {currencyOptions.map((option) => (
+                      <button
+                        key={option.code}
+                        type="button"
+                        onClick={() => handleCurrencyChange(option.code)}
+                        className={`rounded-2xl border px-4 py-4 text-left transition-all ${
+                          option.code === selectedCurrency
+                            ? 'border-[var(--sp-accent)] bg-[var(--sp-accent)]/12 text-[var(--text-primary)] shadow-lg shadow-[var(--sp-accent)]/10'
+                            : 'border-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-bold">{option.code}</div>
+                            <div className={`text-xs mt-1 ${option.code === selectedCurrency ? 'text-[var(--text-primary)]/80' : 'text-[var(--text-secondary)]'}`}>
+                              {option.label.replace(`${option.code} `, '')}
+                            </div>
+                          </div>
+                          {option.code === selectedCurrency && (
+                            <CheckCircle2 size={18} className="text-[var(--sp-accent)]" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -231,7 +218,7 @@ const PaymentPage = () => {
               </>
             ) : (
               <>
-                Pay with Paystack
+                Continue to Paystack
                 <ArrowRight size={18} />
               </>
             )}
@@ -245,7 +232,7 @@ const PaymentPage = () => {
             Cancel and switch to Community
           </button>
           <p className="mt-4 text-sm text-[var(--text-secondary)] text-center bg-white/5 p-4 rounded-xl border border-white/10">
-            Paystack launches automatically from this page as a fallback. After a successful payment, we will unlock your {plan.label} onboarding flow automatically.
+            After a successful payment, we will unlock your {plan.label} onboarding flow automatically.
           </p>
           {paymentReference && !isVerifying && (
             <div className="mt-4 flex items-center justify-center gap-2 text-sm text-green-300 bg-green-500/10 p-4 rounded-xl border border-green-500/20">

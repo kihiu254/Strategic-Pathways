@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import NotificationCenter from '../components/NotificationCenter';
+import { isAvatarUrlBlocked, markAvatarUrlBlocked } from '../lib/avatarCache';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -46,7 +47,8 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
           .select('avatar_url, role')
           .eq('id', user.id)
           .single();
-        setUserAvatar(data?.avatar_url || null);
+        const avatarUrl = data?.avatar_url || null;
+        setUserAvatar(avatarUrl && !isAvatarUrlBlocked(avatarUrl) ? avatarUrl : null);
         const email = user.email || '';
         const shouldPromote =
           email.includes('admin') ||
@@ -111,27 +113,24 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
           isScrolled || currentPage !== 'home'
             ? 'nav-glass py-3' 
-            : 'bg-transparent py-5'
+            : 'bg-transparent py-3 sm:py-3 md:py-4'
         }`}
       >
-        <div className="w-full px-6 lg:px-12 flex items-center justify-between">
+        <div className="w-full min-h-[64px] sm:min-h-[68px] lg:min-h-[72px] px-4 sm:px-6 lg:px-12 flex items-center justify-between gap-4">
           {/* Logo - Left */}
-          <div className="flex-none flex flex-col items-start lg:items-center leading-tight">
+          <div className="flex-none shrink-0 flex items-center">
             <button 
               onClick={() => navigate('/')}
-              className="flex items-center gap-3 group"
+              className="flex items-center group"
             >
               <img 
                 src="/logo.png" 
                 alt="Strategic Pathways" 
                 width={160}
                 height={40}
-                className="h-7 sm:h-8 lg:h-10 w-auto object-contain transform scale-100 sm:scale-110 lg:scale-[1.75] origin-left"
+                className="w-[168px] h-auto object-contain origin-left sm:w-[230px] md:w-[280px] lg:w-auto lg:h-10 lg:max-w-none lg:scale-[1.75]"
               />
             </button>
-            <span className="lg:hidden text-[9px] font-bold text-[var(--sp-accent)] mt-1.5 tracking-[0.15em] uppercase whitespace-nowrap opacity-80">
-              Kenya Talent Network
-            </span>
           </div>
 
           {/* Desktop Navigation Links (Centered) */}
@@ -176,6 +175,11 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                         src={userAvatar} 
                         alt="Profile" 
                         className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                        onError={() => {
+                          markAvatarUrlBlocked(userAvatar);
+                          setUserAvatar(null);
+                        }}
                       />
                     ) : (
                       <User size={16} className="text-[var(--text-inverse)]" />
@@ -261,7 +265,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden text-[var(--text-primary)] p-2 ml-auto glass-light rounded-lg relative z-[101]"
+            className="lg:hidden shrink-0 text-[var(--text-primary)] p-3 md:p-3.5 ml-auto glass-light rounded-xl relative z-[101]"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
