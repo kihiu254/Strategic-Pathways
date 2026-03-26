@@ -31,9 +31,19 @@ type MembershipCurrencyOption = {
   label: string;
 };
 
-const getPrimaryCurrency = () => (import.meta.env.VITE_PAYSTACK_CURRENCY || 'USD').toUpperCase();
+const DEFAULT_PRIMARY_CURRENCY = 'USD';
+const DEFAULT_LOCAL_CURRENCY = 'KES';
+const DEFAULT_PROFESSIONAL_AMOUNT = 10000;
+const DEFAULT_FIRM_AMOUNT = 25000;
+const DEFAULT_PROFESSIONAL_LOCAL_AMOUNT = 1290000;
+const DEFAULT_FIRM_LOCAL_AMOUNT = 3225000;
 
-const getLocalCurrency = () => (import.meta.env.VITE_PAYSTACK_LOCAL_CURRENCY || '').toUpperCase().trim();
+const getPrimaryCurrency = () => (import.meta.env.VITE_PAYSTACK_CURRENCY || DEFAULT_PRIMARY_CURRENCY).toUpperCase();
+
+const getLocalCurrency = () =>
+  (import.meta.env.VITE_PAYSTACK_LOCAL_CURRENCY || (getPrimaryCurrency() === DEFAULT_PRIMARY_CURRENCY ? DEFAULT_LOCAL_CURRENCY : ''))
+    .toUpperCase()
+    .trim();
 
 export const getMembershipCurrencyOptions = (): MembershipCurrencyOption[] => {
   const primaryCurrency = getPrimaryCurrency();
@@ -65,15 +75,15 @@ const resolveMembershipAmount = (tier: MembershipTier, currency: MembershipCurre
   if (tier === 'firm') {
     return Number(
       isLocalCurrency
-        ? import.meta.env.VITE_PAYSTACK_CUSTOM_LOCAL_AMOUNT || 0
-        : import.meta.env.VITE_PAYSTACK_CUSTOM_AMOUNT || 0
+        ? import.meta.env.VITE_PAYSTACK_CUSTOM_LOCAL_AMOUNT || DEFAULT_FIRM_LOCAL_AMOUNT
+        : import.meta.env.VITE_PAYSTACK_CUSTOM_AMOUNT || DEFAULT_FIRM_AMOUNT
     );
   }
 
   return Number(
     isLocalCurrency
-      ? import.meta.env.VITE_PAYSTACK_PROFESSIONAL_LOCAL_AMOUNT || 0
-      : import.meta.env.VITE_PAYSTACK_PROFESSIONAL_AMOUNT || 0
+      ? import.meta.env.VITE_PAYSTACK_PROFESSIONAL_LOCAL_AMOUNT || DEFAULT_PROFESSIONAL_LOCAL_AMOUNT
+      : import.meta.env.VITE_PAYSTACK_PROFESSIONAL_AMOUNT || DEFAULT_PROFESSIONAL_AMOUNT
   );
 };
 

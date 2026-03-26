@@ -44,6 +44,66 @@ const progressWidthClasses = [
   'profile-onboarding-progress-100',
 ];
 
+const getFieldLabel = (field: keyof OnboardingFormInput, userCategory?: OnboardingFormInput['userCategory']) => {
+  switch (field) {
+    case 'userCategory': return 'User category';
+    case 'fullName': return 'Full name';
+    case 'professionalTitle': return 'Professional title';
+    case 'email': return 'Email address';
+    case 'linkedinUrl': return 'LinkedIn URL';
+    case 'websiteUrl': return 'Website URL';
+    case 'countryOfResidence': return 'Country of residence';
+    case 'nationality': return 'Nationality';
+    case 'highestEducation': return 'Highest education level';
+    case 'studyCountry': return 'Country of study';
+    case 'institutions': return 'Institution name';
+    case 'fieldOfStudy': return 'Field of study';
+    case 'otherCountriesWorked': return 'Other countries worked';
+    case 'countriesWorkedIn': return 'Global exposure countries';
+    case 'languagesSpoken': return 'Languages spoken';
+    case 'yearsOfExperience': return 'Years of experience';
+    case 'primarySector': return 'Primary sector';
+    case 'functionalExpertise': return 'Functional expertise';
+    case 'employmentStatus': return 'Employment status';
+    case 'bio': return 'Professional bio';
+    case 'engagementTypes': return 'Engagement types';
+    case 'availability': return 'Availability';
+    case 'preferredFormat': return 'Preferred format';
+    case 'keyAchievements': return 'Key achievements';
+    case 'industrySubSpecialization': return 'Industry sub-specialization';
+    case 'compensationExpectation': return 'Compensation expectation';
+    case 'preferredProjectType': return 'Preferred project type';
+    case 'specificSkills': return 'Specific skills';
+    case 'passionateProblems': return 'Passionate problems';
+    case 'sdgAlignment': return 'SDG alignment';
+    case 'seekingIncome': return 'Income interest';
+    case 'ventureInterest': return 'Venture interest';
+    case 'investorInterest': return 'Investment interest';
+    case 'consentToVerification': return 'Verification consent';
+    case 'identityProofUrl': return 'Identity verification document';
+    case 'academicProofUrl':
+      return userCategory === 'Study-Abroad Returnee (Recent Graduate)'
+        ? 'Academic verification document'
+        : 'Academic proof';
+    case 'employmentProofUrl':
+      return userCategory === 'Diaspora Returnee (Professional)'
+        ? 'Employment verification document'
+        : 'Employment proof';
+    case 'residencyProofUrl':
+      return userCategory === 'Diaspora Returnee (Professional)'
+        ? 'Residency proof'
+        : 'Residency document';
+    case 'professionalProofUrl':
+      return userCategory === 'Diaspora Expert (Still Abroad)'
+        ? 'Professional proof'
+        : 'Professional document';
+    case 'openToSpotlight': return 'Spotlight preference';
+    case 'wouldLikeToMentor': return 'Mentor preference';
+    case 'communityAmbassador': return 'Community ambassador preference';
+    default: return String(field);
+  }
+};
+
 const ProfileOnboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,6 +154,7 @@ const ProfileOnboarding = () => {
     handleSubmit,
     control,
     trigger,
+    getFieldState,
     formState: { isValid },
   } = methods;
 
@@ -129,6 +190,31 @@ const ProfileOnboarding = () => {
     }
   }, [allFormData, user?.id]);
 
+  const getStepErrorDetails = (stepId: string) => {
+    const seenMessages = new Set<string>();
+
+    return getFieldsForStepId(stepId).flatMap((field) => {
+      const fieldState = getFieldState(field);
+
+      if (!fieldState.invalid) {
+        return [];
+      }
+
+      const label = getFieldLabel(field, allFormData?.userCategory);
+      const message = typeof fieldState.error?.message === 'string' && fieldState.error.message.length > 0
+        ? fieldState.error.message
+        : `${label} is required`;
+      const dedupeKey = `${field}:${message}`;
+
+      if (seenMessages.has(dedupeKey)) {
+        return [];
+      }
+
+      seenMessages.add(dedupeKey);
+      return [{ field, label, message }];
+    });
+  };
+
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStepId(steps[currentStep].id);
     const isStepValid = await trigger(fieldsToValidate);
@@ -139,6 +225,14 @@ const ProfileOnboarding = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else {
+      const stepErrorDetails = getStepErrorDetails(steps[currentStep].id);
+
+      if (stepErrorDetails.length > 0) {
+        toast.error(`Complete these first: ${stepErrorDetails.map((item) => item.label).join(', ')}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
       toast.error('Please fix the errors before continuing.');
     }
   };
@@ -266,6 +360,7 @@ const ProfileOnboarding = () => {
   const ActiveComponent = steps[currentStep].component;
   const progress = ((currentStep + 1) / steps.length) * 100;
   const progressWidthClass = progressWidthClasses[currentStep] ?? progressWidthClasses[progressWidthClasses.length - 1];
+  const currentStepErrorDetails = getStepErrorDetails(steps[currentStep].id);
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pt-24 pb-12 relative overflow-hidden">
@@ -311,6 +406,17 @@ const ProfileOnboarding = () => {
                 </h2>
                 <div className="h-px w-full bg-gradient-to-r from-[var(--sp-accent)]/30 to-transparent" />
               </div>
+
+              {currentStepErrorDetails.length > 0 && (
+                <div className="mb-8 rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4">
+                  <p className="text-sm font-semibold text-red-300">Complete these items before continuing:</p>
+                  <ul className="mt-3 space-y-2 text-sm text-red-200/90">
+                    {currentStepErrorDetails.map((item) => (
+                      <li key={`${item.field}-${item.message}`}>- {item.message}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <ActiveComponent 
                 readOnlyFields={['email']}

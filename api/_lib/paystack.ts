@@ -10,10 +10,19 @@ export type PaystackPlan = {
 type PaystackMode = 'test' | 'live';
 
 const DEFAULT_CALLBACK_ORIGIN = 'http://localhost:5173';
+const DEFAULT_PRIMARY_CURRENCY = 'USD';
+const DEFAULT_LOCAL_CURRENCY = 'KES';
+const DEFAULT_PROFESSIONAL_AMOUNT = 10000;
+const DEFAULT_FIRM_AMOUNT = 25000;
+const DEFAULT_PROFESSIONAL_LOCAL_AMOUNT = 1290000;
+const DEFAULT_FIRM_LOCAL_AMOUNT = 3225000;
 
-const getPrimaryCurrency = () => (process.env.VITE_PAYSTACK_CURRENCY || 'USD').toUpperCase();
+const getPrimaryCurrency = () => (process.env.VITE_PAYSTACK_CURRENCY || DEFAULT_PRIMARY_CURRENCY).toUpperCase();
 
-const getLocalCurrency = () => (process.env.VITE_PAYSTACK_LOCAL_CURRENCY || '').toUpperCase().trim();
+const getLocalCurrency = () =>
+  (process.env.VITE_PAYSTACK_LOCAL_CURRENCY || (getPrimaryCurrency() === DEFAULT_PRIMARY_CURRENCY ? DEFAULT_LOCAL_CURRENCY : ''))
+    .toUpperCase()
+    .trim();
 
 const resolveSupportedCurrencies = () => {
   const primaryCurrency = getPrimaryCurrency();
@@ -34,15 +43,15 @@ const resolvePlanAmount = (tier: 'professional' | 'firm', currency: string) => {
   if (tier === 'firm') {
     return Number(
       isLocalCurrency
-        ? process.env.VITE_PAYSTACK_CUSTOM_LOCAL_AMOUNT || 0
-        : process.env.VITE_PAYSTACK_CUSTOM_AMOUNT || 0
+        ? process.env.VITE_PAYSTACK_CUSTOM_LOCAL_AMOUNT || DEFAULT_FIRM_LOCAL_AMOUNT
+        : process.env.VITE_PAYSTACK_CUSTOM_AMOUNT || DEFAULT_FIRM_AMOUNT
     );
   }
 
   return Number(
     isLocalCurrency
-      ? process.env.VITE_PAYSTACK_PROFESSIONAL_LOCAL_AMOUNT || 0
-      : process.env.VITE_PAYSTACK_PROFESSIONAL_AMOUNT || 0
+      ? process.env.VITE_PAYSTACK_PROFESSIONAL_LOCAL_AMOUNT || DEFAULT_PROFESSIONAL_LOCAL_AMOUNT
+      : process.env.VITE_PAYSTACK_PROFESSIONAL_AMOUNT || DEFAULT_PROFESSIONAL_AMOUNT
   );
 };
 

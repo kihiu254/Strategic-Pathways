@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useFormContext, useWatch, useFieldArray } from 'react-hook-form';
 import type { OnboardingData } from './schema';
 import { 
@@ -15,6 +15,53 @@ interface StepProps {
   readOnlyFields?: string[];
   showProfileTypeSelection?: boolean;
 }
+
+type ReferenceEntry = {
+  fullName: string;
+  role: string;
+  company: string;
+  contact: string;
+};
+
+const createEmptyReference = (): ReferenceEntry => ({
+  fullName: '',
+  role: '',
+  company: '',
+  contact: '',
+});
+
+const parseReferenceLine = (line: string): ReferenceEntry => {
+  const [fullName = '', role = '', company = '', contact = ''] = line
+    .split('|')
+    .map((part) => part.trim());
+
+  return {
+    fullName,
+    role,
+    company,
+    contact,
+  };
+};
+
+const parseReferencesValue = (value?: string): ReferenceEntry[] => {
+  const normalized = String(value || '').trim();
+
+  if (!normalized) {
+    return [createEmptyReference()];
+  }
+
+  return normalized
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map(parseReferenceLine);
+};
+
+const serializeReferencesValue = (entries: ReferenceEntry[]) =>
+  entries
+    .map((entry) => [entry.fullName, entry.role, entry.company, entry.contact].map((part) => part.trim()).join(' | '))
+    .filter((line) => line.replace(/\|/g, '').trim().length > 0)
+    .join('\n');
 
 const EntryAnimation = ({ children }: { children: React.ReactNode }) => {
   const container = useRef<HTMLDivElement>(null);
@@ -856,8 +903,39 @@ export const UserCategorySelection = () => {
 export const VerificationCredits = () => {
   const { register, control, setValue, formState: { errors } } = useFormContext<OnboardingData>();
   const userCategory = useWatch({ control, name: 'userCategory' });
+  const referencesValue = useWatch({ control, name: 'references' });
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [uploaded, setUploaded] = useState<Record<string, boolean>>({});
+  const [referenceEntries, setReferenceEntries] = useState<ReferenceEntry[]>(() => parseReferencesValue(''));
+
+  useEffect(() => {
+    setReferenceEntries(parseReferencesValue(referencesValue));
+  }, [referencesValue]);
+
+  const syncReferenceEntries = (entries: ReferenceEntry[]) => {
+    setReferenceEntries(entries);
+    setValue('references', serializeReferencesValue(entries), {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: false,
+    });
+  };
+
+  const updateReferenceEntry = (index: number, field: keyof ReferenceEntry, value: string) => {
+    const nextEntries = referenceEntries.map((entry, entryIndex) =>
+      entryIndex === index ? { ...entry, [field]: value } : entry
+    );
+    syncReferenceEntries(nextEntries);
+  };
+
+  const addReferenceEntry = () => {
+    syncReferenceEntries([...referenceEntries, createEmptyReference()]);
+  };
+
+  const removeReferenceEntry = (index: number) => {
+    const nextEntries = referenceEntries.filter((_, entryIndex) => entryIndex !== index);
+    syncReferenceEntries(nextEntries.length ? nextEntries : [createEmptyReference()]);
+  };
 
   const handleFileUpload = async (file: File, fieldName: string) => {
     setUploading(prev => ({ ...prev, [fieldName]: true }));
@@ -878,11 +956,17 @@ export const VerificationCredits = () => {
   const UploadField = ({ name, label, description }: { name: keyof OnboardingData, label: string, description: string }) => {
     const currentValue = useWatch({ control, name: name as never }) as string | undefined;
     const { onChange, ...rest } = register(name as never);
+    const fieldError = errors[name];
+    const errorMessage = typeof fieldError?.message === 'string' ? fieldError.message : '';
     
     return (
       <div className="space-y-4 mb-8 text-left animate-in fade-in zoom-in-95 duration-500">
         <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-[0.1em] ml-1">{label}</label>
-        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md flex items-center hover:border-[var(--sp-accent)]/30 transition-all shadow-xl">
+        <div className={`relative group overflow-hidden rounded-2xl border backdrop-blur-md flex items-center transition-all shadow-xl ${
+          errorMessage
+            ? 'border-red-400/50 bg-red-500/5'
+            : 'border-white/10 bg-white/5 hover:border-[var(--sp-accent)]/30'
+        }`}>
           <div className="pl-5 pr-3 text-[var(--sp-accent)] border-r border-white/10 h-14 flex items-center">
             <Shield size={22} className="group-hover:rotate-12 transition-transform" />
           </div>
@@ -921,6 +1005,9 @@ export const VerificationCredits = () => {
           <div className="flex items-center gap-2 text-green-400 text-[10px] font-bold uppercase tracking-widest ml-1 animate-in slide-in-from-left-2">
              <Check size={12} /> <span>Upload Encrypted & Stored</span>
           </div>
+        )}
+        {errorMessage && (
+          <p className="text-red-400 text-xs ml-1 font-semibold">{errorMessage}</p>
         )}
         <p className="text-[10px] text-[var(--text-secondary)] opacity-50 ml-2 italic">{description}</p>
       </div>
@@ -1003,18 +1090,100 @@ export const VerificationCredits = () => {
           </div>
         </div>
 
-        <div className="group space-y-4 px-2 text-center">
-          <label className="text-[var(--text-secondary)] text-sm font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-            <Users size={18} className="text-[var(--sp-accent)]" />
-            Professional References (Optional)
-          </label>
-          <div className="relative">
-            <textarea
-              {...register('references')}
-              className="input-glass-premium w-full min-h-[120px] py-4 text-center"
-              placeholder="Full Name | Role | Company | Email/Contact"
-            />
-            <div className="input-focus-line" />
+        <div className="group space-y-5 px-2">
+          <div className="text-center space-y-2">
+            <label className="text-[var(--text-secondary)] text-sm font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+              <Users size={18} className="text-[var(--sp-accent)]" />
+              Professional References (Optional)
+            </label>
+            <p className="text-xs text-[var(--text-secondary)] opacity-70">
+              Add people who can speak to your work. You can include one or more references.
+            </p>
+          </div>
+
+          <input type="hidden" {...register('references')} />
+
+          <div className="space-y-4">
+            {referenceEntries.map((entry, index) => (
+              <div
+                key={`reference-${index}`}
+                className="rounded-[2rem] border border-[var(--sp-accent)]/20 bg-white/5 p-5 sm:p-6 shadow-xl backdrop-blur-md"
+              >
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[var(--text-primary)] font-semibold">Reference {index + 1}</p>
+                    <p className="text-xs text-[var(--text-secondary)] opacity-70">Full Name, Role, Company, Email or phone</p>
+                  </div>
+                  {referenceEntries.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeReferenceEntry(index)}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20"
+                      title="Remove reference"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider">Full Name</label>
+                    <input
+                      type="text"
+                      value={entry.fullName}
+                      onChange={(event) => updateReferenceEntry(index, 'fullName', event.target.value)}
+                      className="input-glass-premium w-full"
+                      placeholder="e.g. Jane Wanjiku"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider">Role</label>
+                    <input
+                      type="text"
+                      value={entry.role}
+                      onChange={(event) => updateReferenceEntry(index, 'role', event.target.value)}
+                      className="input-glass-premium w-full"
+                      placeholder="e.g. Program Director"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider">Company</label>
+                    <input
+                      type="text"
+                      value={entry.company}
+                      onChange={(event) => updateReferenceEntry(index, 'company', event.target.value)}
+                      className="input-glass-premium w-full"
+                      placeholder="e.g. Acme Foundation"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider">Email / Contact</label>
+                    <input
+                      type="text"
+                      value={entry.contact}
+                      onChange={(event) => updateReferenceEntry(index, 'contact', event.target.value)}
+                      className="input-glass-premium w-full"
+                      placeholder="e.g. jane@company.com or +254..."
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={addReferenceEntry}
+              className="inline-flex items-center gap-2 rounded-2xl border border-[var(--sp-accent)]/25 bg-[var(--sp-accent)]/10 px-5 py-3 text-sm font-semibold text-[var(--sp-accent)] transition-colors hover:bg-[var(--sp-accent)]/15"
+            >
+              <Plus size={16} />
+              Add Another Reference
+            </button>
           </div>
         </div>
       </div>
