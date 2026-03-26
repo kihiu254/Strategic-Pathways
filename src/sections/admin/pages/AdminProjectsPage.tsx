@@ -331,15 +331,49 @@ const AdminProjectsPage = () => {
         project_url: editDraft.project_url.trim() || null,
         is_current: editDraft.is_current,
         tags: nextTags,
-        updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('user_projects')
-        .update(payload)
-        .eq('id', activeProject.id);
+      const { error } = await supabase.from('user_projects').update(payload).eq('id', activeProject.id);
 
-      if (error) throw error;
+      if (error) {
+        const message = error.message?.toLowerCase() || '';
+        const fallbackPayload = {
+          project_title: payload.project_title,
+          organization: payload.organization,
+          role: payload.role,
+          project_description: payload.project_description,
+          is_current: payload.is_current,
+        };
+
+        if (message.includes('column') || message.includes('does not exist')) {
+          const { error: fallbackError } = await supabase
+            .from('user_projects')
+            .update(fallbackPayload)
+            .eq('id', activeProject.id);
+
+          if (fallbackError) throw fallbackError;
+
+          setProjects((current) =>
+            current.map((project) =>
+              project.id === activeProject.id
+                ? {
+                    ...project,
+                    ...fallbackPayload,
+                  }
+                : project
+            )
+          );
+
+          toast.success('Project updated. Some advanced fields are missing in the database schema.');
+          setActiveProject((current) =>
+            current ? { ...current, ...fallbackPayload } : current
+          );
+          setIsEditingProject(false);
+          return;
+        }
+
+        throw error;
+      }
 
       setProjects((current) =>
         current.map((project) =>

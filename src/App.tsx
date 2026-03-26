@@ -64,6 +64,7 @@ const HelpCenterPage = lazy(() => import('./sections/HelpCenterPage'));
 const PrivacyPolicyPage = lazy(() => import('./sections/PrivacyPolicyPage'));
 const PricingPage = lazy(() => import('./sections/PricingPage'));
 const NotificationsPage = lazy(() => import('./sections/NotificationsPage'));
+const ProjectsPage = lazy(() => import('./sections/ProjectsPage'));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -234,6 +235,7 @@ function MainLayout() {
                     <Route path="/help-center" element={<HelpCenterPage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/pricing" element={<PricingPage />} />
+                    <Route path="/projects" element={<ProjectsPage />} />
                     <Route path="/payment" element={<PaymentPage />} />
                     
                     {/* Protected Admin Route */}

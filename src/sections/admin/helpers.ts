@@ -36,6 +36,9 @@ export const getStatusTone = (status?: string | null) => {
 export const removeProjectAdminTag = (tags: string[] | null | undefined, tagToRemove: string) =>
   (tags || []).filter((tag) => tag !== tagToRemove);
 
+export const removeProjectAdminTags = (tags?: string[] | null) =>
+  (tags || []).filter((tag) => !tag.startsWith('admin-status:'));
+
 export const isProjectArchived = (tags?: string[] | null) =>
   (tags || []).includes(PROJECT_ARCHIVED_TAG);
 
