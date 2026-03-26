@@ -97,7 +97,7 @@ export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ""))
 
   return {
-    base: './',
+    base: '/',
     plugins: [inspectAttr(), react(), paystackDevApiPlugin()],
     resolve: {
       alias: {
