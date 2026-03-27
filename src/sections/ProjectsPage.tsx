@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ExternalLink, FileDown, FolderOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ExternalLink, Eye, FolderOpen } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import SEO from '../components/SEO';
 
@@ -18,6 +19,7 @@ type ProjectRow = {
 const APPROVED_TAG = 'admin-status:approved';
 
 const ProjectsPage = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -59,61 +61,29 @@ const ProjectsPage = () => {
     return { total, current };
   }, [projects]);
 
-  const downloadProject = (project: ProjectRow) => {
-    const fileName =
-      (project.project_title || 'portfolio-project')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '')
-        .slice(0, 64) || 'portfolio-project';
-
-    const lines = [
-      `Project: ${project.project_title || 'Untitled project'}`,
-      `Organization: ${project.organization || 'Not supplied'}`,
-      `Role: ${project.role || 'Not supplied'}`,
-      `Status: ${project.is_current ? 'Current project' : 'Past project'}`,
-      `Created: ${project.created_at || 'No date'}`,
-      `Tags: ${(project.tags || []).join(', ') || 'None'}`,
-      `Project link: ${project.project_url || 'Not supplied'}`,
-      '',
-      'Summary:',
-      project.project_description || 'No project summary provided.',
-    ];
-
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${fileName}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] pt-28 pb-16">
+    <div className="min-h-screen bg-[var(--bg-primary)] pt-24 sm:pt-28 pb-12 sm:pb-16">
       <SEO title="Approved Projects" />
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="glass-card rounded-[32px] border border-white/10 p-8 md:p-10 mb-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="glass-card rounded-[32px] border border-white/10 p-5 sm:p-6 md:p-10 mb-8 sm:mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[0.3em] text-[var(--sp-accent)] font-bold mb-3">
                 Approved Portfolio Projects
               </p>
-              <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--text-primary)] break-words">
                 Project Library
               </h1>
-              <p className="text-sm md:text-base text-[var(--text-secondary)] mt-3 max-w-2xl">
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-3 max-w-2xl">
                 Browse verified member projects that have been approved by Strategic Pathways admins.
               </p>
             </div>
-            <div className="flex gap-4">
-              <div className="glass-light rounded-2xl px-5 py-4 text-center min-w-[140px]">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full sm:w-auto">
+              <div className="glass-light rounded-2xl px-4 sm:px-5 py-4 text-center min-w-0">
                 <p className="text-2xl font-bold text-[var(--text-primary)]">{summary.total}</p>
                 <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)] mt-2">Total</p>
               </div>
-              <div className="glass-light rounded-2xl px-5 py-4 text-center min-w-[140px]">
+              <div className="glass-light rounded-2xl px-4 sm:px-5 py-4 text-center min-w-0">
                 <p className="text-2xl font-bold text-[var(--text-primary)]">{summary.current}</p>
                 <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)] mt-2">Current</p>
               </div>
@@ -140,10 +110,10 @@ const ProjectsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {projects.map((project) => (
               <div key={project.id} className="admin-project-card glass-card p-6 border border-white/5 rounded-[28px]">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-xl font-bold text-[var(--text-primary)]">
+                      <h3 className="text-xl font-bold text-[var(--text-primary)] break-words">
                         {project.project_title || 'Untitled project'}
                       </h3>
                       <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-[var(--sp-accent)]/20 text-[var(--sp-accent)]">
@@ -155,14 +125,14 @@ const ProjectsPage = () => {
                         {project.is_current ? 'Current' : 'Past'}
                       </span>
                     </div>
-                    <p className="text-sm text-[var(--text-secondary)] mt-2">
-                      {project.organization || 'Independent project'}{project.role ? ` · ${project.role}` : ''}
+                    <p className="text-sm text-[var(--text-secondary)] mt-2 break-words">
+                      {project.organization || 'Independent project'}{project.role ? ` - ${project.role}` : ''}
                     </p>
                   </div>
-                  <FolderOpen className="text-[var(--sp-accent)]" size={20} />
+                  <FolderOpen className="text-[var(--sp-accent)] shrink-0" size={20} />
                 </div>
 
-                <p className="text-sm leading-relaxed text-[var(--text-secondary)] mt-4">
+                <p className="text-sm leading-relaxed text-[var(--text-secondary)] mt-4 break-words">
                   {project.project_description || 'No project summary provided.'}
                 </p>
 
@@ -174,24 +144,24 @@ const ProjectsPage = () => {
                   ))}
                 </div>
 
-                <div className="flex flex-wrap gap-2 mt-5">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 mt-5">
                   {project.project_url && (
                     <a
                       href={project.project_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="sp-btn-glass px-4 py-2 text-sm inline-flex items-center gap-2"
+                      className="sp-btn-glass px-4 py-2 text-sm inline-flex items-center justify-center gap-2 w-full sm:w-auto"
                     >
                       <ExternalLink size={16} />
                       Open project link
                     </a>
                   )}
                   <button
-                    onClick={() => downloadProject(project)}
-                    className="sp-btn-glass px-4 py-2 text-sm inline-flex items-center gap-2"
+                    onClick={() => navigate(`/projects/${project.id}`)}
+                    className="sp-btn-glass px-4 py-2 text-sm inline-flex items-center justify-center gap-2 w-full sm:w-auto"
                   >
-                    <FileDown size={16} />
-                    Download summary
+                    <Eye size={16} />
+                    View details
                   </button>
                 </div>
               </div>

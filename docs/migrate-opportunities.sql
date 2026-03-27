@@ -1,6 +1,7 @@
 -- ==============================================================================
 -- OPPORTUNITIES TABLE MIGRATION - Add Missing Columns
 -- Run this to update the existing opportunities table
+-- Safe to rerun if parts of the migration were already applied.
 -- ==============================================================================
 
 -- Add missing columns to opportunities table
@@ -27,26 +28,43 @@ CREATE TABLE IF NOT EXISTS public.opportunity_applications (
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'accepted', 'rejected')),
   cover_letter TEXT,
   applied_at TIMESTAMP DEFAULT NOW(),
+  deadline_week_reminded_at TIMESTAMP,
+  deadline_five_day_reminded_at TIMESTAMP,
   reviewed_at TIMESTAMP,
   reviewed_by UUID REFERENCES public.profiles(id),
   notes TEXT,
   UNIQUE(opportunity_id, user_id)
 );
 
+ALTER TABLE public.opportunity_applications
+  ADD COLUMN IF NOT EXISTS deadline_week_reminded_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS deadline_five_day_reminded_at TIMESTAMP;
+
 -- Enable RLS on opportunity_applications
 ALTER TABLE public.opportunity_applications ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for opportunity_applications
+DROP POLICY IF EXISTS "Users can view own applications" ON public.opportunity_applications;
 CREATE POLICY "Users can view own applications"
 ON public.opportunity_applications FOR SELECT
 TO authenticated
 USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can create applications" ON public.opportunity_applications;
 CREATE POLICY "Users can create applications"
 ON public.opportunity_applications FOR INSERT
 TO authenticated
-WITH CHECK (user_id = auth.uid());
+WITH CHECK (
+  user_id = auth.uid()
+  AND EXISTS (
+    SELECT 1 FROM public.opportunities
+    WHERE opportunities.id = opportunity_id
+      AND opportunities.status = 'active'
+      AND opportunities.deadline::date >= CURRENT_DATE
+  )
+);
 
+DROP POLICY IF EXISTS "Admins can view all applications" ON public.opportunity_applications;
 CREATE POLICY "Admins can view all applications"
 ON public.opportunity_applications FOR SELECT
 TO authenticated
@@ -58,6 +76,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can update applications" ON public.opportunity_applications;
 CREATE POLICY "Admins can update applications"
 ON public.opportunity_applications FOR UPDATE
 TO authenticated
@@ -80,6 +99,7 @@ CREATE INDEX IF NOT EXISTS idx_opp_applications_status ON public.opportunity_app
 
 -- Update existing opportunities RLS policies to use 'active' status
 DROP POLICY IF EXISTS "Anyone can view open opportunities." ON public.opportunities;
+DROP POLICY IF EXISTS "Anyone can view active opportunities" ON public.opportunities;
 CREATE POLICY "Anyone can view active opportunities"
 ON public.opportunities FOR SELECT
 USING (status IN ('active', 'open'));
@@ -89,50 +109,83 @@ INSERT INTO public.opportunities (
   title, organization, location, type, duration, description, 
   requirements, compensation, sector, tags, deadline, status
 )
-VALUES
-  (
-    'Digital Transformation Consultant',
-    'Nairobi County Government',
-    'Nairobi, Kenya',
-    'Contract',
-    '6 months',
-    'Lead the digital transformation strategy for county service delivery systems.',
-    ARRAY['5+ years in digital transformation', 'Experience with government systems'],
-    'Competitive',
-    'Technology',
-    ARRAY['Digital', 'Government', 'Strategy'],
-    NOW() + INTERVAL '30 days',
-    'active'
-  ),
-  (
-    'AgriTech Value Chain Expert',
-    'Green Innovations NGO',
-    'Nakuru, Kenya',
-    'Full-time',
-    '12 months',
-    'Design and implement supply chain optimizations for local farmers.',
-    ARRAY['Agricultural economics background', 'Supply chain expertise'],
-    'KSh 150,000 - 200,000/month',
-    'Agriculture',
-    ARRAY['AgriTech', 'Supply Chain'],
-    NOW() + INTERVAL '45 days',
-    'active'
-  ),
-  (
-    'Venture Builder In-Residence',
-    'Kenya Innovation Hub',
-    'Remote',
-    'Part-time',
-    '9 months',
-    'Mentor early-stage startups and help build viable financial models.',
-    ARRAY['Startup experience', 'Financial modeling'],
-    'Equity + Stipend',
-    'Finance',
-    ARRAY['Startups', 'Venture'],
-    NOW() + INTERVAL '60 days',
-    'active'
-  )
-ON CONFLICT DO NOTHING;
+SELECT
+  seed.title,
+  seed.organization,
+  seed.location,
+  seed.type,
+  seed.duration,
+  seed.description,
+  seed.requirements,
+  seed.compensation,
+  seed.sector,
+  seed.tags,
+  seed.deadline,
+  seed.status
+FROM (
+  VALUES
+    (
+      'Digital Transformation Consultant',
+      'Nairobi County Government',
+      'Nairobi, Kenya',
+      'Contract',
+      '6 months',
+      'Lead the digital transformation strategy for county service delivery systems.',
+      ARRAY['5+ years in digital transformation', 'Experience with government systems'],
+      'Competitive',
+      'Technology',
+      ARRAY['Digital', 'Government', 'Strategy'],
+      NOW() + INTERVAL '30 days',
+      'active'
+    ),
+    (
+      'AgriTech Value Chain Expert',
+      'Green Innovations NGO',
+      'Nakuru, Kenya',
+      'Full-time',
+      '12 months',
+      'Design and implement supply chain optimizations for local farmers.',
+      ARRAY['Agricultural economics background', 'Supply chain expertise'],
+      'KSh 150,000 - 200,000/month',
+      'Agriculture',
+      ARRAY['AgriTech', 'Supply Chain'],
+      NOW() + INTERVAL '45 days',
+      'active'
+    ),
+    (
+      'Venture Builder In-Residence',
+      'Kenya Innovation Hub',
+      'Remote',
+      'Part-time',
+      '9 months',
+      'Mentor early-stage startups and help build viable financial models.',
+      ARRAY['Startup experience', 'Financial modeling'],
+      'Equity + Stipend',
+      'Finance',
+      ARRAY['Startups', 'Venture'],
+      NOW() + INTERVAL '60 days',
+      'active'
+    )
+) AS seed (
+  title,
+  organization,
+  location,
+  type,
+  duration,
+  description,
+  requirements,
+  compensation,
+  sector,
+  tags,
+  deadline,
+  status
+)
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM public.opportunities existing
+  WHERE existing.title = seed.title
+    AND existing.organization = seed.organization
+);
 
 -- Verify the migration
 SELECT 

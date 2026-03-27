@@ -3,7 +3,7 @@ import { useForm, useWatch, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { onboardingSchema } from './schema';
+import { isStudyAbroadReturnee, onboardingSchema, STUDY_ABROAD_RETURNEE } from './schema';
 import type { OnboardingData, OnboardingFormInput } from './schema';
 import { 
   UserCategorySelection, BasicInfo, EducationEnhanced as Education, ProfessionalExperience, 
@@ -45,6 +45,26 @@ const progressWidthClasses = [
   'profile-onboarding-progress-100',
 ];
 
+const getVerificationFields = (
+  userCategory?: OnboardingFormInput['userCategory']
+): (keyof OnboardingFormInput)[] => {
+  const fields: (keyof OnboardingFormInput)[] = ['consentToVerification', 'identityProofUrl'];
+
+  if (isStudyAbroadReturnee(userCategory)) {
+    fields.push('academicProofUrl');
+  }
+
+  if (userCategory === 'Diaspora Returnee (Professional)') {
+    fields.push('employmentProofUrl', 'residencyProofUrl');
+  }
+
+  if (userCategory === 'Diaspora Expert (Still Abroad)') {
+    fields.push('professionalProofUrl');
+  }
+
+  return fields;
+};
+
 const getFieldLabel = (field: keyof OnboardingFormInput, userCategory?: OnboardingFormInput['userCategory']) => {
   switch (field) {
     case 'userCategory': return 'User category';
@@ -83,7 +103,7 @@ const getFieldLabel = (field: keyof OnboardingFormInput, userCategory?: Onboardi
     case 'consentToVerification': return 'Verification consent';
     case 'identityProofUrl': return 'Identity verification document';
     case 'academicProofUrl':
-      return userCategory === 'Study-Abroad Returnee (Recent Graduate)'
+      return isStudyAbroadReturnee(userCategory)
         ? 'Academic verification document'
         : 'Academic proof';
     case 'employmentProofUrl':
@@ -134,7 +154,7 @@ const ProfileOnboarding = () => {
       websiteUrl: '',
       countryOfResidence: '',
       nationality: '',
-      userCategory: 'Study-Abroad Returnee (Recent Graduate)',
+      userCategory: STUDY_ABROAD_RETURNEE,
       functionalExpertise: [],
       engagementTypes: [],
       countriesWorkedIn: [],
@@ -202,8 +222,9 @@ const ProfileOnboarding = () => {
       }
 
       const label = getFieldLabel(field, allFormData?.userCategory);
-      const message = typeof fieldState.error?.message === 'string' && fieldState.error.message.length > 0
-        ? fieldState.error.message
+      const rawMessage = typeof fieldState.error?.message === 'string' ? fieldState.error.message.trim() : '';
+      const message = rawMessage && rawMessage.toLowerCase() !== 'invalid input'
+        ? rawMessage
         : `${label} is required`;
       const dedupeKey = `${field}:${message}`;
 
@@ -356,7 +377,7 @@ const ProfileOnboarding = () => {
       case 'premium': return ['keyAchievements', 'industrySubSpecialization', 'compensationExpectation', 'preferredProjectType'];
       case 'contribution': return ['specificSkills', 'passionateProblems', 'sdgAlignment'];
       case 'income': return ['seekingIncome', 'ventureInterest', 'investorInterest'];
-      case 'verification': return ['consentToVerification', 'identityProofUrl', 'academicProofUrl', 'employmentProofUrl', 'residencyProofUrl', 'professionalProofUrl'];
+      case 'verification': return getVerificationFields(allFormData?.userCategory);
       case 'visibility': return ['openToSpotlight', 'wouldLikeToMentor', 'communityAmbassador'];
       default: return [];
     }

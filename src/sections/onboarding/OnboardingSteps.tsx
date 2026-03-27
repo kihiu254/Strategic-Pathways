@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useFormContext, useWatch, useFieldArray } from 'react-hook-form';
 import type { OnboardingData } from './schema';
+import { isStudyAbroadReturnee, STUDY_ABROAD_RETURNEE } from './schema';
 import { 
   User, Mail, Phone, Linkedin, Globe, Briefcase, Award, Heart, 
   Zap, Shield, Target, TrendingUp, Plus, Trash2, Camera, Check, GraduationCap, MapPin, Users
@@ -62,6 +63,34 @@ const serializeReferencesValue = (entries: ReferenceEntry[]) =>
     .map((entry) => [entry.fullName, entry.role, entry.company, entry.contact].map((part) => part.trim()).join(' | '))
     .filter((line) => line.replace(/\|/g, '').trim().length > 0)
     .join('\n');
+
+const MAX_VERIFICATION_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
+const VERIFICATION_UPLOAD_ACCEPT = '.pdf,.doc,.docx,.jpg,.jpeg,.png';
+
+const getVerificationUploadErrorMessage = (error: unknown) => {
+  const message = error instanceof Error ? error.message : 'Upload interrupted';
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    normalizedMessage.includes('exceeded the maximum allowed size') ||
+    normalizedMessage.includes('exceeded the max upload size') ||
+    normalizedMessage.includes('file too large') ||
+    normalizedMessage.includes('payload too large')
+  ) {
+    return 'This file is too large. Please upload a file up to 5MB.';
+  }
+
+  if (
+    normalizedMessage.includes('mime type') ||
+    normalizedMessage.includes('invalid file type') ||
+    normalizedMessage.includes('unsupported') ||
+    normalizedMessage.includes('status 400')
+  ) {
+    return 'This file type is not supported here. Please use PDF, DOC, DOCX, JPG, or PNG.';
+  }
+
+  return 'Upload failed. Please try again with a PDF, DOC, DOCX, JPG, or PNG file.';
+};
 
 const EntryAnimation = ({ children }: { children: React.ReactNode }) => {
   const container = useRef<HTMLDivElement>(null);
@@ -863,7 +892,7 @@ export const UserCategorySelection = () => {
         <div className="grid grid-cols-1 gap-6">
           {[
             { 
-              id: 'Study-Abroad Returnee (Recent Graduate)' as const, 
+              id: STUDY_ABROAD_RETURNEE as const, 
               title: 'Study-Abroad Returnee', 
               desc: 'Completed degree/diploma abroad and returned to Kenya. Focus on networking and local integration.',
               icon: GraduationCap
@@ -948,6 +977,11 @@ export const VerificationCredits = () => {
   };
 
   const handleFileUpload = async (file: File, fieldName: string) => {
+    if (file.size > MAX_VERIFICATION_UPLOAD_SIZE_BYTES) {
+      toast.error('This file is too large. Please upload a file up to 5MB.');
+      return;
+    }
+
     setUploading(prev => ({ ...prev, [fieldName]: true }));
     setUploaded(prev => ({ ...prev, [fieldName]: false }));
     try {
@@ -956,8 +990,7 @@ export const VerificationCredits = () => {
       toast.success('Document secure! Verification pending.');
       setUploaded(prev => ({ ...prev, [fieldName]: true }));
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Upload interrupted';
-      toast.error(errorMessage);
+      toast.error(getVerificationUploadErrorMessage(error));
     } finally {
       setUploading(prev => ({ ...prev, [fieldName]: false }));
     }
@@ -993,7 +1026,7 @@ export const VerificationCredits = () => {
           <label className="mr-3 cursor-pointer">
             <input
               type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept={VERIFICATION_UPLOAD_ACCEPT}
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -1047,7 +1080,7 @@ export const VerificationCredits = () => {
               description="Front page of passport or primary national identity card."
             />
 
-            {userCategory === 'Study-Abroad Returnee (Recent Graduate)' && (
+            {isStudyAbroadReturnee(userCategory) && (
               <UploadField
                 name="academicProofUrl"
                 label="Academic Achievement (Degree/Graduation) *"

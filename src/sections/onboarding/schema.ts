@@ -1,5 +1,23 @@
 import { z } from 'zod';
 
+export const STUDY_ABROAD_RETURNEE = 'Study-Abroad Returnee';
+export const LEGACY_STUDY_ABROAD_RETURNEE = 'Study-Abroad Returnee (Recent Graduate)';
+
+export const isStudyAbroadReturnee = (value?: string) =>
+  value === STUDY_ABROAD_RETURNEE || value === LEGACY_STUDY_ABROAD_RETURNEE;
+
+const optionalUploadField = z.preprocess(
+  (value) => {
+    if (typeof value !== 'string') {
+      return value;
+    }
+
+    const trimmedValue = value.trim();
+    return trimmedValue.length > 0 ? trimmedValue : undefined;
+  },
+  z.string().optional()
+);
+
 export const onboardingSchema = z.object({
   // Step 0: Profile Type
   profileType: z.enum(['Standard Member', 'Premium (Verified)']),
@@ -98,7 +116,8 @@ export const onboardingSchema = z.object({
 
   // SECTION 7: Verification & Credibility
   userCategory: z.enum([
-    'Study-Abroad Returnee (Recent Graduate)',
+    STUDY_ABROAD_RETURNEE,
+    LEGACY_STUDY_ABROAD_RETURNEE,
     'Diaspora Returnee (Professional)',
     'Diaspora Expert (Still Abroad)'
   ]).optional(),
@@ -109,11 +128,11 @@ export const onboardingSchema = z.object({
   ]),
   
   // Document Uploads (URLs stored after upload)
-  academicProofUrl: z.string().min(1, 'Academic verification is required'),
-  identityProofUrl: z.string().min(1, 'Identity verification is required'),
-  employmentProofUrl: z.string().optional(),
-  residencyProofUrl: z.string().optional(),
-  professionalProofUrl: z.string().optional(),
+  academicProofUrl: optionalUploadField,
+  identityProofUrl: optionalUploadField,
+  employmentProofUrl: optionalUploadField,
+  residencyProofUrl: optionalUploadField,
+  professionalProofUrl: optionalUploadField,
 
   cvUrl: z.string().optional(),
   certificationUrls: z.array(z.string()).optional(),
@@ -135,7 +154,7 @@ export const onboardingSchema = z.object({
   }
 
   // Category-based document requirements
-  if (data.userCategory === 'Study-Abroad Returnee (Recent Graduate)' && !data.academicProofUrl) {
+  if (isStudyAbroadReturnee(data.userCategory) && !data.academicProofUrl) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Academic verification is required for study-abroad returnees',

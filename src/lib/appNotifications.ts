@@ -30,12 +30,21 @@ export class AppNotificationService {
       body: JSON.stringify(payload),
     });
 
+    const result = (await response.json().catch(() => null)) as {
+      error?: string;
+      skipped?: boolean;
+      success?: boolean;
+    } | null;
+
+    if (result?.skipped) {
+      return result;
+    }
+
     if (!response.ok) {
-      const result = (await response.json().catch(() => null)) as { error?: string } | null;
       throw new Error(result?.error || 'Failed to create notification.');
     }
 
-    return response.json();
+    return result;
   }
 
   static async notifySelf(payload: Omit<NotificationPayload, 'userId' | 'userIds'>) {

@@ -1,5 +1,6 @@
 -- ==============================================================================
 -- OPPORTUNITIES SYSTEM DATABASE SCHEMA
+-- Intended for fresh installs, but safe to rerun if parts already exist.
 -- ==============================================================================
 
 -- Create opportunities table
@@ -30,6 +31,8 @@ CREATE TABLE IF NOT EXISTS opportunity_applications (
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'accepted', 'rejected')),
   cover_letter TEXT,
   applied_at TIMESTAMP DEFAULT NOW(),
+  deadline_week_reminded_at TIMESTAMP,
+  deadline_five_day_reminded_at TIMESTAMP,
   reviewed_at TIMESTAMP,
   reviewed_by UUID REFERENCES profiles(id),
   notes TEXT,
@@ -53,11 +56,13 @@ ALTER TABLE opportunity_applications ENABLE ROW LEVEL SECURITY;
 -- RLS Policies for opportunities
 
 -- Everyone can view active opportunities
+DROP POLICY IF EXISTS "Anyone can view active opportunities" ON opportunities;
 CREATE POLICY "Anyone can view active opportunities"
 ON opportunities FOR SELECT
 USING (status = 'active');
 
 -- Admins can do everything with opportunities
+DROP POLICY IF EXISTS "Admins can manage opportunities" ON opportunities;
 CREATE POLICY "Admins can manage opportunities"
 ON opportunities FOR ALL
 TO authenticated
@@ -72,18 +77,29 @@ USING (
 -- RLS Policies for opportunity_applications
 
 -- Users can view their own applications
+DROP POLICY IF EXISTS "Users can view own applications" ON opportunity_applications;
 CREATE POLICY "Users can view own applications"
 ON opportunity_applications FOR SELECT
 TO authenticated
 USING (user_id = auth.uid());
 
 -- Users can create their own applications
+DROP POLICY IF EXISTS "Users can create applications" ON opportunity_applications;
 CREATE POLICY "Users can create applications"
 ON opportunity_applications FOR INSERT
 TO authenticated
-WITH CHECK (user_id = auth.uid());
+WITH CHECK (
+  user_id = auth.uid()
+  AND EXISTS (
+    SELECT 1 FROM opportunities
+    WHERE opportunities.id = opportunity_id
+      AND opportunities.status = 'active'
+      AND opportunities.deadline::date >= CURRENT_DATE
+  )
+);
 
 -- Admins can view all applications
+DROP POLICY IF EXISTS "Admins can view all applications" ON opportunity_applications;
 CREATE POLICY "Admins can view all applications"
 ON opportunity_applications FOR SELECT
 TO authenticated
@@ -96,6 +112,7 @@ USING (
 );
 
 -- Admins can update applications (review, accept, reject)
+DROP POLICY IF EXISTS "Admins can update applications" ON opportunity_applications;
 CREATE POLICY "Admins can update applications"
 ON opportunity_applications FOR UPDATE
 TO authenticated
@@ -124,78 +141,125 @@ FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert sample opportunities (for testing)
-INSERT INTO opportunities (title, organization, location, type, duration, description, requirements, compensation, sector, tags, deadline, status)
-VALUES
-  (
-    'Digital Transformation Consultant',
-    'Nairobi County Government',
-    'Nairobi, Kenya',
-    'Contract',
-    '6 months',
-    'Lead the digital transformation strategy for county service delivery systems. Work with stakeholders to modernize government processes and implement digital solutions.',
-    ARRAY['5+ years in digital transformation', 'Experience with government systems', 'Strong stakeholder management'],
-    'Competitive',
-    'Technology',
-    ARRAY['Digital', 'Government', 'Strategy'],
-    NOW() + INTERVAL '30 days',
-    'active'
-  ),
-  (
-    'AgriTech Value Chain Expert',
-    'Green Innovations NGO',
-    'Nakuru, Kenya (Hybrid)',
-    'Full-time',
-    '12 months',
-    'Design and implement supply chain optimizations for local farmers. Develop technology solutions to improve agricultural productivity and market access.',
-    ARRAY['Agricultural economics background', 'Supply chain expertise', 'Technology integration experience'],
-    'KSh 150,000 - 200,000/month',
-    'Agriculture',
-    ARRAY['AgriTech', 'Supply Chain', 'Innovation'],
-    NOW() + INTERVAL '45 days',
-    'active'
-  ),
-  (
-    'Venture Builder In-Residence',
-    'Kenya Innovation Hub',
-    'Remote',
-    'Part-time',
-    '9 months',
-    'Mentor early-stage startups and help build viable financial models. Provide strategic guidance to founders and connect them with investors.',
-    ARRAY['Startup experience', 'Financial modeling', 'Mentorship skills'],
-    'Equity + Stipend',
-    'Finance',
-    ARRAY['Startups', 'Venture', 'Mentorship'],
-    NOW() + INTERVAL '60 days',
-    'active'
-  ),
-  (
-    'Public Health Data Analyst',
-    'Ministry of Health Alliance',
-    'Mombasa, Kenya',
-    'Contract',
-    '8 months',
-    'Analyze public health data to optimize resource allocation. Develop dashboards and reports for health program monitoring and evaluation.',
-    ARRAY['Data analysis expertise', 'Public health knowledge', 'Visualization skills'],
-    'Competitive',
-    'Healthcare',
-    ARRAY['Data', 'Healthcare', 'Analytics'],
-    NOW() + INTERVAL '20 days',
-    'active'
-  ),
-  (
-    'Education Technology Advisor',
-    'Kenya Education Board',
-    'Nairobi, Kenya',
-    'Advisory',
-    '4 months',
-    'Advise on EdTech strategy and implementation for national curriculum digitization. Evaluate technology solutions and provide recommendations.',
-    ARRAY['EdTech experience', 'Curriculum development', 'Policy advisory'],
-    'Advisory Fee',
-    'Education',
-    ARRAY['EdTech', 'Policy', 'Advisory'],
-    NOW() + INTERVAL '15 days',
-    'active'
-  );
+INSERT INTO opportunities (
+  title,
+  organization,
+  location,
+  type,
+  duration,
+  description,
+  requirements,
+  compensation,
+  sector,
+  tags,
+  deadline,
+  status
+)
+SELECT
+  seed.title,
+  seed.organization,
+  seed.location,
+  seed.type,
+  seed.duration,
+  seed.description,
+  seed.requirements,
+  seed.compensation,
+  seed.sector,
+  seed.tags,
+  seed.deadline,
+  seed.status
+FROM (
+  VALUES
+    (
+      'Digital Transformation Consultant',
+      'Nairobi County Government',
+      'Nairobi, Kenya',
+      'Contract',
+      '6 months',
+      'Lead the digital transformation strategy for county service delivery systems. Work with stakeholders to modernize government processes and implement digital solutions.',
+      ARRAY['5+ years in digital transformation', 'Experience with government systems', 'Strong stakeholder management'],
+      'Competitive',
+      'Technology',
+      ARRAY['Digital', 'Government', 'Strategy'],
+      NOW() + INTERVAL '30 days',
+      'active'
+    ),
+    (
+      'AgriTech Value Chain Expert',
+      'Green Innovations NGO',
+      'Nakuru, Kenya (Hybrid)',
+      'Full-time',
+      '12 months',
+      'Design and implement supply chain optimizations for local farmers. Develop technology solutions to improve agricultural productivity and market access.',
+      ARRAY['Agricultural economics background', 'Supply chain expertise', 'Technology integration experience'],
+      'KSh 150,000 - 200,000/month',
+      'Agriculture',
+      ARRAY['AgriTech', 'Supply Chain', 'Innovation'],
+      NOW() + INTERVAL '45 days',
+      'active'
+    ),
+    (
+      'Venture Builder In-Residence',
+      'Kenya Innovation Hub',
+      'Remote',
+      'Part-time',
+      '9 months',
+      'Mentor early-stage startups and help build viable financial models. Provide strategic guidance to founders and connect them with investors.',
+      ARRAY['Startup experience', 'Financial modeling', 'Mentorship skills'],
+      'Equity + Stipend',
+      'Finance',
+      ARRAY['Startups', 'Venture', 'Mentorship'],
+      NOW() + INTERVAL '60 days',
+      'active'
+    ),
+    (
+      'Public Health Data Analyst',
+      'Ministry of Health Alliance',
+      'Mombasa, Kenya',
+      'Contract',
+      '8 months',
+      'Analyze public health data to optimize resource allocation. Develop dashboards and reports for health program monitoring and evaluation.',
+      ARRAY['Data analysis expertise', 'Public health knowledge', 'Visualization skills'],
+      'Competitive',
+      'Healthcare',
+      ARRAY['Data', 'Healthcare', 'Analytics'],
+      NOW() + INTERVAL '20 days',
+      'active'
+    ),
+    (
+      'Education Technology Advisor',
+      'Kenya Education Board',
+      'Nairobi, Kenya',
+      'Advisory',
+      '4 months',
+      'Advise on EdTech strategy and implementation for national curriculum digitization. Evaluate technology solutions and provide recommendations.',
+      ARRAY['EdTech experience', 'Curriculum development', 'Policy advisory'],
+      'Advisory Fee',
+      'Education',
+      ARRAY['EdTech', 'Policy', 'Advisory'],
+      NOW() + INTERVAL '15 days',
+      'active'
+    )
+) AS seed (
+  title,
+  organization,
+  location,
+  type,
+  duration,
+  description,
+  requirements,
+  compensation,
+  sector,
+  tags,
+  deadline,
+  status
+)
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM opportunities existing
+  WHERE existing.title = seed.title
+    AND existing.organization = seed.organization
+);
 
 -- Verify the setup
 SELECT 

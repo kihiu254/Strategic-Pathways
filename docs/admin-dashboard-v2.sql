@@ -126,7 +126,24 @@ USING (public.is_admin());
 
 -- Opportunity applications: notes + admin access
 ALTER TABLE public.opportunity_applications ADD COLUMN IF NOT EXISTS notes text;
+ALTER TABLE public.opportunity_applications ADD COLUMN IF NOT EXISTS deadline_week_reminded_at timestamp;
+ALTER TABLE public.opportunity_applications ADD COLUMN IF NOT EXISTS deadline_five_day_reminded_at timestamp;
 ALTER TABLE public.opportunity_applications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can create applications" ON public.opportunity_applications;
+CREATE POLICY "Users can create applications"
+ON public.opportunity_applications FOR INSERT
+TO authenticated
+WITH CHECK (
+  auth.uid() = user_id
+  AND EXISTS (
+    SELECT 1
+    FROM public.opportunities
+    WHERE opportunities.id = opportunity_id
+      AND opportunities.status = 'active'
+      AND opportunities.deadline::date >= CURRENT_DATE
+  )
+);
 
 DROP POLICY IF EXISTS "Admins can view all opportunity applications" ON public.opportunity_applications;
 CREATE POLICY "Admins can view all opportunity applications"

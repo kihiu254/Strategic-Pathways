@@ -22,7 +22,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
-    return res.status(500).json({ error: 'Notification service is not configured.' });
+    return res.status(200).json({
+      success: false,
+      skipped: true,
+      message: 'Notification service is not configured.',
+    });
   }
 
   const authHeader = req.headers.authorization;
