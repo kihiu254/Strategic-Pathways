@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -13,6 +13,7 @@ import {
   CheckCircle,
   Clock,
   Eye,
+  Mail,
   MapPin,
   ShieldCheck,
 } from 'lucide-react';
@@ -244,6 +245,16 @@ const AdminOpportunitiesManager = () => {
     setApplications((data || []) as Application[]);
   }, []);
 
+  const applicationsByOpportunity = useMemo(
+    () =>
+      applications.reduce<Record<string, Application[]>>((accumulator, application) => {
+        const opportunityApplications = accumulator[application.opportunity_id] || [];
+        accumulator[application.opportunity_id] = [...opportunityApplications, application];
+        return accumulator;
+      }, {}),
+    [applications]
+  );
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -339,6 +350,21 @@ const AdminOpportunitiesManager = () => {
     }
   };
 
+  const handleEmailApplicants = (opportunity: Opportunity, recipients: Application[]) => {
+    const emails = recipients
+      .map((application) => application.profile?.email)
+      .filter((email): email is string => Boolean(email));
+
+    if (!emails.length) {
+      toast.error('No applicant emails are available for this opportunity.');
+      return;
+    }
+
+    const subject = encodeURIComponent(`Update on ${opportunity.title}`);
+    const body = encodeURIComponent(`Hello,\n\nThis is an update regarding ${opportunity.title} at ${opportunity.organization}.\n\nBest regards,\nStrategic Pathways`);
+    window.location.href = `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
+  };
+
   if (loading) {
     return <div className="text-center py-12">{text.loading}</div>;
   }
@@ -407,12 +433,16 @@ const AdminOpportunitiesManager = () => {
 
         <div className="space-y-3">
           {opportunities.map((opportunity) => (
-            <div key={opportunity.id} className="glass-light p-4 rounded-xl flex items-start justify-between gap-4 flex-wrap">
+            <div key={opportunity.id} className="glass-light p-4 rounded-xl space-y-4">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex-1 min-w-[240px]">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <h4 className="font-bold text-[var(--text-primary)]">{opportunity.title}</h4>
                   <span className={`px-2 py-1 rounded-full text-xs ${opportunity.status === 'active' ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-300'}`}>
                     {opportunity.status}
+                  </span>
+                  <span className="px-2 py-1 rounded-full text-xs bg-blue-500/10 text-blue-300">
+                    {(applicationsByOpportunity[opportunity.id || ''] || []).length} applicant{(applicationsByOpportunity[opportunity.id || ''] || []).length === 1 ? '' : 's'}
                   </span>
                 </div>
                 <p className="text-sm text-[var(--text-secondary)]">{opportunity.organization} • {opportunity.location}</p>
@@ -426,7 +456,17 @@ const AdminOpportunitiesManager = () => {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
+                {(applicationsByOpportunity[opportunity.id || ''] || []).length > 0 && (
+                  <button
+                    onClick={() => handleEmailApplicants(opportunity, applicationsByOpportunity[opportunity.id || ''] || [])}
+                    className="p-2 hover:bg-white/5 rounded-lg"
+                    aria-label="Email applicants"
+                    title="Email applicants"
+                  >
+                    <Mail size={16} className="text-emerald-300" />
+                  </button>
+                )}
                 <button onClick={() => openOpportunityEditor(opportunity.id)} className="p-2 hover:bg-white/5 rounded-lg" aria-label={text.edit} title={text.edit}>
                   <Edit2 size={16} className="text-blue-400" />
                 </button>
@@ -442,6 +482,60 @@ const AdminOpportunitiesManager = () => {
                   <Trash2 size={16} className="text-red-400" />
                 </button>
               </div>
+              </div>
+              {(applicationsByOpportunity[opportunity.id || ''] || []).length > 0 && (
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                  <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+                    <h5 className="text-sm font-semibold text-[var(--text-primary)]">Applicants</h5>
+                    <button
+                      onClick={() => handleEmailApplicants(opportunity, applicationsByOpportunity[opportunity.id || ''] || [])}
+                      className="sp-btn-glass px-4 py-2 text-xs inline-flex items-center gap-2"
+                    >
+                      <Mail size={14} />
+                      Email applicants
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {(applicationsByOpportunity[opportunity.id || ''] || []).map((application) => (
+                      <div key={application.id} className="rounded-xl border border-white/5 bg-white/[0.02] p-4 flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+                        <div className="space-y-2 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-semibold text-[var(--text-primary)]">{application.profile?.full_name || text.unknownApplicant}</p>
+                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${getApplicationTone(application.status)}`}>
+                              {application.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[var(--text-secondary)]">{application.profile?.email || text.noEmail}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">Applied {new Date(application.applied_at).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {application.profile?.email && (
+                            <button
+                              onClick={() => handleEmailApplicants(opportunity, [application])}
+                              className="sp-btn-glass px-4 py-2 text-xs inline-flex items-center gap-2"
+                            >
+                              <Mail size={14} />
+                              Email
+                            </button>
+                          )}
+                          <button onClick={() => navigate(`/admin/user/${application.user_id}`)} className="sp-btn-glass px-4 py-2 text-xs">
+                            {text.viewApplicant}
+                          </button>
+                          <button onClick={() => handleApplicationStatus(application.id, 'reviewed')} className="sp-btn-glass px-4 py-2 text-xs">
+                            {text.markReviewed}
+                          </button>
+                          <button onClick={() => handleApplicationStatus(application.id, 'accepted')} className="sp-btn-primary px-4 py-2 text-xs">
+                            {text.approve}
+                          </button>
+                          <button onClick={() => handleApplicationStatus(application.id, 'rejected')} className="sp-btn-glass px-4 py-2 text-xs text-red-300 border-red-500/20">
+                            {text.reject}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
           {opportunities.length === 0 && <p className="text-sm text-[var(--text-secondary)]">{text.noOpportunities}</p>}

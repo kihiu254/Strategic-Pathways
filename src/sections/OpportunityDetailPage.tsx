@@ -340,10 +340,10 @@ const OpportunitiesDetailPage = () => {
 
             <div className="w-full lg:w-[320px] premium-glass rounded-3xl border border-white/10 p-6">
               <div className="space-y-3">
-                {canApplyWithCurrentPlan ? (
+                {applicationStatus || canApplyWithCurrentPlan ? (
                   <button
                     onClick={() => {
-                      if (!requireEligibleMember()) return;
+                      if (!applicationStatus && !requireEligibleMember()) return;
                       navigate(`/opportunities/${opportunity.id}/apply`);
                     }}
                     disabled={applicationClosed || isProfileLoading}

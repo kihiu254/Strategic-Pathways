@@ -520,6 +520,11 @@ const OpportunitiesPageRedesigned = () => {
                     <div className="flex flex-col gap-3 w-full xl:w-[220px] shrink-0">
                       <button
                         onClick={() => {
+                          if (applicationStatusByOpportunity[opportunity.id]) {
+                            navigate(`/opportunities/${opportunity.id}/apply`);
+                            return;
+                          }
+
                           if (isProfileLoading) {
                             toast.error(t('opportunitiesPage.errors.profileLoading'));
                             return;
@@ -534,9 +539,11 @@ const OpportunitiesPageRedesigned = () => {
                         }}
                         className="sp-btn-primary flex items-center justify-center gap-2 w-full"
                       >
-                        {canApplyWithCurrentPlan
+                        {applicationStatusByOpportunity[opportunity.id]
                           ? getApplicationLabel(applicationStatusByOpportunity[opportunity.id])
-                          : t('opportunitiesPage.actions.freeToJoin')}
+                          : canApplyWithCurrentPlan
+                            ? getApplicationLabel(applicationStatusByOpportunity[opportunity.id])
+                            : t('opportunitiesPage.actions.freeToJoin')}
                         <ArrowRight size={16} />
                       </button>
                       <button onClick={() => navigate(`/opportunities/${opportunity.id}`)} className="sp-btn-glass flex items-center justify-center gap-2 w-full">
