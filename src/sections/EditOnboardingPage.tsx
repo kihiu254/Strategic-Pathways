@@ -70,6 +70,17 @@ const getFieldsForStepId = (
   }
 };
 
+const getVerificationDocUrl = (docs: unknown, shortKey: string, legacyKey: string) => {
+  if (!docs || typeof docs !== 'object' || Array.isArray(docs)) {
+    return '';
+  }
+
+  const record = docs as Record<string, unknown>;
+  const value = record[shortKey] ?? record[legacyKey];
+
+  return typeof value === 'string' ? value : '';
+};
+
 const EditOnboardingPage = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -156,11 +167,12 @@ const EditOnboardingPage = () => {
               data.user_category === LEGACY_STUDY_ABROAD_RETURNEE
                 ? STUDY_ABROAD_RETURNEE
                 : data.user_category || STUDY_ABROAD_RETURNEE,
-            identityProofUrl: data.verification_docs?.identity_proof || '',
-            academicProofUrl: data.verification_docs?.academic_proof || '',
-            employmentProofUrl: data.verification_docs?.employment_proof || '',
-            residencyProofUrl: data.verification_docs?.residency_proof || '',
-            professionalProofUrl: data.verification_docs?.professional_proof || '',
+            verificationTier: data.verification_tier || 'Tier 1 – Self-Declared',
+            identityProofUrl: getVerificationDocUrl(data.verification_docs, 'identity', 'identity_proof'),
+            academicProofUrl: getVerificationDocUrl(data.verification_docs, 'academic', 'academic_proof'),
+            employmentProofUrl: getVerificationDocUrl(data.verification_docs, 'employment', 'employment_proof'),
+            residencyProofUrl: getVerificationDocUrl(data.verification_docs, 'residency', 'residency_proof'),
+            professionalProofUrl: getVerificationDocUrl(data.verification_docs, 'professional', 'professional_proof'),
             consentToVerification: true,
             references: data.professional_references || '',
             openToSpotlight: data.visibility_settings?.spotlight || false,
@@ -245,12 +257,13 @@ const EditOnboardingPage = () => {
           venture_interest: data.ventureInterest,
           investor_interest: data.investorInterest,
           user_category: data.userCategory,
+          verification_tier: data.verificationTier,
           verification_docs: {
-            identity_proof: normalize(data.identityProofUrl),
-            academic_proof: normalize(data.academicProofUrl),
-            employment_proof: normalize(data.employmentProofUrl),
-            residency_proof: normalize(data.residencyProofUrl),
-            professional_proof: normalize(data.professionalProofUrl)
+            identity: normalize(data.identityProofUrl),
+            academic: normalize(data.academicProofUrl),
+            employment: normalize(data.employmentProofUrl),
+            residency: normalize(data.residencyProofUrl),
+            professional: normalize(data.professionalProofUrl)
           },
           professional_references: normalize(data.references),
           visibility_settings: {
@@ -296,6 +309,10 @@ const EditOnboardingPage = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const onInvalidSubmit = () => {
+    toast.error('Please complete the required profile fields before saving your changes.');
   };
 
   const saveDraft = async () => {
@@ -351,7 +368,7 @@ const EditOnboardingPage = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-8">
           <div className="glass-card p-6">
             <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">{steps[currentStep].title}</h2>
             <FormProvider {...methods}>
