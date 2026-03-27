@@ -8,10 +8,18 @@ import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
-import { onboardingSchema, type OnboardingData } from './onboarding/schema';
+import {
+  isStudyAbroadReturnee,
+  LEGACY_STUDY_ABROAD_RETURNEE,
+  onboardingSchema,
+  STUDY_ABROAD_RETURNEE,
+  type OnboardingData,
+  type OnboardingFormInput,
+} from './onboarding/schema';
 import * as Steps from './onboarding/OnboardingSteps';
 
 const getSteps = () => [
+  { id: 'category', title: 'User Category', component: Steps.UserCategorySelection },
   { id: 'basic', title: 'Basic Information', component: Steps.BasicInfo },
   { id: 'education', title: 'Education & Global', component: Steps.EducationEnhanced },
   { id: 'experience', title: 'Professional Experience', component: Steps.ProfessionalExperience },
@@ -19,13 +27,36 @@ const getSteps = () => [
   { id: 'premium', title: 'Professional Details', component: Steps.PremiumDetails },
   { id: 'contribution', title: 'Contribution & Value', component: Steps.ContributionValue },
   { id: 'income', title: 'Income & Venture', component: Steps.IncomeVenture },
-  { id: 'category', title: 'User Category', component: Steps.UserCategorySelection },
   { id: 'verification', title: 'Verification Documents', component: Steps.VerificationCredits },
   { id: 'visibility', title: 'Community Visibility', component: Steps.CommunityVisibility },
 ];
 
-const getFieldsForStepId = (stepId: string) => {
+const getVerificationFields = (
+  userCategory?: OnboardingFormInput['userCategory']
+) => {
+  const fields: (keyof OnboardingData)[] = ['consentToVerification', 'identityProofUrl'];
+
+  if (isStudyAbroadReturnee(userCategory)) {
+    fields.push('academicProofUrl');
+  }
+
+  if (userCategory === 'Diaspora Returnee (Professional)') {
+    fields.push('employmentProofUrl', 'residencyProofUrl');
+  }
+
+  if (userCategory === 'Diaspora Expert (Still Abroad)') {
+    fields.push('professionalProofUrl');
+  }
+
+  return fields;
+};
+
+const getFieldsForStepId = (
+  stepId: string,
+  userCategory?: OnboardingFormInput['userCategory']
+) => {
   switch (stepId) {
+    case 'category': return ['userCategory'];
     case 'basic': return ['fullName', 'professionalTitle', 'email', 'linkedinUrl', 'websiteUrl', 'countryOfResidence', 'nationality'];
     case 'education': return ['highestEducation', 'studyCountry', 'institutions', 'fieldOfStudy', 'otherCountriesWorked', 'countriesWorkedIn', 'languagesSpoken'];
     case 'experience': return ['yearsOfExperience', 'primarySector', 'functionalExpertise', 'employmentStatus', 'bio'];
@@ -33,8 +64,7 @@ const getFieldsForStepId = (stepId: string) => {
     case 'premium': return ['keyAchievements', 'industrySubSpecialization', 'compensationExpectation', 'preferredProjectType'];
     case 'contribution': return ['specificSkills', 'passionateProblems', 'sdgAlignment'];
     case 'income': return ['seekingIncome', 'ventureInterest', 'investorInterest'];
-    case 'category': return ['userCategory'];
-    case 'verification': return ['consentToVerification', 'identityProofUrl', 'academicProofUrl', 'employmentProofUrl', 'residencyProofUrl', 'professionalProofUrl'];
+    case 'verification': return getVerificationFields(userCategory);
     case 'visibility': return ['openToSpotlight', 'wouldLikeToMentor', 'communityAmbassador'];
     default: return [];
   }
@@ -61,6 +91,7 @@ const EditOnboardingPage = () => {
   } = methods;
 
   const steps = getSteps();
+  const userCategory = methods.watch('userCategory');
   const ActiveComponent = steps[currentStep].component as any;
   const progress = Math.round(((currentStep + 1) / steps.length) * 100);
 
@@ -121,7 +152,10 @@ const EditOnboardingPage = () => {
             seekingIncome: data.seeking_income || 'Yes selectively',
             ventureInterest: data.venture_interest || 'Maybe',
             investorInterest: data.investor_interest || 'No',
-            userCategory: data.user_category || 'Study-Abroad Returnee (Recent Graduate)',
+            userCategory:
+              data.user_category === LEGACY_STUDY_ABROAD_RETURNEE
+                ? STUDY_ABROAD_RETURNEE
+                : data.user_category || STUDY_ABROAD_RETURNEE,
             identityProofUrl: data.verification_docs?.identity_proof || '',
             academicProofUrl: data.verification_docs?.academic_proof || '',
             employmentProofUrl: data.verification_docs?.employment_proof || '',
@@ -341,7 +375,7 @@ const EditOnboardingPage = () => {
                 <button
                   type="button"
                   onClick={async () => {
-                    const fields = getFieldsForStepId(steps[currentStep].id);
+                    const fields = getFieldsForStepId(steps[currentStep].id, userCategory);
                     const ok = await trigger(fields as any);
                     if (ok) {
                       setCurrentStep((s) => Math.min(steps.length - 1, s + 1));
