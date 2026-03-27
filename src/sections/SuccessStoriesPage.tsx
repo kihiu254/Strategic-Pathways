@@ -6,6 +6,7 @@ import { Download, Quote, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import SEO from '../components/SEO';
 import { supabase } from '../lib/supabase';
+import { prependFeaturedSuccessStories } from '../data/featuredSuccessStories';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -83,7 +84,7 @@ const SuccessStoriesPage = () => {
         .limit(12);
 
       if (error) throw error;
-      setStories((data || []) as ImpactStory[]);
+      setStories(prependFeaturedSuccessStories((data || []) as ImpactStory[]));
     } catch (error) {
       console.error('Error loading impact stories:', error);
       toast.error(copy.loadError, { description: copy.schemaHint });
@@ -124,26 +125,6 @@ const SuccessStoriesPage = () => {
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="glass-card rounded-[2rem] border border-[var(--sp-accent)]/15 p-8 md:p-10 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--sp-accent)]/10 via-transparent to-transparent pointer-events-none" />
-            <div className="relative flex flex-col lg:flex-row gap-6 lg:items-center lg:justify-between">
-              <div className="max-w-3xl space-y-3">
-                <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">{copy.readyTitle}</h2>
-                <p className="text-[var(--text-secondary)] leading-relaxed">
-                  {copy.profileCTA}
-                </p>
-              </div>
-              <a
-                href="/docs/Strategic_Pathways_Brief.pdf"
-                download="Strategic_Pathways_Brief.pdf"
-                className="sp-btn-secondary flex items-center gap-2 px-6 py-3"
-              >
-                <Download size={18} />
-                {t('impact.cta')}
-              </a>
-            </div>
           </div>
 
           {loadingStories ? (

@@ -46,6 +46,9 @@ const LoginPage = lazy(() => import('./sections/auth/LoginPage'));
 const SignupPage = lazy(() => import('./sections/auth/SignupPage'));
 const AdminRoute = lazy(() => import('./sections/auth/AdminRoute'));
 const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPageRedesigned'));
+const OpportunityDetailPage = lazy(() => import('./sections/OpportunityDetailPage'));
+const OpportunityApplicationPage = lazy(() => import('./sections/OpportunityApplicationPage'));
+const ProjectDetailPage = lazy(() => import('./sections/ProjectDetailPage'));
 const OnboardingFlow = lazy(() => import('./sections/onboarding/ProfileOnboarding'));
 const BasicOnboarding = lazy(() => import('./sections/onboarding/BasicOnboarding'));
 const BasicEditOnboarding = lazy(() => import('./sections/onboarding/BasicEditOnboarding'));
@@ -213,6 +216,8 @@ function MainLayout() {
                     <Route path="/" element={<HomeContent />} />
                     <Route path="/concept-note" element={<ConceptNotePage />} />
                     <Route path="/opportunities" element={<OpportunitiesPage />} />
+                    <Route path="/opportunities/:opportunityId" element={<OpportunityDetailPage />} />
+                    <Route path="/opportunities/:opportunityId/apply" element={<OpportunityApplicationPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/dashboard" element={<UserDashboard />} />
@@ -236,6 +241,7 @@ function MainLayout() {
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/projects" element={<ProjectsPage />} />
+                    <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
                     <Route path="/payment" element={<PaymentPage />} />
                     
                     {/* Protected Admin Route */}
@@ -262,7 +268,7 @@ function MainLayout() {
                 </Routes>
               </main>
               {/* Hide footer on admin page, dashboard, and opportunities page */}
-              {!isAdminRoute && location.pathname !== '/dashboard' && location.pathname !== '/opportunities' && <Footer />}
+              {!isAdminRoute && location.pathname !== '/dashboard' && !location.pathname.startsWith('/opportunities') && <Footer />}
             </div>
           </Suspense>
         </>

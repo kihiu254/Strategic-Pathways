@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, FolderArchive, Mail, MessageSquare, Search } from 'lucide-react';
+import { ExternalLink, FolderArchive, Mail, MessageSquare, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
 import { AppNotificationService } from '../../../lib/appNotifications';
@@ -414,6 +414,35 @@ const AdminProjectsPage = () => {
     }
   };
 
+  const deleteProject = async (project: ProjectRow) => {
+    const shouldDelete = window.confirm(
+      `Delete "${project.project_title || 'this project'}" from the admin workspace? This cannot be undone.`
+    );
+
+    if (!shouldDelete) return;
+
+    try {
+      const { error } = await supabase.from('user_projects').delete().eq('id', project.id);
+
+      if (error) throw error;
+
+      setProjects((current) => current.filter((item) => item.id !== project.id));
+      setMessageDrafts((current) => {
+        const next = { ...current };
+        delete next[project.id];
+        return next;
+      });
+      if (activeProject?.id === project.id) {
+        closeProject();
+      }
+
+      toast.success('Project deleted.');
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast.error('Project deletion failed.');
+    }
+  };
+
   return (
     <div className="admin-section-shell">
       {loadError && (
@@ -555,6 +584,10 @@ const AdminProjectsPage = () => {
                   <button onClick={() => toggleArchive(project)} className="sp-btn-glass px-4 py-2 text-sm inline-flex items-center gap-2">
                     <FolderArchive size={16} />
                     {archived ? 'Restore project' : 'Archive project'}
+                  </button>
+                  <button onClick={() => deleteProject(project)} className="sp-btn-glass px-4 py-2 text-sm inline-flex items-center gap-2 text-red-300 hover:text-red-200">
+                    <Trash2 size={16} />
+                    Delete project
                   </button>
                   <button onClick={() => downloadProject(project)} className="sp-btn-glass px-4 py-2 text-sm">
                     Download summary
@@ -719,9 +752,15 @@ const AdminProjectsPage = () => {
                     </button>
                   </>
                 ) : (
-                  <button onClick={() => setIsEditingProject(true)} className="sp-btn-glass px-4 py-2 text-sm">
-                    Update project
-                  </button>
+                  <>
+                    <button onClick={() => deleteProject(activeProject)} className="sp-btn-glass px-4 py-2 text-sm inline-flex items-center gap-2 text-red-300 hover:text-red-200">
+                      <Trash2 size={14} />
+                      Delete project
+                    </button>
+                    <button onClick={() => setIsEditingProject(true)} className="sp-btn-glass px-4 py-2 text-sm">
+                      Update project
+                    </button>
+                  </>
                 )}
               </div>
             </div>

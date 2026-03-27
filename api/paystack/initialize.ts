@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { mode, secretKey } = getActivePaystackConfig();
 
     if (!secretKey) {
-      return res.status(500).json({ error: 'Paystack secret key is not configured.' });
+      return res.status(500).json({ error: `Paystack ${mode} secret key is not configured.` });
     }
 
     const email = user.email;

@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase';
 import { AppNotificationService } from '../../../lib/appNotifications';
 import { formatAdminDate, getStatusTone } from '../helpers';
 import { uploadFile } from '../../../lib/uploadUtils';
+import { prependFeaturedSuccessStories } from '../../../data/featuredSuccessStories';
 
 type StoryRow = {
   id: string;
@@ -42,7 +43,7 @@ const AdminSuccessStoriesPage = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setStories((data || []) as StoryRow[]);
+      setStories(prependFeaturedSuccessStories((data || []) as StoryRow[]));
     } catch (error) {
       console.error('Error loading impact story moderation page:', error);
       toast.error('Success stories could not be loaded.');
@@ -69,7 +70,14 @@ const AdminSuccessStoriesPage = () => {
     pending: stories.filter((story) => !story.is_published).length,
   };
 
+  const isFeaturedStory = (storyId: string) => storyId.startsWith('featured-');
+
   const updateStory = async (story: StoryRow, isPublished: boolean) => {
+    if (isFeaturedStory(story.id)) {
+      toast.info('Featured starter stories stay published in this workspace.');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('impact_stories')
@@ -147,6 +155,11 @@ const AdminSuccessStoriesPage = () => {
   };
 
   const deleteStory = async (storyId: string) => {
+    if (isFeaturedStory(storyId)) {
+      toast.info('Featured starter stories cannot be deleted here.');
+      return;
+    }
+
     if (!window.confirm('Delete this story from the moderation queue?')) return;
 
     try {
@@ -301,7 +314,7 @@ const AdminSuccessStoriesPage = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Submitted', value: summary.total },
+          { label: 'Listed', value: summary.total },
           { label: 'Published', value: summary.published },
           { label: 'Pending review', value: summary.pending },
         ].map((item) => (
@@ -344,23 +357,38 @@ const AdminSuccessStoriesPage = () => {
                   <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusTone(story.is_published ? 'approved' : 'pending')}`}>
                     {story.is_published ? 'published' : 'pending'}
                   </span>
+                  {isFeaturedStory(story.id) && (
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-[var(--sp-accent)]/15 text-[var(--sp-accent)]">
+                      featured
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-[var(--text-secondary)]">
                   {story.role || 'Role not supplied'}{story.organization ? ` · ${story.organization}` : ''}
                 </p>
-                <p className="text-xs text-[var(--text-secondary)]">Submitted {formatAdminDate(story.created_at)}</p>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  {isFeaturedStory(story.id) ? 'Featured starter story' : `Submitted ${formatAdminDate(story.created_at)}`}
+                </p>
                 <p className="text-sm leading-relaxed text-[var(--text-secondary)] whitespace-pre-wrap">
                   {story.story}
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2 xl:max-w-xs">
-                <button onClick={() => updateStory(story, !story.is_published)} className="sp-btn-primary px-4 py-2 text-sm">
-                  {story.is_published ? 'Move back to review' : 'Approve and publish'}
-                </button>
-                <button onClick={() => deleteStory(story.id)} className="sp-btn-glass px-4 py-2 text-sm text-red-300 border-red-500/20">
-                  Delete
-                </button>
+                {isFeaturedStory(story.id) ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text-secondary)]">
+                    Built-in story shown first on the public page.
+                  </div>
+                ) : (
+                  <>
+                    <button onClick={() => updateStory(story, !story.is_published)} className="sp-btn-primary px-4 py-2 text-sm">
+                      {story.is_published ? 'Move back to review' : 'Approve and publish'}
+                    </button>
+                    <button onClick={() => deleteStory(story.id)} className="sp-btn-glass px-4 py-2 text-sm text-red-300 border-red-500/20">
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

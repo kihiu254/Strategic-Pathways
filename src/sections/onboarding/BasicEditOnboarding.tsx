@@ -15,6 +15,7 @@ import { BasicInfo } from './OnboardingSteps';
 const BasicEditOnboarding = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const authLoading = useAuthStore((state) => state.isLoading);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,6 +30,10 @@ const BasicEditOnboarding = () => {
   } = methods;
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       navigate('/login');
       return;
@@ -64,7 +69,7 @@ const BasicEditOnboarding = () => {
     };
 
     loadProfile();
-  }, [user, navigate, reset]);
+  }, [authLoading, user, navigate, reset]);
 
   const onSubmit = async (data: BasicOnboardingData) => {
     if (!user) return;
@@ -108,7 +113,7 @@ const BasicEditOnboarding = () => {
     toast.error('Please fix the highlighted fields before saving.');
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-[var(--sp-accent)] animate-spin" />

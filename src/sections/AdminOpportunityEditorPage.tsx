@@ -71,7 +71,7 @@ const baseOpportunity = (): Opportunity => ({
   type: 'Project-based',
   duration: '',
   description: '',
-  requirements: ['', ''],
+  requirements: [],
   compensation: '',
   sector: 'Technology',
   tags: [],
@@ -96,7 +96,7 @@ const parseOpportunity = (row: OpportunityRow): Opportunity => {
     type: row.type || 'Project-based',
     duration: row.duration || '',
     description: row.description || '',
-    requirements: Array.isArray(row.requirements) && row.requirements.length > 0 ? row.requirements : ['', ''],
+    requirements: Array.isArray(row.requirements) ? row.requirements : [],
     compensation: row.compensation || '',
     sector: row.sector || 'Technology',
     tags: rawTags.filter(
@@ -143,17 +143,12 @@ const serializeOpportunity = (opportunity: Opportunity, userId?: string) => {
 };
 
 const validateOpportunity = (opportunity: Opportunity): string | null => {
-  const validRequirements = opportunity.requirements.map((item) => item.trim()).filter(Boolean);
-  const validTags = opportunity.tags.map((item) => item.trim()).filter(Boolean);
-
   if (opportunity.title.trim().length < 8) return 'Add a clearer opportunity title with at least 8 characters.';
   if (opportunity.organization.trim().length < 2) return 'Add the organization or team leading this opportunity.';
   if (opportunity.location.trim().length < 2) return 'Add where the work will happen.';
   if (opportunity.duration.trim().length < 3) return 'Add a meaningful duration for the opportunity.';
   if (opportunity.compensation.trim().length < 3) return 'Add compensation details instead of leaving this too shallow.';
   if (opportunity.description.trim().length < 120) return 'Add a fuller opportunity description with at least 120 characters.';
-  if (validRequirements.length < 2) return 'Add at least 2 concrete requirements.';
-  if (validTags.length < 2) return 'Add at least 2 useful tags.';
   if (!opportunity.rollingDeadline && !opportunity.deadline) return 'Add a deadline or mark the opportunity as rolling.';
 
   if (opportunity.applicationLink.trim()) {
@@ -214,11 +209,6 @@ const AdminOpportunityEditorPage = () => {
   };
 
   const removeRequirement = (index: number) => {
-    if (formData.requirements.length <= 2) {
-      toast.error('Keep at least 2 requirement slots so the opportunity stays detailed.');
-      return;
-    }
-
     setFormData({
       ...formData,
       requirements: formData.requirements.filter((_, requirementIndex) => requirementIndex !== index),
@@ -313,7 +303,7 @@ const AdminOpportunityEditorPage = () => {
             <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 max-w-sm">
               <p className="text-sm font-semibold text-[var(--text-primary)]">Quality guardrails</p>
               <p className="mt-2 text-xs text-[var(--text-secondary)]">
-                We now require fuller descriptions, at least 2 requirements, and at least 2 tags so opportunities are not saved with shallow details.
+                Keep descriptions detailed, and add requirements or tags only when they genuinely help applicants understand the opportunity.
               </p>
             </div>
           </div>
@@ -414,13 +404,18 @@ const AdminOpportunityEditorPage = () => {
 
             <div>
               <div className="flex items-center justify-between gap-3 mb-2">
-                <label className="text-sm text-[var(--text-secondary)] block">Requirements *</label>
+                <label className="text-sm text-[var(--text-secondary)] block">Requirements (optional)</label>
                 <button type="button" onClick={addRequirement} className="sp-btn-glass text-sm flex items-center gap-2">
                   <Plus size={14} />
                   Add Requirement
                 </button>
               </div>
               <div className="space-y-3">
+                {formData.requirements.length === 0 && (
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Add requirements only if they genuinely help applicants understand the opportunity.
+                  </p>
+                )}
                 {formData.requirements.map((requirement, index) => (
                   <div key={`requirement-${index}`} className="flex gap-2">
                     <input
@@ -474,7 +469,7 @@ const AdminOpportunityEditorPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label htmlFor="opp-tags" className="text-sm text-[var(--text-secondary)] block mb-2">Tags *</label>
+                <label htmlFor="opp-tags" className="text-sm text-[var(--text-secondary)] block mb-2">Tags (optional)</label>
                 <div className="space-y-3">
                   {formData.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
@@ -519,9 +514,7 @@ const AdminOpportunityEditorPage = () => {
                       Add
                     </button>
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    Add at least two tags. Press Enter after each tag.
-                  </p>
+                  <p className="text-xs text-[var(--text-secondary)]">Optional. Press Enter after each tag if you want to add them.</p>
                 </div>
               </div>
               <div>

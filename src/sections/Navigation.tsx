@@ -3,7 +3,6 @@ import { Menu, X, User, LayoutDashboard, LogOut, ChevronDown, LogIn, Bell, Sun, 
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import NotificationCenter from '../components/NotificationCenter';
 import { isAvatarUrlBlocked, markAvatarUrlBlocked } from '../lib/avatarCache';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
@@ -102,6 +101,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
     { label: t('nav.about'), path: '/concept-note' },
     { label: t('nav.howItWorks'), path: '/how-it-works' }, 
     { label: t('nav.opportunities'), path: '/opportunities' },
+    { label: t('footer.projects'), path: '/projects' },
     { label: t('nav.impact'), path: '/impact' },
     { label: t('nav.contact'), path: '/contact' },
   ];
@@ -157,9 +157,6 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
             >
               {isLightMode ? <Moon size={20} /> : <Sun size={20} />}
             </button>
-
-            {/* Notifications Widget */}
-            {isLoggedIn && <NotificationCenter />}
 
             {/* Profile Dropdown */}
             {isLoggedIn ? (
@@ -295,7 +292,6 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
           
           <div className="mb-6 flex items-center gap-4">
             <LanguageSwitcher />
-            {isLoggedIn && <NotificationCenter />}
           </div>
           
           {navLinks.map((link) => (

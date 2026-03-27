@@ -144,7 +144,7 @@ const AdminOpportunitiesManager = () => {
         reviewMessageEnd: '\" linakaguliwa.',
         loading: 'Inapakia eneo la kazi la fursa...',
         title: 'Fursa',
-        subtitle: 'Chapisha fursa za kina na ukague waombaji wanaozijibu.',
+        subtitle: 'Chapisha fursa za kina, simamia tarehe za mwisho, na weka matangazo yakiwa yamepangwa.',
         addOpportunity: 'Ongeza fursa',
         total: 'Jumla',
         active: 'Hai',
@@ -189,7 +189,7 @@ const AdminOpportunitiesManager = () => {
         reviewMessageEnd: '\" is under review.',
         loading: 'Loading opportunities workspace...',
         title: 'Opportunities',
-        subtitle: 'Publish detailed opportunities and review the applicants who respond to them.',
+        subtitle: 'Publish detailed opportunities, manage deadlines, and keep listings organized.',
         addOpportunity: 'Add Opportunity',
         total: 'Total',
         active: 'Active',
@@ -345,13 +345,7 @@ const AdminOpportunitiesManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-2xl font-bold text-[var(--text-primary)]">{text.title}</h2>
-          <p className="text-[var(--text-secondary)]">
-            {text.subtitle}
-          </p>
-        </div>
+      <div className="flex justify-end">
         <button
           onClick={() => openOpportunityEditor()}
           className="sp-btn-primary flex items-center gap-2"
@@ -459,7 +453,7 @@ const AdminOpportunitiesManager = () => {
           <div>
             <h3 className="text-lg font-bold text-[var(--text-primary)]">Applications workspace</h3>
             <p className="text-sm text-[var(--text-secondary)]">
-              Applicant review now lives in its own routed page so opportunity publishing and applicant moderation are separated cleanly.
+              Applicant review now lives on its own page so this workspace stays focused on publishing and updates.
             </p>
           </div>
           <button onClick={() => navigate('/admin/applications')} className="sp-btn-primary inline-flex items-center gap-2">

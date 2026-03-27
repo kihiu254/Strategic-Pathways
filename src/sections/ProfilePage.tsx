@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { 
   User, Mail, Phone, MapPin, Briefcase, GraduationCap, 
   Edit2, Camera, Linkedin, Twitter, Globe, Award, FileText,
-  CheckCircle, Clock, Star, Upload, Trash2, Loader2, Shield, Zap, Search, Plus, Share2, Eye, X,
+  CheckCircle, Clock, Star, Upload, Trash2, Loader2, Shield, Zap, Search, Plus, Share2, Eye, X, Download,
   Activity, Settings, Heart, Sparkles, PenSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -21,10 +21,15 @@ import './ProfilePage.css';
 
 type DocumentFile = {
   name: string;
+  display_name: string;
   created_at: string;
   metadata: {
     size: number;
   };
+  source: 'resume' | 'verification';
+  storage_path?: string;
+  file_url?: string;
+  document_category?: string;
 };
 
 type ActivityItem = {
@@ -36,6 +41,12 @@ type ActivityItem = {
 
 type VerificationDocEntry = {
   uploaded_at?: string;
+  url?: string;
+  file_url?: string;
+  storage_path?: string;
+  document_type?: string;
+  document_category?: string;
+  category?: string;
 };
 
 type ProjectActivityRow = {
@@ -53,17 +64,75 @@ type ImpactStoryRow = {
   created_at: string | null;
 };
 
+const prettifyDocumentLabel = (value: string) =>
+  value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
 const normalizeDocument = (file: {
   name: string;
   created_at?: string;
   metadata?: { size?: number } | null;
-}): DocumentFile => ({
+}, userId: string): DocumentFile => ({
   name: file.name,
+  display_name: file.name.replace(/^\d+_/, ''),
   created_at: file.created_at ?? '',
   metadata: {
     size: typeof file.metadata?.size === 'number' ? file.metadata.size : 0
-  }
+  },
+  source: 'resume',
+  storage_path: `${userId}/${file.name}`,
 });
+
+const normalizeVerificationDocument = (key: string, value: unknown): DocumentFile | null => {
+  if (!value) return null;
+
+  if (typeof value === 'string') {
+    return {
+      name: key,
+      display_name: prettifyDocumentLabel(key),
+      created_at: new Date().toISOString(),
+      metadata: { size: 0 },
+      source: 'verification',
+      file_url: value,
+    };
+  }
+
+  if (typeof value !== 'object') return null;
+
+  const entry = value as VerificationDocEntry;
+  const fileUrl = entry.url || entry.file_url;
+  if (!fileUrl) return null;
+
+  return {
+    name: key,
+    display_name: entry.document_type || prettifyDocumentLabel(key),
+    created_at: entry.uploaded_at || new Date().toISOString(),
+    metadata: { size: 0 },
+    source: 'verification',
+    file_url: fileUrl,
+    storage_path: entry.storage_path,
+    document_category: entry.document_category || entry.category,
+  };
+};
+
+const sortDocuments = (documents: DocumentFile[]) =>
+  [...documents].sort((left, right) => new Date(right.created_at || 0).getTime() - new Date(left.created_at || 0).getTime());
+
+const openDocumentLink = (url: string, fileName?: string) => {
+  const link = document.createElement('a');
+  link.href = url;
+  if (fileName) {
+    link.download = fileName;
+  } else {
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+  }
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 const normalizeUserCategoryLabel = (value: string | null | undefined) =>
   value === 'Study-Abroad Returnee (Recent Graduate)' ? 'Study-Abroad Returnee' : value || '';
@@ -360,18 +429,28 @@ const ProfilePage = () => {
 
     const fetchDocuments = async () => {
       try {
-        const { data, error } = await supabase.storage
-          .from('resumes')
-          .list(user.id);
+        const [{ data: resumeDocs, error: resumeError }, { data: profileDocs, error: profileError }] = await Promise.all([
+          supabase.storage.from('resumes').list(user.id),
+          supabase.from('profiles').select('verification_docs').eq('id', user.id).maybeSingle(),
+        ]);
 
-        if (error) throw error;
-        
-        let hasCV = false;
-        if (data) {
-          const actualDocs = data.filter(file => file.name !== '.emptyFolderPlaceholder');
-          setDocuments(actualDocs.map(normalizeDocument));
-          hasCV = actualDocs.length > 0;
-        }
+        if (resumeError) throw resumeError;
+        if (profileError) throw profileError;
+
+        const actualResumeDocs = (resumeDocs || [])
+          .filter((file) => file.name !== '.emptyFolderPlaceholder')
+          .map((file) => normalizeDocument(file, user.id));
+
+        const verificationDocs = profileDocs?.verification_docs && typeof profileDocs.verification_docs === 'object'
+          ? Object.entries(profileDocs.verification_docs as Record<string, unknown>)
+              .map(([key, value]) => normalizeVerificationDocument(key, value))
+              .filter((document): document is DocumentFile => Boolean(document))
+          : [];
+
+        const allDocuments = sortDocuments([...actualResumeDocs, ...verificationDocs]);
+        setDocuments(allDocuments);
+
+        const hasCV = actualResumeDocs.length > 0;
         return hasCV;
       } catch (e) {
       const err = e as Error;
@@ -645,6 +724,36 @@ const ProfilePage = () => {
     }
   };
 
+  const resolveDocumentUrl = async (document: DocumentFile) => {
+    if (document.source === 'verification') {
+      if (document.file_url) {
+        return document.file_url;
+      }
+
+      if (document.storage_path) {
+        const { data } = supabase.storage.from('verification-documents').getPublicUrl(document.storage_path);
+        return data.publicUrl;
+      }
+
+      throw new Error('Verification document URL is unavailable.');
+    }
+
+    if (!user) {
+      throw new Error('You must be logged in to access this document.');
+    }
+
+    const { data, error } = await supabase.storage
+      .from('resumes')
+      .createSignedUrl(document.storage_path || `${user.id}/${document.name}`, 60);
+
+    if (error) throw error;
+    if (!data?.signedUrl) {
+      throw new Error('Document URL could not be generated.');
+    }
+
+    return data.signedUrl;
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -678,11 +787,14 @@ const ProfilePage = () => {
       // Refresh documents list
       const { data } = await supabase.storage.from('resumes').list(user.id);
       if (data) {
-        setDocuments(
-          data
-            .filter(file => file.name !== '.emptyFolderPlaceholder')
-            .map(normalizeDocument)
-        );
+        const resumeDocuments = data
+          .filter(file => file.name !== '.emptyFolderPlaceholder')
+          .map((file) => normalizeDocument(file, user.id));
+
+        setDocuments((current) => {
+          const verificationDocuments = current.filter((document) => document.source === 'verification');
+          return sortDocuments([...resumeDocuments, ...verificationDocuments]);
+        });
       }
 
       // Trigger email notification
@@ -701,18 +813,20 @@ const ProfilePage = () => {
     }
   };
 
-  const handleDownloadFile = async (fileName: string) => {
+  const handleViewDocument = async (document: DocumentFile) => {
     try {
-      if (!user) return;
-      
-      const { data, error } = await supabase.storage
-        .from('resumes')
-        .createSignedUrl(`${user.id}/${fileName}`, 60);
+      const url = await resolveDocumentUrl(document);
+      openDocumentLink(url);
+    } catch (e) {
+      const err = e as Error;
+      toast.error('Failed to open document: ' + err.message);
+    }
+  };
 
-      if (error) throw error;
-      if (data) {
-        window.open(data.signedUrl, '_blank');
-      }
+  const handleDownloadDocument = async (document: DocumentFile) => {
+    try {
+      const url = await resolveDocumentUrl(document);
+      openDocumentLink(url, document.display_name);
     } catch (e) {
       const err = e as Error;
       toast.error('Failed to download: ' + err.message);
@@ -1466,13 +1580,18 @@ const ProfilePage = () => {
                     <div className="text-center py-6 text-[var(--text-secondary)]">{t('profilePage.actions.noDocs')}</div>
                   ) : (
                     documents.map((doc, i) => (
-                      <div key={i} className="glass-light rounded-xl p-4 flex items-center justify-between group">
+                      <div key={`${doc.source}-${doc.name}-${i}`} className="glass-light rounded-xl p-4 flex items-center justify-between group">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
                             <FileText size={18} className="text-red-400" />
                           </div>
                           <div>
-                            <p className="text-[var(--text-primary)] font-medium truncate max-w-[150px] sm:max-w-[250px] md:max-w-xs">{doc.name.replace(/^\d+_/, '')}</p>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-[var(--text-primary)] font-medium truncate max-w-[150px] sm:max-w-[250px] md:max-w-xs">{doc.display_name}</p>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-[0.14em] ${doc.source === 'verification' ? 'bg-blue-500/10 text-blue-300' : 'bg-emerald-500/10 text-emerald-300'}`}>
+                                {doc.source === 'verification' ? 'Verification' : 'Resume'}
+                              </span>
+                            </div>
                             <p className="text-[var(--text-secondary)] text-xs">
                               {(doc.metadata?.size / (1024 * 1024)).toFixed(2)} MB • {new Date(doc.created_at).toLocaleDateString()}
                             </p>
@@ -1480,29 +1599,41 @@ const ProfilePage = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <button 
-                            onClick={() => handleDownloadFile(doc.name)}
+                            onClick={() => handleViewDocument(doc)}
                             className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-[var(--sp-accent)] hover:bg-[var(--sp-accent)]/10 transition-colors"
                             title="View"
-                            aria-label={`View document ${doc.name.replace(/^\d+_/, '')}`}
+                            aria-label={`View document ${doc.display_name}`}
                           >
                             <Eye size={16} />
                           </button>
                           <button 
-                            onClick={() => handleShareDocument(doc.name)}
-                            className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
-                            title="Copy share link"
-                            aria-label={`Copy share link for ${doc.name.replace(/^\d+_/, '')}`}
+                            onClick={() => handleDownloadDocument(doc)}
+                            className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+                            title="Download"
+                            aria-label={`Download document ${doc.display_name}`}
                           >
-                            <Share2 size={16} />
+                            <Download size={16} />
                           </button>
-                          <button 
-                            onClick={() => handleDeleteFile(doc.name)}
-                            className="p-2 text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-white/5 rounded-lg hover:bg-red-500/10"
-                            title="Delete"
-                            aria-label={`Delete document ${doc.name.replace(/^\d+_/, '')}`}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {doc.source === 'resume' && (
+                            <>
+                              <button 
+                                onClick={() => handleShareDocument(doc.name)}
+                                className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                                title="Copy share link"
+                                aria-label={`Copy share link for ${doc.display_name}`}
+                              >
+                                <Share2 size={16} />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteFile(doc.name)}
+                                className="p-2 text-[var(--text-secondary)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-white/5 rounded-lg hover:bg-red-500/10"
+                                title="Delete"
+                                aria-label={`Delete document ${doc.display_name}`}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))

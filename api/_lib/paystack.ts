@@ -8,6 +8,7 @@ export type PaystackPlan = {
 };
 
 type PaystackMode = 'test' | 'live';
+type PaystackKeyType = 'public' | 'secret';
 
 const DEFAULT_CALLBACK_ORIGIN = 'http://localhost:5173';
 const DEFAULT_PRIMARY_CURRENCY = 'USD';
@@ -58,16 +59,46 @@ const resolvePlanAmount = (tier: 'professional' | 'firm', currency: string) => {
 export const resolvePaystackMode = (): PaystackMode =>
   process.env.PAYSTACK_MODE?.toLowerCase() === 'live' ? 'live' : 'test';
 
+const normalizeEnvValue = (value: string | undefined) => String(value || '').trim();
+
+const paystackKeyMatchesMode = (value: string, type: PaystackKeyType, mode: PaystackMode) =>
+  value.startsWith(`${type === 'public' ? 'pk' : 'sk'}_${mode}_`);
+
+const resolveModeAwarePaystackKey = (
+  mode: PaystackMode,
+  modeSpecificValue: string | undefined,
+  fallbackValue: string | undefined,
+  type: PaystackKeyType
+) => {
+  const preferredValue = normalizeEnvValue(modeSpecificValue);
+
+  if (preferredValue) {
+    return preferredValue;
+  }
+
+  const fallback = normalizeEnvValue(fallbackValue);
+
+  if (fallback && paystackKeyMatchesMode(fallback, type, mode)) {
+    return fallback;
+  }
+
+  return '';
+};
+
 export const getActivePaystackConfig = () => {
   const mode = resolvePaystackMode();
-  const secretKey =
-    mode === 'live'
-      ? process.env.PAYSTACK_LIVE_SECRET_KEY || process.env.PAYSTACK_SECRET_KEY
-      : process.env.PAYSTACK_TEST_SECRET_KEY || process.env.PAYSTACK_SECRET_KEY;
-  const publicKey =
-    mode === 'live'
-      ? process.env.VITE_PAYSTACK_LIVE_PUBLIC_KEY || process.env.VITE_PAYSTACK_PUBLIC_KEY
-      : process.env.VITE_PAYSTACK_TEST_PUBLIC_KEY || process.env.VITE_PAYSTACK_PUBLIC_KEY;
+  const secretKey = resolveModeAwarePaystackKey(
+    mode,
+    mode === 'live' ? process.env.PAYSTACK_LIVE_SECRET_KEY : process.env.PAYSTACK_TEST_SECRET_KEY,
+    process.env.PAYSTACK_SECRET_KEY,
+    'secret'
+  );
+  const publicKey = resolveModeAwarePaystackKey(
+    mode,
+    mode === 'live' ? process.env.VITE_PAYSTACK_LIVE_PUBLIC_KEY : process.env.VITE_PAYSTACK_TEST_PUBLIC_KEY,
+    process.env.VITE_PAYSTACK_PUBLIC_KEY,
+    'public'
+  );
 
   return { mode, secretKey, publicKey };
 };

@@ -13,14 +13,14 @@ const ContactPage = () => {
 
   return (
     <div ref={pageRef} className="min-h-screen pt-32 pb-20 bg-[var(--bg-primary)]">
-      <SEO title={t('footer.contact')} />
+      <SEO title={t('nav.contact')} />
       <div className="w-full px-6 lg:px-12">
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-6">
-            Get in Touch
+            {t('contact.headline')}
           </h1>
           <p className="text-[var(--text-secondary)] text-xl max-w-2xl mx-auto leading-relaxed">
-            Have questions about Strategic Pathways? Our team is here to help you navigate your journey.
+            {t('contact.body')}
           </p>
         </div>
         

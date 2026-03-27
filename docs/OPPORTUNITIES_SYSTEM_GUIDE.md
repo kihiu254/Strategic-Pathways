@@ -387,8 +387,11 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### Database Setup
 ```bash
-# Run the schema file
+# Fresh database only
 psql -h your_host -U your_user -d your_db -f opportunities-schema.sql
+
+# Existing database / Supabase project with prior schema
+psql -h your_host -U your_user -d your_db -f migrate-opportunities.sql
 ```
 
 ---
@@ -396,7 +399,8 @@ psql -h your_host -U your_user -d your_db -f opportunities-schema.sql
 ## 📞 Support
 
 For opportunities system questions:
-- **Schema:** `/app/docs/opportunities-schema.sql`
+- **Fresh schema:** `/app/docs/opportunities-schema.sql`
+- **Migration for existing projects:** `/app/docs/migrate-opportunities.sql`
 - **User Page:** `/app/src/sections/OpportunitiesPageRedesigned.tsx`
 - **Admin Manager:** `/app/src/sections/AdminOpportunitiesManager.tsx`
 - **Contact:** joinstrategicpathways@gmail.com

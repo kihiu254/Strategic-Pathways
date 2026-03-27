@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowLeft, Globe, Lightbulb, Users, Target, Briefcase, TrendingUp, Building2, Zap, LayoutDashboard, ShieldCheck } from 'lucide-react';
+import { IMPACT_STATS } from '../data/impactStats';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -85,6 +86,12 @@ const AboutPage = () => {
     document.title = t('about.title');
   }, [i18n.language, t]);
 
+  const impactStats = IMPACT_STATS.map((item) => ({
+    value: item.value,
+    label: t(item.labelKey),
+    description: item.description,
+  }));
+
   return (
     <div ref={pageRef} className="min-h-screen bg-[var(--bg-primary)] pt-20 pb-20 selection:bg-[var(--sp-accent)] selection:text-[var(--text-primary)] relative overflow-hidden">
       <div className="pointer-events-none absolute -top-40 -left-24 h-80 w-80 rounded-full bg-[var(--sp-accent)]/10 blur-[120px]" />
@@ -108,10 +115,7 @@ const AboutPage = () => {
               <div className="w-10 h-0.5 bg-[var(--sp-accent)]" />
               <span className="sp-label text-[var(--sp-accent)] text-sm tracking-widest uppercase font-semibold">{t('about.mission.label')}</span>
             </div>
-            <h1 
-              style={{ fontFamily: "'Inter', sans-serif" }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight leading-[1.1] text-balance"
-            >
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight leading-[1.1] text-balance">
               {t('about.mission.headline').split(' ').map((word, i, arr) => (
                 i >= arr.length - 3 
                   ? <span key={i} className="text-[var(--sp-accent)]">{word} </span>
@@ -120,10 +124,7 @@ const AboutPage = () => {
             </h1>
           </div>
           <div className="premium-glass rounded-3xl p-8 border border-white/10 shadow-2xl">
-            <p 
-              style={{ fontFamily: "'Inter', sans-serif" }}
-              className="text-base lg:text-lg text-[var(--text-secondary)] leading-relaxed font-medium"
-            >
+            <p className="text-base lg:text-lg text-[var(--text-secondary)] leading-relaxed font-medium">
               {t('about.mission.body')}
             </p>
             <div className="mt-8 h-0.5 w-16 bg-[var(--sp-accent)]/60 rounded-full" />
@@ -203,10 +204,11 @@ const AboutPage = () => {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {getArray<string>('about.objectives.list').map((goal, i) => (
-              <div key={i} className="premium-glass p-6 rounded-2xl flex items-center gap-6 border border-white/10 shadow-xl">
-                <div className="text-3xl font-bold text-[var(--sp-accent)]/40 shrink-0 select-none">0{i + 1}</div>
-                <p className="text-lg font-semibold text-[var(--text-primary)]">{goal}</p>
+            {impactStats.map((stat) => (
+              <div key={stat.label} className="premium-glass p-6 rounded-2xl border border-white/10 shadow-xl">
+                <div className="text-3xl lg:text-4xl font-bold text-[var(--sp-accent)] mb-3">{stat.value}</div>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">{stat.label}</p>
+                <p className="text-sm text-[var(--text-secondary)] mt-3 leading-relaxed">{stat.description}</p>
               </div>
             ))}
           </div>
@@ -245,27 +247,24 @@ const AboutPage = () => {
           <div className="animate-section">
             <h2 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-8">{t('about.impactAbout.headline')}</h2>
             <div className="premium-glass rounded-3xl p-8 border border-white/10 shadow-2xl">
-              <div className="relative pl-8 border-l-2 border-[var(--sp-accent)]/30 space-y-10 pb-2">
-              
-              <div className="relative">
-                <div className="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-[var(--bg-primary)] border-4 border-[var(--sp-accent)]" />
-                <h3 className="text-lg font-bold text-[var(--sp-accent)] tracking-widest uppercase mb-3">{t('about.impactAbout.short.title')}</h3>
-                <p className="text-[var(--text-secondary)] font-medium">{t('about.impactAbout.short.desc')}</p>
+              <div className="mb-8">
+                <p className="text-[11px] uppercase tracking-[0.28em] font-semibold text-[var(--sp-accent)] mb-3">
+                  {t('about.objectives.eyebrow')}
+                </p>
+                <p className="text-[var(--text-secondary)] text-base lg:text-lg">
+                  {t('about.objectives.summary')}
+                </p>
               </div>
-
-              <div className="relative">
-                <div className="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-[var(--bg-primary)] border-4 border-[var(--sp-accent)]" />
-                <h3 className="text-lg font-bold text-[var(--sp-accent)] tracking-widest uppercase mb-3">{t('about.impactAbout.medium.title')}</h3>
-                <p className="text-[var(--text-secondary)] font-medium">{t('about.impactAbout.medium.desc')}</p>
-              </div>
-
-              <div className="relative">
-                <div className="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-[var(--sp-accent)] border-4 border-[var(--sp-accent)] shadow-[0_0_15px_rgba(200,159,94,0.5)]" />
-                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">{t('about.impactAbout.long.title')}</h3>
-                <p className="text-[var(--text-secondary)] font-medium text-lg">{t('about.impactAbout.long.desc1')}</p>
-                <p className="text-[var(--text-secondary)] font-medium text-lg mt-2">{t('about.impactAbout.long.desc2')}</p>
-              </div>
-
+              <div className="space-y-4">
+                {impactStats.map((stat) => (
+                  <div key={stat.label} className="glass-light rounded-2xl border border-white/10 p-5">
+                    <p className="text-xs font-bold uppercase tracking-[0.24em] text-[var(--sp-accent)] mb-2">
+                      {stat.value}
+                    </p>
+                    <p className="text-[var(--text-primary)] font-semibold">{stat.label}</p>
+                    <p className="text-sm text-[var(--text-secondary)] mt-3 leading-relaxed">{stat.description}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

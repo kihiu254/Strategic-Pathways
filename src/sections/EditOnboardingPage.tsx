@@ -84,6 +84,7 @@ const getVerificationDocUrl = (docs: unknown, shortKey: string, legacyKey: strin
 const EditOnboardingPage = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const authLoading = useAuthStore((state) => state.isLoading);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDraftSaving, setIsDraftSaving] = useState(false);
@@ -107,6 +108,10 @@ const EditOnboardingPage = () => {
   const progress = Math.round(((currentStep + 1) / steps.length) * 100);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       navigate('/login');
       return;
@@ -196,7 +201,7 @@ const EditOnboardingPage = () => {
     };
 
     fetchOnboardingData();
-  }, [user, navigate, reset]);
+  }, [authLoading, user, navigate, reset]);
 
   const normalize = (v?: string | null) => {
     if (v === undefined || v === null) return null;
@@ -330,7 +335,7 @@ const EditOnboardingPage = () => {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-[var(--sp-accent)] animate-spin" />

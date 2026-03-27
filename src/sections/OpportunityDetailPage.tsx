@@ -9,7 +9,6 @@ import {
   Calendar,
   Clock,
   DollarSign,
-  ExternalLink,
   MapPin,
   Shield,
   Star,
@@ -18,8 +17,6 @@ import { toast } from 'sonner';
 import SEO from '../components/SEO';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
-import { AppNotificationService } from '../lib/appNotifications';
-import { EmailAutomationService } from '../lib/emailAutomation';
 import { isOpportunityOpenForApplications } from '../lib/opportunityDeadline';
 import { hasPaidMembershipAccess } from '../lib/membershipAccess';
 import { hasCompletedPremiumProfile } from '../lib/profileCompletion';
@@ -41,6 +38,8 @@ type OpportunityProfile = {
   years_of_experience?: string | null;
   expertise?: string[] | null;
 };
+
+type ApplicationStatus = 'pending' | 'reviewed' | 'accepted' | 'rejected';
 
 type Opportunity = {
   id: string;
@@ -107,7 +106,23 @@ const OpportunitiesDetailPage = () => {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<OpportunityProfile | null>(null);
+  const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  const getApplicationLabel = (status?: ApplicationStatus | null) => {
+    switch (status) {
+      case 'accepted':
+        return 'Accepted';
+      case 'rejected':
+        return 'Not selected';
+      case 'reviewed':
+        return 'Under review';
+      case 'pending':
+        return 'Pending';
+      default:
+        return t('opportunitiesPage.actions.submitApplication', { defaultValue: 'Apply now' });
+    }
+  };
 
   useEffect(() => {
     const loadOpportunity = async () => {
@@ -164,6 +179,31 @@ const OpportunitiesDetailPage = () => {
     void fetchProfile();
   }, [user]);
 
+  useEffect(() => {
+    const fetchApplication = async () => {
+      if (!user || !opportunityId) {
+        setApplicationStatus(null);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('opportunity_applications')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('opportunity_id', opportunityId)
+          .maybeSingle();
+
+        if (error) throw error;
+        setApplicationStatus((data?.status as ApplicationStatus | undefined) || null);
+      } catch (error) {
+        console.error('Error fetching application status:', error);
+      }
+    };
+
+    void fetchApplication();
+  }, [opportunityId, user]);
+
   const formatDeadline = () => {
     if (!opportunity) return t('opportunitiesPage.values.tbd');
     if (opportunity.rollingDeadline) return t('opportunitiesPage.values.rolling');
@@ -201,90 +241,6 @@ const OpportunitiesDetailPage = () => {
   };
 
   const canApplyWithCurrentPlan = hasPaidMembershipAccess(profile);
-
-  const submitApplication = async () => {
-    if (!opportunity || !user) {
-      if (!user) {
-        toast.error(t('opportunitiesPage.errors.loginToApply'));
-        navigate('/login');
-      }
-      return;
-    }
-
-    if (!isOpportunityOpenForApplications(opportunity)) {
-      toast.error(
-        t('opportunitiesPage.errors.deadlinePassed', {
-          defaultValue: 'Applications for this opportunity are closed because the deadline has passed.',
-        })
-      );
-      return;
-    }
-
-    if (!requireEligibleMember()) return;
-
-    if (opportunity.applicationLink) {
-      const { error: trackingError } = await supabase.from('opportunity_applications').insert({
-        opportunity_id: opportunity.id,
-        user_id: user.id,
-        status: 'pending',
-        applied_at: new Date().toISOString(),
-        notes: 'External application link opened by member.',
-      });
-
-      if (trackingError && trackingError.code !== '23505') {
-        toast.error(t('opportunitiesPage.errors.submitFailed', { message: trackingError.message }));
-        return;
-      }
-
-      await AppNotificationService.notifySelf({
-        title: t('opportunitiesPage.notifications.selectedTitle'),
-        message: t('opportunitiesPage.notifications.selectedMessage', { title: opportunity.title }),
-        type: 'opportunity',
-        data: { action: 'opportunity_interest', opportunityId: opportunity.id, opportunityTitle: opportunity.title },
-      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
-
-      await EmailAutomationService.onOpportunityInterest(
-        user.email || '',
-        user.user_metadata?.full_name || user.email || 'Member',
-        opportunity.title,
-        opportunity.organization,
-        'external'
-      );
-
-      window.open(opportunity.applicationLink, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from('opportunity_applications').insert({
-        opportunity_id: opportunity.id,
-        user_id: user.id,
-        status: 'pending',
-        applied_at: new Date().toISOString(),
-      });
-
-      if (error) throw error;
-
-      await AppNotificationService.notifySelf({
-        title: t('opportunitiesPage.notifications.receivedTitle'),
-        message: t('opportunitiesPage.notifications.receivedMessage', { title: opportunity.title }),
-        type: 'opportunity',
-        data: { action: 'application_submitted', opportunityId: opportunity.id, opportunityTitle: opportunity.title },
-      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
-
-      await EmailAutomationService.onOpportunityInterest(
-        user.email || '',
-        user.user_metadata?.full_name || user.email || 'Member',
-        opportunity.title,
-        opportunity.organization,
-        'internal'
-      );
-
-      toast.success(t('opportunitiesPage.notifications.submitSuccess'));
-    } catch (error) {
-      toast.error(t('opportunitiesPage.errors.submitFailed', { message: (error as Error).message }));
-    }
-  };
 
   if (loading) {
     return (
@@ -345,6 +301,11 @@ const OpportunitiesDetailPage = () => {
                     {t('opportunitiesPage.labels.deadlinePassed', { defaultValue: 'Deadline passed' })}
                   </span>
                 )}
+                {applicationStatus && (
+                  <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-200 text-xs font-bold">
+                    {getApplicationLabel(applicationStatus)}
+                  </span>
+                )}
                 {opportunity.match_score && (
                   <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-bold flex items-center gap-1">
                     <Star size={12} className="fill-green-400" />
@@ -381,16 +342,17 @@ const OpportunitiesDetailPage = () => {
               <div className="space-y-3">
                 {canApplyWithCurrentPlan ? (
                   <button
-                    onClick={submitApplication}
+                    onClick={() => {
+                      if (!requireEligibleMember()) return;
+                      navigate(`/opportunities/${opportunity.id}/apply`);
+                    }}
                     disabled={applicationClosed || isProfileLoading}
                     className={`sp-btn-primary w-full flex items-center justify-center gap-2 ${
                       applicationClosed || isProfileLoading ? 'opacity-60 cursor-not-allowed hover:translate-y-0' : ''
                     }`}
                   >
-                    {opportunity.applicationLink
-                      ? t('opportunitiesPage.actions.openApplicationLink')
-                      : t('opportunitiesPage.actions.submitApplication')}
-                    {opportunity.applicationLink ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
+                    {getApplicationLabel(applicationStatus)}
+                    <ArrowRight size={16} />
                   </button>
                 ) : (
                   <button onClick={() => navigate('/pricing')} className="sp-btn-primary w-full flex items-center justify-center gap-2">

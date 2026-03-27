@@ -53,7 +53,6 @@ const Footer = () => {
       links: [
         { label: t('nav.about'), href: '/concept-note' },
         { label: t('nav.howItWorks'), href: '/how-it-works' },
-        { label: t('nav.pricing'), href: '/pricing' },
         { label: t('footer.opportunities'), href: '/opportunities' },
         { label: t('footer.projects'), href: '/projects' },
         { label: t('footer.successStories'), href: '/impact' }

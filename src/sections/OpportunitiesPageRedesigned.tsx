@@ -14,8 +14,6 @@ import {
   Star,
   DollarSign,
   Calendar,
-  X,
-  ExternalLink,
   Shield,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -78,6 +76,8 @@ type OpportunityProfile = {
   years_of_experience?: string | null;
   expertise?: string[] | null;
 };
+
+type ApplicationStatus = 'pending' | 'reviewed' | 'accepted' | 'rejected';
 
 interface Opportunity {
   id: string;
@@ -145,9 +145,24 @@ const OpportunitiesPageRedesigned = () => {
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [selectedOwnership, setSelectedOwnership] = useState('All');
-  const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
   const [profile, setProfile] = useState<OpportunityProfile | null>(null);
+  const [applicationStatusByOpportunity, setApplicationStatusByOpportunity] = useState<Record<string, ApplicationStatus>>({});
   const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  const getApplicationLabel = (status?: ApplicationStatus) => {
+    switch (status) {
+      case 'accepted':
+        return 'Accepted';
+      case 'rejected':
+        return 'Not selected';
+      case 'reviewed':
+        return 'Under review';
+      case 'pending':
+        return 'Pending';
+      default:
+        return t('opportunitiesPage.actions.submitApplication', { defaultValue: 'Apply now' });
+    }
+  };
 
   const formatDeadline = (opportunity: Opportunity) => {
     if (opportunity.rollingDeadline) return t('opportunitiesPage.values.rolling');
@@ -204,6 +219,35 @@ const OpportunitiesPageRedesigned = () => {
     } else {
       setIsProfileLoading(false);
     }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      if (!user) {
+        setApplicationStatusByOpportunity({});
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('opportunity_applications')
+          .select('opportunity_id, status')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        const nextStatuses = (data || []).reduce<Record<string, ApplicationStatus>>((accumulator, row) => {
+          accumulator[String(row.opportunity_id)] = row.status as ApplicationStatus;
+          return accumulator;
+        }, {});
+
+        setApplicationStatusByOpportunity(nextStatuses);
+      } catch (error) {
+        console.error('Error fetching application statuses:', error);
+      }
+    };
+
+    void fetchApplications();
   }, [user]);
 
   useEffect(() => {
@@ -281,84 +325,10 @@ const OpportunitiesPageRedesigned = () => {
     }
 
     if (!requireEligibleMember()) return;
-    setSelectedOpp(opportunity);
+    navigate(`/opportunities/${opportunity.id}/apply`);
   };
 
   const canApplyWithCurrentPlan = hasPaidMembershipAccess(profile);
-
-  const submitApplication = async () => {
-    if (!selectedOpp || !user) return;
-    if (!requireEligibleMember()) return;
-    if (!isOpportunityOpenForApplications(selectedOpp)) {
-      toast.error(
-        t('opportunitiesPage.errors.deadlinePassed', {
-          defaultValue: 'Applications for this opportunity are closed because the deadline has passed.',
-        })
-      );
-      setSelectedOpp(null);
-      return;
-    }
-
-    if (selectedOpp.applicationLink) {
-      const { error: trackingError } = await supabase.from('opportunity_applications').insert({
-        opportunity_id: selectedOpp.id,
-        user_id: user.id,
-        status: 'pending',
-        applied_at: new Date().toISOString(),
-        notes: 'External application link opened by member.',
-      });
-
-      if (trackingError && trackingError.code !== '23505') {
-        toast.error(t('opportunitiesPage.errors.submitFailed', { message: trackingError.message }));
-        return;
-      }
-
-      await AppNotificationService.notifySelf({
-        title: t('opportunitiesPage.notifications.selectedTitle'),
-        message: t('opportunitiesPage.notifications.selectedMessage', { title: selectedOpp.title }),
-        type: 'opportunity',
-        data: { action: 'opportunity_interest', opportunityId: selectedOpp.id, opportunityTitle: selectedOpp.title },
-      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
-      await EmailAutomationService.onOpportunityInterest(
-        user.email || '',
-        user.user_metadata?.full_name || user.email || 'Member',
-        selectedOpp.title,
-        selectedOpp.organization,
-        'external'
-      );
-      window.open(selectedOpp.applicationLink, '_blank', 'noopener,noreferrer');
-      setSelectedOpp(null);
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from('opportunity_applications').insert({
-        opportunity_id: selectedOpp.id,
-        user_id: user.id,
-        status: 'pending',
-        applied_at: new Date().toISOString(),
-      });
-
-      if (error) throw error;
-      await AppNotificationService.notifySelf({
-        title: t('opportunitiesPage.notifications.receivedTitle'),
-        message: t('opportunitiesPage.notifications.receivedMessage', { title: selectedOpp.title }),
-        type: 'opportunity',
-        data: { action: 'application_submitted', opportunityId: selectedOpp.id, opportunityTitle: selectedOpp.title },
-      }).catch((notificationError) => console.warn('Notification failed:', notificationError));
-      await EmailAutomationService.onOpportunityInterest(
-        user.email || '',
-        user.user_metadata?.full_name || user.email || 'Member',
-        selectedOpp.title,
-        selectedOpp.organization,
-        'internal'
-      );
-      toast.success(t('opportunitiesPage.notifications.submitSuccess'));
-      setSelectedOpp(null);
-    } catch (error) {
-      toast.error(t('opportunitiesPage.errors.submitFailed', { message: (error as Error).message }));
-    }
-  };
 
   if (loading) {
     return (
@@ -507,6 +477,11 @@ const OpportunitiesPageRedesigned = () => {
 
               {filteredOpps.map((opportunity) => (
                 <div key={opportunity.id} className="glass-card rounded-3xl border border-white/10 p-5 sm:p-6 hover:border-[var(--sp-accent)]/40 transition-all group">
+                  {applicationStatusByOpportunity[opportunity.id] && (
+                    <div className="mb-4 inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-200">
+                      {getApplicationLabel(applicationStatusByOpportunity[opportunity.id])}
+                    </div>
+                  )}
                   <div className="flex flex-col xl:flex-row xl:items-start gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
@@ -560,7 +535,7 @@ const OpportunitiesPageRedesigned = () => {
                         className="sp-btn-primary flex items-center justify-center gap-2 w-full"
                       >
                         {canApplyWithCurrentPlan
-                          ? t('opportunitiesPage.actions.submitApplication', { defaultValue: 'Apply now' })
+                          ? getApplicationLabel(applicationStatusByOpportunity[opportunity.id])
                           : t('opportunitiesPage.actions.freeToJoin')}
                         <ArrowRight size={16} />
                       </button>
@@ -575,80 +550,6 @@ const OpportunitiesPageRedesigned = () => {
           </div>
         </div>
       </div>
-
-      {selectedOpp && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
-          <div className="glass-card max-w-2xl w-full max-h-[90vh] overflow-auto">
-            <div className="sticky top-0 bg-[var(--bg-card)] border-b border-white/10 p-4 sm:p-6 flex justify-between items-center gap-4">
-              <h3 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] break-words">{selectedOpp.title}</h3>
-              <button onClick={() => setSelectedOpp(null)} className="p-2 hover:bg-white/5 rounded-lg" aria-label={t('opportunitiesPage.actions.close')} title={t('opportunitiesPage.actions.close')}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-4 sm:p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="glass-light rounded-2xl p-4">
-                  <h4 className="font-bold text-[var(--text-primary)] mb-2">{t('opportunitiesPage.modal.leading')}</h4>
-                  <p className="text-[var(--text-secondary)]">{selectedOpp.organization}</p>
-                </div>
-                <div className="glass-light rounded-2xl p-4">
-                  <h4 className="font-bold text-[var(--text-primary)] mb-2">{t('opportunitiesPage.modal.where')}</h4>
-                  <p className="text-[var(--text-secondary)]">{selectedOpp.location}</p>
-                </div>
-                <div className="glass-light rounded-2xl p-4">
-                  <h4 className="font-bold text-[var(--text-primary)] mb-2">{t('opportunitiesPage.modal.howLong')}</h4>
-                  <p className="text-[var(--text-secondary)]">{selectedOpp.duration}</p>
-                </div>
-                <div className="glass-light rounded-2xl p-4">
-                  <h4 className="font-bold text-[var(--text-primary)] mb-2">{t('opportunitiesPage.modal.when')}</h4>
-                  <p className="text-[var(--text-secondary)]">{t('opportunitiesPage.labels.deadline', { value: formatDeadline(selectedOpp) })}</p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-[var(--text-primary)] mb-2">{t('opportunitiesPage.modal.projectSeeking')}</h4>
-                <p className="text-[var(--text-secondary)]">{selectedOpp.description}</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-[var(--text-primary)] mb-2">{t('opportunitiesPage.modal.requirements')}</h4>
-                <ul className="list-disc list-inside space-y-1 text-[var(--text-secondary)]">
-                  {selectedOpp.requirements.length > 0
-                    ? selectedOpp.requirements.map((requirement, index) => <li key={`${requirement}-${index}`}>{requirement}</li>)
-                    : <li>{t('opportunitiesPage.modal.noRequirements')}</li>}
-                </ul>
-              </div>
-
-              {selectedOpp.applicationLink && (
-                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
-                  <div className="flex items-start gap-3">
-                    <ExternalLink className="text-blue-400 mt-0.5" size={18} />
-                    <div>
-                      <p className="text-sm font-semibold text-blue-300">{t('opportunitiesPage.modal.externalTitle')}</p>
-                      <p className="mt-1 text-sm text-blue-100/80">{t('opportunitiesPage.modal.externalBody')}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button onClick={submitApplication} className="sp-btn-primary flex-1 flex items-center justify-center gap-2">
-                  {selectedOpp.applicationLink ? t('opportunitiesPage.actions.openApplicationLink') : t('opportunitiesPage.actions.submitApplication')}
-                  {selectedOpp.applicationLink ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
-                </button>
-                {!selectedOpp.applicationLink && !canApplyWithCurrentPlan && (
-                  <button onClick={() => navigate('/pricing')} className="sp-btn-glass flex items-center justify-center gap-2">
-                    <Shield size={16} />
-                    {t('opportunitiesPage.actions.upgradeForEarlyAccess', { defaultValue: 'Upgrade for early access' })}
-                  </button>
-                )}
-                <button onClick={() => setSelectedOpp(null)} className="sp-btn-glass">{t('dashboard.buttons.cancel')}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
