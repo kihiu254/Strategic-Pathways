@@ -6,6 +6,42 @@ type VerifyRequestBody = {
   reference?: string;
 };
 
+type ExistingProfile = {
+  onboarding_completed?: boolean | null;
+  profile_completion_percentage?: number | null;
+  user_category?: string | null;
+  verification_tier?: string | null;
+  bio?: string | null;
+  sector?: string | null;
+  years_of_experience?: string | null;
+  expertise?: string[] | null;
+  profile_type?: string | null;
+};
+
+const normalizeValue = (value?: string | null) => String(value || '').trim().toLowerCase();
+
+const hasArrayContent = (value?: string[] | null) => Array.isArray(value) && value.length > 0;
+
+const hasSavedPremiumProfile = (profile: ExistingProfile | null | undefined) => {
+  if (!profile) {
+    return false;
+  }
+
+  const completionPercentage = Number(profile.profile_completion_percentage || 0);
+  const profileType = normalizeValue(profile.profile_type);
+
+  return Boolean(
+    completionPercentage > 25 ||
+    normalizeValue(profile.user_category) ||
+    normalizeValue(profile.verification_tier) ||
+    normalizeValue(profile.bio) ||
+    normalizeValue(profile.sector) ||
+    normalizeValue(profile.years_of_experience) ||
+    hasArrayContent(profile.expertise) ||
+    profileType === 'premium (verified)'
+  );
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -23,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { secretKey, mode } = getActivePaystackConfig();
 
     if (!secretKey) {
-      return res.status(500).json({ error: 'Paystack secret key is not configured.' });
+      return res.status(500).json({ error: `Paystack ${mode} secret key is not configured.` });
     }
 
     const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
@@ -68,12 +104,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const userClient = createAuthenticatedClient(accessToken);
+    const { data: existingProfile, error: existingProfileError } = await userClient
+      .from('profiles')
+      .select('onboarding_completed, profile_completion_percentage, user_category, verification_tier, bio, sector, years_of_experience, expertise, profile_type')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (existingProfileError) {
+      console.error('Failed to load existing profile before payment update:', existingProfileError);
+      return res.status(500).json({ error: 'Payment was verified, but the account state could not be checked.' });
+    }
+
+    const hasCompletedProfile = hasSavedPremiumProfile(existingProfile as ExistingProfile | null);
     const { error: updateError } = await userClient.from('profiles').upsert({
       id: user.id,
       email: user.email,
       tier: plan.dbTier,
       profile_type: plan.profileType,
-      onboarding_completed: false,
+      onboarding_completed: hasCompletedProfile,
       updated_at: new Date().toISOString(),
     });
 
@@ -86,7 +134,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       success: true,
       mode,
       tier: plan.dbTier,
-      redirectTo: '/onboarding/full',
+      redirectTo: hasCompletedProfile ? '/profile' : '/onboarding/full',
       reference,
     });
   } catch (error) {

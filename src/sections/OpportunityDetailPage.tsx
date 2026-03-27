@@ -21,11 +21,26 @@ import { supabase } from '../lib/supabase';
 import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
 import { isOpportunityOpenForApplications } from '../lib/opportunityDeadline';
+import { hasPaidMembershipAccess } from '../lib/membershipAccess';
+import { hasCompletedPremiumProfile } from '../lib/profileCompletion';
 
 const OWNERSHIP_PREFIX = 'ownership:';
 const APPLY_LINK_PREFIX = 'apply-link:';
 const ROLLING_TAG = 'deadline:rolling';
 const ROLLING_DEADLINE_DATE = '2099-12-31';
+
+type OpportunityProfile = {
+  tier: string;
+  profile_type: string;
+  onboarding_completed: boolean;
+  profile_completion_percentage?: number | null;
+  user_category?: string | null;
+  verification_tier?: string | null;
+  bio?: string | null;
+  sector?: string | null;
+  years_of_experience?: string | null;
+  expertise?: string[] | null;
+};
 
 type Opportunity = {
   id: string;
@@ -91,7 +106,7 @@ const OpportunitiesDetailPage = () => {
 
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<{ tier: string; profile_type: string; onboarding_completed: boolean } | null>(null);
+  const [profile, setProfile] = useState<OpportunityProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   useEffect(() => {
@@ -133,7 +148,7 @@ const OpportunitiesDetailPage = () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('tier, profile_type, onboarding_completed')
+          .select('tier, profile_type, onboarding_completed, profile_completion_percentage, user_category, verification_tier, bio, sector, years_of_experience, expertise')
           .eq('id', user.id)
           .single();
 
@@ -168,7 +183,7 @@ const OpportunitiesDetailPage = () => {
       toast.error(t('opportunitiesPage.errors.profileLoading'));
       return false;
     }
-    if (['Community', 'Standard (MVP)', 'Standard Member'].includes(profile.tier)) {
+    if (!hasPaidMembershipAccess(profile)) {
       toast.error(t('opportunitiesPage.errors.upgradeToApply'), {
         action: {
           label: t('opportunitiesPage.actions.membership'),
@@ -177,13 +192,15 @@ const OpportunitiesDetailPage = () => {
       });
       return false;
     }
-    if (!profile.onboarding_completed) {
+    if (!hasCompletedPremiumProfile(profile)) {
       toast.error(t('opportunitiesPage.errors.completeOnboarding'));
       navigate('/onboarding/full');
       return false;
     }
     return true;
   };
+
+  const canApplyWithCurrentPlan = hasPaidMembershipAccess(profile);
 
   const submitApplication = async () => {
     if (!opportunity || !user) {
@@ -362,18 +379,34 @@ const OpportunitiesDetailPage = () => {
 
             <div className="w-full lg:w-[320px] premium-glass rounded-3xl border border-white/10 p-6">
               <div className="space-y-3">
-                <button onClick={() => navigate('/pricing')} className="sp-btn-primary w-full flex items-center justify-center gap-2">
-                  {t('opportunitiesPage.actions.freeToJoin')}
-                  <ArrowRight size={16} />
-                </button>
-                <button
-                  onClick={submitApplication}
-                  disabled={applicationClosed}
-                  className={`sp-btn-glass w-full flex items-center justify-center gap-2 ${applicationClosed ? 'opacity-60 cursor-not-allowed hover:translate-y-0' : ''}`}
-                >
-                  {opportunity.applicationLink ? t('opportunitiesPage.actions.openApplicationLink') : t('opportunitiesPage.actions.submitApplication')}
-                  {opportunity.applicationLink ? <ExternalLink size={16} /> : <Shield size={16} />}
-                </button>
+                {canApplyWithCurrentPlan ? (
+                  <button
+                    onClick={submitApplication}
+                    disabled={applicationClosed || isProfileLoading}
+                    className={`sp-btn-primary w-full flex items-center justify-center gap-2 ${
+                      applicationClosed || isProfileLoading ? 'opacity-60 cursor-not-allowed hover:translate-y-0' : ''
+                    }`}
+                  >
+                    {opportunity.applicationLink
+                      ? t('opportunitiesPage.actions.openApplicationLink')
+                      : t('opportunitiesPage.actions.submitApplication')}
+                    {opportunity.applicationLink ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
+                  </button>
+                ) : (
+                  <button onClick={() => navigate('/pricing')} className="sp-btn-primary w-full flex items-center justify-center gap-2">
+                    {t('opportunitiesPage.actions.freeToJoin')}
+                    <ArrowRight size={16} />
+                  </button>
+                )}
+                {!canApplyWithCurrentPlan && (
+                  <button
+                    onClick={() => navigate('/pricing')}
+                    className="sp-btn-glass w-full flex items-center justify-center gap-2"
+                  >
+                    <Shield size={16} />
+                    {t('opportunitiesPage.actions.upgradeForEarlyAccess', { defaultValue: 'Upgrade for early access' })}
+                  </button>
+                )}
                 <button onClick={() => navigate('/contact')} className="sp-btn-glass w-full">
                   {t('opportunitiesPage.actions.partnerWithUs')}
                 </button>

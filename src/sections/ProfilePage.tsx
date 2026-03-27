@@ -12,8 +12,10 @@ import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
+import { hasPaidMembershipAccess } from '../lib/membershipAccess';
 import { calculateDynamicMatchScore } from '../utils/matchScoring';
 import type { MatchScores } from '../utils/matchScoring';
+import MatchScoreBreakdown from '../components/MatchScoreBreakdown';
 import { rankOpportunities, MOCK_OPPORTUNITIES } from '../utils/opportunities';
 import './ProfilePage.css';
 
@@ -62,6 +64,9 @@ const normalizeDocument = (file: {
     size: typeof file.metadata?.size === 'number' ? file.metadata.size : 0
   }
 });
+
+const normalizeUserCategoryLabel = (value: string | null | undefined) =>
+  value === 'Study-Abroad Returnee (Recent Graduate)' ? 'Study-Abroad Returnee' : value || '';
 
 const isVerificationDocEntry = (value: unknown): value is VerificationDocEntry => {
   if (typeof value !== 'object' || value === null) return false;
@@ -199,7 +204,7 @@ const ProfilePage = () => {
             memberSince: monthYear,
             avatar_url: data.avatar_url || '',
             profileType: data.profile_type || 'Standard Member',
-            userCategory: data.user_category || '',
+            userCategory: normalizeUserCategoryLabel(data.user_category),
             verificationTier: data.verification_tier || 'Tier 1 – Self-Declared',
             matchScore: data.profile_completion_percentage || 0,
             professionalTitle: data.professional_title || '',
@@ -733,7 +738,9 @@ const ProfilePage = () => {
   };
 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const isCommunityTier = profile.tier === 'Community';
+  const isPaidMember = hasPaidMembershipAccess({ tier: profile.tier, profile_type: profile.profileType });
+  const isCommunityTier = !isPaidMember;
+  const membershipBadgeLabel = profile.tier === 'Firm' ? 'Paid Partner' : 'Paid Professional';
   const getDisplayTier = (tier: string) => {
     if (tier === 'Firm') return t('profilePage.labels.partners');
     if (tier === 'Community') return t('profilePage.labels.community');
@@ -749,12 +756,6 @@ const ProfilePage = () => {
   const displayTier = getDisplayTier(profile.tier);
 
   const getEditPath = () => (isCommunityTier ? '/profile/edit/basic' : '/profile/edit');
-  const getMatchScoreOpacityClass = (weight: number) => {
-    if (weight >= 25) return 'profile-match-score-progress--strong';
-    if (weight >= 20) return 'profile-match-score-progress--medium';
-    return 'profile-match-score-progress--light';
-  };
-
   const handleSwitchToCommunity = async () => {
     if (!user) return;
     try {
@@ -936,6 +937,12 @@ const ProfilePage = () => {
                         {getGreeting()}, {profile.name.split(' ')[0]} 👋
                       </h1>
                     )}
+                    {isPaidMember && (
+                      <span className="px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 text-xs font-bold flex items-center gap-1.5 border border-emerald-500/30 shadow-lg shadow-emerald-500/10">
+                        <Zap size={14} />
+                        {membershipBadgeLabel}
+                      </span>
+                    )}
                   </div>
                   
                   {isEditing ? (
@@ -1079,10 +1086,6 @@ const ProfilePage = () => {
                 <div className="glass-light backdrop-blur-xl rounded-2xl p-4 text-center border border-white/5 hover:border-[var(--sp-accent)]/20 transition-all group/stat">
                   <div className="text-2xl font-bold text-[var(--sp-accent)] group-hover:scale-110 transition-transform">{profile.projects}</div>
                   <div className="text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold opacity-70 mt-1">{t('profilePage.labels.projects')}</div>
-                </div>
-                <div className="glass-light backdrop-blur-xl rounded-2xl p-4 text-center border border-white/5 hover:border-[var(--sp-accent)]/20 transition-all group/stat">
-                  <div className="text-2xl font-bold text-[var(--sp-accent)] group-hover:scale-110 transition-transform">{profile.connections}</div>
-                  <div className="text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold opacity-70 mt-1">{t('profilePage.labels.connections')}</div>
                 </div>
                 <div className="glass-light backdrop-blur-xl rounded-2xl p-4 text-center border border-white/5 hover:border-[var(--sp-accent)]/20 transition-all group/stat">
                   <div className="text-2xl font-bold text-[var(--sp-accent)] flex items-center justify-center gap-1.5 group-hover:scale-110 transition-transform">
@@ -1700,35 +1703,21 @@ const ProfilePage = () => {
 
             {/* Match Intelligence - NEW */}
             <div className="glass-card p-6 border-t-4 border-[var(--sp-accent)]">
-              <div className="flex justify-between items-start mb-6">
-                <h3 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                  <Search size={18} className="text-[var(--sp-accent)]" />
-                  {t('profilePage.labels.matchScore')}
-                </h3>
-                <div className="text-2xl font-bold text-[var(--sp-accent)]">{profile.matchScore}%</div>
-              </div>
-              
-              <div className="space-y-4">
-                {[
+              <MatchScoreBreakdown
+                title={t('profilePage.labels.matchScore')}
+                total={profile.matchScore}
+                items={[
                   { label: 'Sector Match', weight: 25, score: profile.matchScoresDetails?.sectorMatch || 0 },
                   { label: 'Functional Skill', weight: 25, score: profile.matchScoresDetails?.functionalSkill || 0 },
                   { label: 'Geo Relevance', weight: 15, score: profile.matchScoresDetails?.geoRelevance || 0 },
                   { label: 'Experience Prep', weight: 15, score: profile.matchScoresDetails?.experiencePrep || 0 },
                   { label: 'Intent Overlay', weight: 20, score: profile.matchScoresDetails?.intentOverlay || 0 }
-                ].map((m, i) => (
-                  <div key={i} className="space-y-1">
-                    <div className="flex justify-between text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
-                      <span>{m.label} ({m.weight}%)</span>
-                      <span className="text-[var(--sp-accent)]">{Math.round((m.score / m.weight) * 100)}%</span>
-                    </div>
-                    <progress
-                      className={`profile-match-score-progress ${getMatchScoreOpacityClass(m.weight)}`}
-                      value={m.score}
-                      max={m.weight}
-                    />
-                  </div>
-                ))}
-              </div>
+                ].map((item) => ({
+                  label: `${item.label} (${item.weight}%)`,
+                  value: item.score,
+                  max: item.weight,
+                }))}
+              />
 
               {(profile.tier === 'Community' || ['Standard Member', 'Standard (MVP)'].includes(profile.profileType)) && (
                 <div className="mt-8 p-4 rounded-xl bg-[var(--sp-accent)]/10 border border-[var(--sp-accent)]/20">
@@ -1753,7 +1742,14 @@ const ProfilePage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">{t('profilePage.labels.tier')}</span>
-                  <span className="text-[var(--sp-accent)]">{displayTier}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[var(--sp-accent)]">{displayTier}</span>
+                    {isPaidMember && (
+                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-300">
+                        Paid
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">{t('profilePage.labels.verification')}</span>

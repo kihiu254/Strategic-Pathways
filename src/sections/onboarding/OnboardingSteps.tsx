@@ -894,7 +894,7 @@ export const UserCategorySelection = () => {
             { 
               id: STUDY_ABROAD_RETURNEE as const, 
               title: 'Study-Abroad Returnee', 
-              desc: 'Completed degree/diploma abroad and returned to Kenya. Focus on networking and local integration.',
+              desc: 'Completed degree/diploma abroad and returned to Kenya.',
               icon: GraduationCap
             },
             { 

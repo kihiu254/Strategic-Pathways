@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
+import { hasPaidMembershipAccess } from '../lib/membershipAccess';
 import { calculateDynamicMatchScore } from '../utils/matchScoring';
 import type { MatchScores } from '../utils/matchScoring';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import MatchScoreBreakdown from '../components/MatchScoreBreakdown';
 import { 
   Users, Calendar, Target, Briefcase, 
   CheckCircle, Star, ArrowRight, Zap, Globe, Heart, Gift, Copy, Share2,
@@ -25,6 +27,7 @@ type DashboardOpportunity = {
 type UserProfile = {
   full_name?: string;
   tier?: string;
+  profile_type?: string;
   created_at?: string;
   verification_tier?: string;
   expertise?: string[];
@@ -56,7 +59,9 @@ const UserDashboard = () => {
   });
   const [activationLoading, setActivationLoading] = useState(false);
   const [activationError, setActivationError] = useState<string | null>(null);
-  const editPath = profile?.tier === 'Community' ? '/profile/edit/basic' : '/profile/edit';
+  const isPaidMember = hasPaidMembershipAccess(profile);
+  const membershipBadgeLabel = profile?.tier === 'Firm' ? 'Paid Partner' : 'Paid Professional';
+  const editPath = isPaidMember ? '/profile/edit' : '/profile/edit/basic';
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -122,7 +127,7 @@ const UserDashboard = () => {
 
       // Calculate Next Steps
       const items: {title: string; reward: number; actionPath: string}[] = [];
-      const editRoute = profileData?.tier === 'Community' ? '/profile/edit/basic' : '/profile/edit';
+      const editRoute = hasPaidMembershipAccess(profileData) ? '/profile/edit' : '/profile/edit/basic';
       if (!hasCV) items.push({ title: 'Upload your CV', reward: 7, actionPath: editRoute });
       if (skillsCount < 3) items.push({ title: 'Add professional skills', reward: 6, actionPath: editRoute });
       if (projectsCount === 0) items.push({ title: 'Showcase past projects', reward: 5, actionPath: '/profile' });
@@ -252,8 +257,25 @@ const UserDashboard = () => {
         <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-8">
           Welcome back, {profile?.full_name?.split(' ')[0] || 'Member'}! 👋
         </h1>
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <p className="text-sm text-[var(--text-secondary)] max-w-2xl">
+            {isPaidMember
+              ? 'Your paid dashboard is unlocked with premium profile access and direct opportunity applications.'
+              : 'Build your visibility, complete your profile, and unlock premium opportunities.'}
+          </p>
+          <div
+            className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] ${
+              isPaidMember
+                ? 'border-[var(--sp-accent)]/40 bg-[var(--sp-accent)]/15 text-[var(--sp-accent)] shadow-lg shadow-[var(--sp-accent)]/10'
+                : 'border-white/10 bg-white/5 text-[var(--text-secondary)]'
+            }`}
+          >
+            <Shield size={14} className={isPaidMember ? 'text-[var(--sp-accent)]' : 'text-[var(--text-secondary)]'} />
+            {isPaidMember ? membershipBadgeLabel : 'Community Member'}
+          </div>
+        </div>
         {/* Top-Level Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           <div className="glass-card p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--sp-accent)]/10 flex items-center justify-center flex-shrink-0">
               <Briefcase className="w-6 h-6 text-[var(--sp-accent)]" />
@@ -261,15 +283,6 @@ const UserDashboard = () => {
             <div>
               <p className="text-sm text-[var(--text-secondary)]">Opportunities</p>
               <p className="text-2xl font-bold text-[var(--text-primary)]">{opportunities.length || 12}</p>
-            </div>
-          </div>
-          <div className="glass-card p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-              <Users className="w-6 h-6 text-blue-400" />
-            </div>
-            <div>
-              <p className="text-sm text-[var(--text-secondary)]">Connections</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">45</p>
             </div>
           </div>
           <div className="glass-card p-4 flex items-center gap-4">
@@ -451,41 +464,36 @@ const UserDashboard = () => {
               </div>
             </div>
 
-            {/* Collaborations (Member Matching) */}
-            <div className="glass-card p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[var(--text-primary)]">Recommended Collaborations</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { name: 'Sarah J.', role: 'Product Manager', match: 92, avatar: 'SJ' },
-                  { name: 'David M.', role: 'Senior Developer', match: 88, avatar: 'DM' },
-                ].map((collab, i) => (
-                  <div key={i} className="flex items-center justify-between glass-light p-4 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[var(--sp-accent)]/20 flex items-center justify-center text-[var(--sp-accent)] font-bold text-sm border border-[var(--sp-accent)]/30">
-                        {collab.avatar}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-[var(--text-primary)] text-sm">{collab.name}</h4>
-                        <p className="text-xs text-[var(--text-secondary)]">{collab.role}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                       <span className="text-xs font-bold text-green-400">{collab.match}% Match</span>
-                       <button onClick={() => toast.success(`Connection request sent to ${collab.name}`)} className="text-[var(--sp-accent)] text-xs hover:underline flex items-center gap-1">
-                         Connect <ArrowRight size={12} />
-                       </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right Column - Sidebar */}
           <div className="space-y-10">
-            {/* Community Activation */}
+            {isPaidMember ? (
+              <div className="glass-card p-6 border border-[var(--sp-accent)]/30 bg-[linear-gradient(135deg,rgba(200,159,94,0.16),rgba(8,28,40,0.92))]">
+                <h4 className="font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <Shield className="text-[var(--sp-accent)]" size={18} />
+                  Paid Member Access
+                </h4>
+                <div className="space-y-3 text-sm text-[var(--text-secondary)]">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="mt-0.5 w-4 h-4 text-[var(--sp-accent)] flex-shrink-0" />
+                    <span>Your dashboard is now optimized for direct applications, premium visibility, and member-only tools.</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="mt-0.5 w-4 h-4 text-[var(--sp-accent)] flex-shrink-0" />
+                    <span>Keep your premium profile current so match scoring and opportunity recommendations stay strong.</span>
+                  </div>
+                </div>
+                <div className="mt-5 grid grid-cols-1 gap-3">
+                  <button onClick={() => navigate('/opportunities')} className="sp-btn-primary w-full">
+                    Browse Premium Opportunities
+                  </button>
+                  <button onClick={() => navigate('/profile/edit')} className="sp-btn-glass w-full">
+                    Refine Premium Profile
+                  </button>
+                </div>
+              </div>
+            ) : (
              <div className="glass-card p-6 border-t-4 border-blue-500">
                 <h4 className="font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                   <Heart className="text-blue-400" size={18} />
@@ -562,50 +570,47 @@ const UserDashboard = () => {
                   </div>
                 )}
              </div>
+            )}
 
             {/* Match Score */}
             <div className="glass-card p-6">
-              <div className="text-center mb-6">
-                <div className="text-5xl font-bold text-[var(--sp-accent)] mb-2">{matchScores?.total || 0}%</div>
-                <p className="text-sm text-[var(--text-secondary)]">Match Score</p>
-              </div>
-              <div className="space-y-3">
-                {[
+              <MatchScoreBreakdown
+                total={matchScores?.total || 0}
+                items={[
                   { label: 'Sector Match (25%)', value: matchScores?.sectorMatch || 0, max: 25, tip: 'Based on your primary sector alignment with our network.' },
                   { label: 'Functional Skill (25%)', value: matchScores?.functionalSkill || 0, max: 25, tip: 'Reflects the depth and verify-status of your professional skills.' },
                   { label: 'Geo Relevance (15%)', value: matchScores?.geoRelevance || 0, max: 15, tip: 'Measures your location readiness and remote preferences.' },
                   { label: 'Experience Prep (15%)', value: matchScores?.experiencePrep || 0, max: 15, tip: 'Evaluates your years of experience and past projects.' },
                   { label: 'Intent Overlay (20%)', value: matchScores?.intentOverlay || 0, max: 20, tip: 'Your engagement style matching the market demand.' }
-                ].map((item, i) => (
-                  <div key={i} className="group relative" title={item.tip}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-[var(--text-secondary)] border-b border-dashed border-white/20 cursor-help">{item.label}</span>
-                      <span className="text-[var(--text-primary)] font-bold">{Math.round((item.value / item.max) * 100)}%</span>
-                    </div>
-                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-[var(--sp-accent)] rounded-full transition-all duration-1000"
-                        style={{ width: `${(item.value / item.max) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                ]}
+              />
             </div>
 
-            {/* Premium Unlock */}
-            <div className="glass-card p-6 border border-[var(--sp-accent)]/30">
-              <h4 className="font-bold text-[var(--text-primary)] mb-3">Premium Unlock</h4>
-              <p className="text-sm text-[var(--text-secondary)] mb-4">
-                Complete your Premium profile to unlock institutional matching and detailed skill indexing.
-              </p>
-              <button 
-                onClick={() => navigate('/pricing')}
-                className="sp-btn-primary w-full"
-              >
-                Upgrade to Premium
-              </button>
-            </div>
+            {isPaidMember ? (
+              <div className="glass-card p-6 border border-emerald-500/30">
+                <h4 className="font-bold text-[var(--text-primary)] mb-3">Paid Member Badge</h4>
+                <p className="text-sm text-[var(--text-secondary)] mb-4">
+                  Your paid status is highlighted here so premium account access is clearly different from Community accounts.
+                </p>
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
+                  <Shield size={14} />
+                  {membershipBadgeLabel}
+                </div>
+              </div>
+            ) : (
+              <div className="glass-card p-6 border border-[var(--sp-accent)]/30">
+                <h4 className="font-bold text-[var(--text-primary)] mb-3">Premium Unlock</h4>
+                <p className="text-sm text-[var(--text-secondary)] mb-4">
+                  Complete your Premium profile to unlock institutional matching and detailed skill indexing.
+                </p>
+                <button 
+                  onClick={() => navigate('/pricing')}
+                  className="sp-btn-primary w-full"
+                >
+                  Upgrade to Premium
+                </button>
+              </div>
+            )}
 
             {/* Membership Info */}
             <div className="glass-card p-6">
@@ -619,7 +624,9 @@ const UserDashboard = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-[var(--text-secondary)]">Tier</span>
-                  <span className="text-sm text-[var(--text-primary)] font-medium">{profile?.tier || 'Community'}</span>
+                  <span className={`text-sm font-medium ${isPaidMember ? 'text-[var(--sp-accent)]' : 'text-[var(--text-primary)]'}`}>
+                    {profile?.tier || 'Community'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-[var(--text-secondary)]">Verification</span>

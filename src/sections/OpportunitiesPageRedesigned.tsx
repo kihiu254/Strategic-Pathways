@@ -23,6 +23,8 @@ import SEO from '../components/SEO';
 import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
 import { isOpportunityOpenForApplications, isOpportunityPastDeadline } from '../lib/opportunityDeadline';
+import { hasPaidMembershipAccess } from '../lib/membershipAccess';
+import { hasCompletedPremiumProfile } from '../lib/profileCompletion';
 
 const SECTOR_OPTIONS = [
   { value: 'All', labelKey: 'opportunitiesPage.filters.sectors.all' },
@@ -63,6 +65,19 @@ const OWNERSHIP_PREFIX = 'ownership:';
 const APPLY_LINK_PREFIX = 'apply-link:';
 const ROLLING_TAG = 'deadline:rolling';
 const ROLLING_DEADLINE_DATE = '2099-12-31';
+
+type OpportunityProfile = {
+  tier: string;
+  profile_type: string;
+  onboarding_completed: boolean;
+  profile_completion_percentage?: number | null;
+  user_category?: string | null;
+  verification_tier?: string | null;
+  bio?: string | null;
+  sector?: string | null;
+  years_of_experience?: string | null;
+  expertise?: string[] | null;
+};
 
 interface Opportunity {
   id: string;
@@ -131,7 +146,7 @@ const OpportunitiesPageRedesigned = () => {
   const [selectedType, setSelectedType] = useState('All');
   const [selectedOwnership, setSelectedOwnership] = useState('All');
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
-  const [profile, setProfile] = useState<{ tier: string; profile_type: string; onboarding_completed: boolean } | null>(null);
+  const [profile, setProfile] = useState<OpportunityProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   const formatDeadline = (opportunity: Opportunity) => {
@@ -171,7 +186,7 @@ const OpportunitiesPageRedesigned = () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('tier, profile_type, onboarding_completed')
+          .select('tier, profile_type, onboarding_completed, profile_completion_percentage, user_category, verification_tier, bio, sector, years_of_experience, expertise')
           .eq('id', user?.id)
           .single();
 
@@ -238,7 +253,7 @@ const OpportunitiesPageRedesigned = () => {
       toast.error(t('opportunitiesPage.errors.profileLoading'));
       return false;
     }
-    if (['Community', 'Standard (MVP)', 'Standard Member'].includes(profile.tier)) {
+    if (!hasPaidMembershipAccess(profile)) {
       toast.error(t('opportunitiesPage.errors.upgradeToApply'), {
         action: {
           label: t('opportunitiesPage.actions.membership'),
@@ -247,7 +262,7 @@ const OpportunitiesPageRedesigned = () => {
       });
       return false;
     }
-    if (!profile.onboarding_completed) {
+    if (!hasCompletedPremiumProfile(profile)) {
       toast.error(t('opportunitiesPage.errors.completeOnboarding'));
       navigate('/onboarding/full');
       return false;
@@ -268,6 +283,8 @@ const OpportunitiesPageRedesigned = () => {
     if (!requireEligibleMember()) return;
     setSelectedOpp(opportunity);
   };
+
+  const canApplyWithCurrentPlan = hasPaidMembershipAccess(profile);
 
   const submitApplication = async () => {
     if (!selectedOpp || !user) return;
@@ -367,8 +384,8 @@ const OpportunitiesPageRedesigned = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="glass-card p-5 sm:p-6 lg:p-10 rounded-3xl border border-white/10 mb-8 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/0 to-white/0" />
-            <div className="relative flex flex-col lg:flex-row lg:items-center gap-6">
-              <div className="flex-1 space-y-3">
+              <div className="relative flex flex-col lg:flex-row lg:items-center gap-6">
+                <div className="flex-1 space-y-3">
                 <p className="sp-label">{t('nav.opportunities')}</p>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--text-primary)] leading-tight">
                   {t('opportunitiesPage.hero.headline')}
@@ -389,8 +406,20 @@ const OpportunitiesPageRedesigned = () => {
                 </div>
               </div>
               <div className="flex gap-3 flex-wrap w-full lg:w-auto">
-                <button onClick={() => navigate('/pricing')} className="sp-btn-primary px-6 py-3 whitespace-nowrap w-full sm:w-auto">
-                  {t('opportunitiesPage.actions.upgradeForEarlyAccess', { defaultValue: 'Upgrade for early access' })}
+                <button
+                  onClick={() => {
+                    if (isProfileLoading) {
+                      toast.error(t('opportunitiesPage.errors.profileLoading'));
+                      return;
+                    }
+
+                    navigate(canApplyWithCurrentPlan ? '/opportunities' : '/pricing');
+                  }}
+                  className="sp-btn-primary px-6 py-3 whitespace-nowrap w-full sm:w-auto"
+                >
+                  {canApplyWithCurrentPlan
+                    ? t('opportunitiesPage.actions.submitApplication', { defaultValue: 'Apply now' })
+                    : t('opportunitiesPage.actions.upgradeForEarlyAccess', { defaultValue: 'Upgrade for early access' })}
                 </button>
                 <button onClick={() => navigate('/contact')} className="sp-btn-glass px-6 py-3 whitespace-nowrap w-full sm:w-auto">
                   {t('opportunitiesPage.actions.partnerWithUs')}
@@ -514,8 +543,26 @@ const OpportunitiesPageRedesigned = () => {
                       <p className="text-sm sm:text-base text-[var(--text-secondary)] whitespace-pre-line break-words">{opportunity.description}</p>
                     </div>
                     <div className="flex flex-col gap-3 w-full xl:w-[220px] shrink-0">
-                      <button onClick={() => navigate('/pricing')} className="sp-btn-primary flex items-center justify-center gap-2 w-full">
-                        {t('opportunitiesPage.actions.freeToJoin')} <ArrowRight size={16} />
+                      <button
+                        onClick={() => {
+                          if (isProfileLoading) {
+                            toast.error(t('opportunitiesPage.errors.profileLoading'));
+                            return;
+                          }
+
+                          if (canApplyWithCurrentPlan) {
+                            handleApply(opportunity);
+                            return;
+                          }
+
+                          navigate('/pricing');
+                        }}
+                        className="sp-btn-primary flex items-center justify-center gap-2 w-full"
+                      >
+                        {canApplyWithCurrentPlan
+                          ? t('opportunitiesPage.actions.submitApplication', { defaultValue: 'Apply now' })
+                          : t('opportunitiesPage.actions.freeToJoin')}
+                        <ArrowRight size={16} />
                       </button>
                       <button onClick={() => navigate(`/opportunities/${opportunity.id}`)} className="sp-btn-glass flex items-center justify-center gap-2 w-full">
                         {t('opportunitiesPage.actions.viewDetails')}
@@ -590,7 +637,7 @@ const OpportunitiesPageRedesigned = () => {
                   {selectedOpp.applicationLink ? t('opportunitiesPage.actions.openApplicationLink') : t('opportunitiesPage.actions.submitApplication')}
                   {selectedOpp.applicationLink ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
                 </button>
-                {!selectedOpp.applicationLink && ['Community', 'Standard (MVP)', 'Standard Member'].includes(profile?.tier || '') && (
+                {!selectedOpp.applicationLink && !canApplyWithCurrentPlan && (
                   <button onClick={() => navigate('/pricing')} className="sp-btn-glass flex items-center justify-center gap-2">
                     <Shield size={16} />
                     {t('opportunitiesPage.actions.upgradeForEarlyAccess', { defaultValue: 'Upgrade for early access' })}

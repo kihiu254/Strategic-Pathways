@@ -77,6 +77,7 @@ const PaymentPage = () => {
       try {
         const payload = await verifyMembershipPayment(session.access_token, paymentReference);
         const amountLabel = formatMembershipAmount(paymentPlan.currency, amount);
+        const redirectTo = payload.redirectTo || '/onboarding/full';
         await AppNotificationService.notifySelf({
           title: 'Payment confirmed',
           message: `${plan.label} membership payment confirmed successfully.`,
@@ -95,8 +96,12 @@ const PaymentPage = () => {
           amountLabel,
           paymentPlan.currency
         );
-        toast.success(`${plan.label} payment confirmed. Continue with your full onboarding.`);
-        navigate(payload.redirectTo || '/onboarding/full', { replace: true });
+        toast.success(
+          redirectTo === '/profile'
+            ? `${plan.label} membership is active. Your saved profile is ready to use.`
+            : `${plan.label} payment confirmed. Continue with your full onboarding.`
+        );
+        navigate(redirectTo, { replace: true });
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unable to verify your payment.';
         await handleMembershipVerificationFailure(user.id, errorMessage, () => {
