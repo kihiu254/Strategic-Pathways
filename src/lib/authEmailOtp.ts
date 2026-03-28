@@ -14,8 +14,14 @@ type RequestEmailOtpResponse = {
 const getLoginRedirectUrl = () => `${window.location.origin}/login`;
 
 const shouldPreferServerOtp = () => {
-  if (import.meta.env.VITE_USE_SERVER_EMAIL_OTP === 'true') {
+  const serverOtpPreference = import.meta.env.VITE_USE_SERVER_EMAIL_OTP;
+
+  if (serverOtpPreference === 'true') {
     return true;
+  }
+
+  if (serverOtpPreference === 'false') {
+    return false;
   }
 
   return import.meta.env.PROD;
