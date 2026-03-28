@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import NotificationCenter from '../components/NotificationCenter';
+import { useNotifications } from '../hooks/useNotifications';
 import { isAvatarUrlBlocked, markAvatarUrlBlocked } from '../lib/avatarCache';
 import { openSupportEmail } from '../lib/contact';
 import { useAuthStore } from '../store/authStore';
@@ -19,6 +20,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
   const navigate = useNavigate();
   const { session, user } = useAuthStore();
   const isLoggedIn = !!session;
+  const { unreadCount } = useNotifications();
   
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -107,6 +109,17 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
     { label: t('nav.impact'), path: '/impact' },
     { label: t('nav.contact'), path: '/contact' },
   ];
+
+  const renderUnreadBubble = (compact = false) =>
+    unreadCount > 0 ? (
+      <span
+        className={`inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold leading-5 text-white ${
+          compact ? '' : 'ml-auto'
+        }`}
+      >
+        {unreadCount > 9 ? '9+' : unreadCount}
+      </span>
+    ) : null;
 
   return (
     <>
@@ -224,6 +237,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
                       >
                         <Bell size={16} />
                         <span className="text-sm">{t('notifications.title')}</span>
+                        {renderUnreadBubble()}
                       </button>
                       {userRole === 'admin' && (
                         <button 
@@ -350,6 +364,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
               >
                 <Bell size={24} />
                 {t('notifications.title')}
+                {renderUnreadBubble(true)}
               </button>
 
               {userRole === 'admin' && (

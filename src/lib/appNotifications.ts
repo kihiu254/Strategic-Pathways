@@ -105,7 +105,7 @@ export class AppNotificationService {
   }
 
   static async notifySelf(payload: Omit<NotificationPayload, 'userId' | 'userIds'>) {
-    return this.send(payload);
+    return this.insertDirect(payload);
   }
 
   static async notifyUser(userId: string, payload: Omit<NotificationPayload, 'userId' | 'userIds'>) {
