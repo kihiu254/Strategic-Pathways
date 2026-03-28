@@ -18,6 +18,7 @@ import { useAuthStore } from '../store/authStore';
 import SEO from '../components/SEO';
 import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import { GENERIC_PAYMENT_ERROR, getSafeErrorMessage } from '../lib/safeFeedback';
 
 const PaymentPage = () => {
   const navigate = useNavigate();
@@ -103,7 +104,7 @@ const PaymentPage = () => {
         );
         navigate(redirectTo, { replace: true });
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unable to verify your payment.';
+        const errorMessage = getSafeErrorMessage(error, GENERIC_PAYMENT_ERROR);
         await handleMembershipVerificationFailure(user.id, errorMessage, () => {
           navigate('/onboarding/basic', { replace: true });
         });

@@ -2,7 +2,7 @@ import { getFirebaseMessaging } from './_lib/firebaseAdmin';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'This request method is not available here.' });
   }
 
   try {
@@ -13,12 +13,12 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({
         success: false,
         skipped: true,
-        message: 'Firebase push is not configured.',
+        message: 'Push notifications are temporarily unavailable.',
       });
     }
 
     if (!token || !notification?.title || !notification?.body) {
-      return res.status(400).json({ error: 'token, notification.title, and notification.body are required.' });
+      return res.status(400).json({ error: 'Please complete all required fields and try again.' });
     }
 
     const message = {
@@ -45,6 +45,6 @@ export default async function handler(req: any, res: any) {
 
   } catch (error) {
     console.error('Push notification error:', error);
-    res.status(500).json({ error: 'Failed to send notification' });
+    res.status(500).json({ error: 'We could not send that notification right now.' });
   }
 }

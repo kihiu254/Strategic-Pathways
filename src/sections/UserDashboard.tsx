@@ -13,6 +13,7 @@ import {
   Settings, Upload, Shield, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 
 type DashboardOpportunity = {
   id: string;
@@ -187,11 +188,9 @@ const UserDashboard = () => {
       } catch (error) {
         const err = error as Error;
         console.warn('Community activation events unavailable:', err);
-        const message = err.message?.toLowerCase().includes('does not exist')
-          ? 'Community activation tracking is missing. Run docs/admin-dashboard-v2.sql to enable it.'
-          : err.message?.toLowerCase().includes('permission')
-            ? 'Community activation tracking is blocked by RLS policies. Run docs/admin-dashboard-v2.sql.'
-            : 'Community activation tracking could not be loaded.';
+        const message = err.message?.toLowerCase().includes('does not exist') || err.message?.toLowerCase().includes('permission')
+          ? 'Community activation updates are temporarily unavailable.'
+          : 'Community activation tracking could not be loaded.';
         setActivationError(message);
       }
     };
@@ -220,7 +219,7 @@ const UserDashboard = () => {
           : await EmailAutomationService.onIntroCallInvite(recipient, displayName);
 
       if (!result?.success) {
-        toast.error(result?.error ? `Invite could not be sent: ${result.error}` : 'Invite could not be sent.');
+        toast.error(getSafeErrorMessage(result?.error, 'Invite could not be sent right now. Please try again shortly.'));
         return;
       }
 
@@ -230,11 +229,9 @@ const UserDashboard = () => {
       });
 
       if (error) {
-        const message = error.message?.toLowerCase().includes('does not exist')
-          ? 'Activation tracking table is missing. Run docs/admin-dashboard-v2.sql to create it.'
-          : error.message?.toLowerCase().includes('permission')
-            ? 'Activation tracking is blocked by RLS policies. Run docs/admin-dashboard-v2.sql.'
-            : 'Activation tracking could not be updated. Confirm docs/admin-dashboard-v2.sql is applied.';
+        const message = error.message?.toLowerCase().includes('does not exist') || error.message?.toLowerCase().includes('permission')
+          ? 'The invite was sent, but the activity log could not be updated right now.'
+          : 'Activation tracking could not be updated right now.';
         setActivationError(message);
         toast.error('Invite sent but could not be logged.');
         return;

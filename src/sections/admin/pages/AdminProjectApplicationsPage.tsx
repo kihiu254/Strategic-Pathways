@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Mail, Search, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '../../../lib/safeFeedback';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../store/authStore';
 import { AppNotificationService } from '../../../lib/appNotifications';
@@ -121,12 +122,10 @@ const AdminProjectApplicationsPage = () => {
         console.error('Error loading project applications:', error);
         const err = error as Error;
         const message = err.message?.toLowerCase() || '';
-        if (message.includes('does not exist')) {
-          setLoadError('Run docs/project-applications.sql to enable project applications and the applicant review page.');
-        } else if (message.includes('permission')) {
-          setLoadError('Admin access to project applications is blocked by RLS policies. Re-run docs/project-applications.sql.');
+        if (message.includes('does not exist') || message.includes('permission')) {
+          setLoadError('Project applications are temporarily unavailable right now.');
         } else {
-          setLoadError('Project applications could not be loaded from the current database schema.');
+          setLoadError(getSafeErrorMessage(err, 'Project applications are temporarily unavailable right now.'));
         }
         toast.error('Project applications could not be loaded.');
       } finally {

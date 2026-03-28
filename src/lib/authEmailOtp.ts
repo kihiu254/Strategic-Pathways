@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { GENERIC_AUTH_ERROR, getSafeErrorMessage } from './safeFeedback';
 
 type RequestEmailOtpParams = {
   email: string;
@@ -14,7 +15,7 @@ type RequestEmailOtpResponse = {
 const getLoginRedirectUrl = () => `${window.location.origin}/login`;
 
 const shouldPreferServerOtp = () => {
-  const serverOtpPreference = import.meta.env.VITE_USE_SERVER_EMAIL_OTP;
+  const serverOtpPreference = import.meta.env.VITE_USE_SERVER_EMAIL_OTP?.toLowerCase();
 
   if (serverOtpPreference === 'true') {
     return true;
@@ -24,7 +25,9 @@ const shouldPreferServerOtp = () => {
     return false;
   }
 
-  return import.meta.env.PROD;
+  // Default to the server route in every environment so OTP delivery
+  // stays consistent between local development and production.
+  return true;
 };
 
 const sendOtpWithSupabase = async ({ email, name, shouldCreateUser }: RequestEmailOtpParams) => {
@@ -38,7 +41,7 @@ const sendOtpWithSupabase = async ({ email, name, shouldCreateUser }: RequestEma
   });
 
   if (error) {
-    throw error;
+    throw new Error(getSafeErrorMessage(error, 'We could not send your code right now.'));
   }
 
   return { success: true, delivery: 'supabase' as const };
@@ -62,10 +65,19 @@ export const requestEmailOtp = async (
     const payload = text ? (JSON.parse(text) as { error?: string; success?: boolean }) : {};
 
     if (!response.ok) {
-      if (response.status === 404 || response.status >= 500) {
+      if (response.status === 400) {
+        throw new Error(getSafeErrorMessage(payload.error, GENERIC_AUTH_ERROR));
+      }
+      if (response.status === 404) {
+        throw new Error("We couldn't find an account for that email. Please sign up first.");
+      }
+      if (response.status === 409) {
+        throw new Error('An account already exists for that email. Please sign in instead.');
+      }
+      if (response.status >= 500) {
         throw new Error('Route not found');
       }
-      throw new Error(payload.error || 'Failed to send email code.');
+      throw new Error(getSafeErrorMessage(payload.error, 'We could not send your code right now.'));
     }
 
     return {
@@ -81,7 +93,7 @@ export const requestEmailOtp = async (
       message.includes('Cannot POST');
 
     if (!shouldFallback) {
-      throw error;
+      throw new Error(getSafeErrorMessage(error, 'We could not send your code right now.'));
     }
 
     return sendOtpWithSupabase(params);

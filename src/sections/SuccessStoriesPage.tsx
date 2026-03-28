@@ -33,11 +33,11 @@ const SuccessStoriesPage = () => {
         heroBody: 'Soma hadithi halisi kutoka kwa wanachama waliobadilisha ujuzi wao wa kimataifa kuwa matokeo ya ndani kupitia Strategic Pathways.',
         liveStoriesLabel: 'Hadithi za moja kwa moja kutoka kwa jamii yetu',
         emptyTitle: 'Hakuna hadithi za mafanikio zilizowasilishwa bado.',
-        emptyBody: 'Hadithi za kwanza zikishawasilishwa, zitaonekana hapa moja kwa moja kutoka Supabase.',
+        emptyBody: 'Hadithi za kwanza zikishawasilishwa, zitaonekana hapa moja kwa moja kutoka kwa jamii yetu.',
         readyTitle: 'Uko tayari kuandika hadithi yako ya athari?',
         profileCTA: 'Tumia wasifu wako kuwasilisha hadithi mpya ya athari.',
         loadError: 'Imeshindikana kupakia hadithi za athari.',
-        schemaHint: 'Huenda jedwali la `impact_stories` halijaanzishwa bado. Endesha SQL mpya ya schema kwanza.',
+        schemaHint: 'Tafadhali jaribu tena baada ya muda mfupi.',
         defaultRole: 'Mwanachama wa Strategic Pathways',
         fallbackName: 'Mwanachama wa jamii'
       }
@@ -45,11 +45,11 @@ const SuccessStoriesPage = () => {
         heroBody: 'Read real member stories about turning global experience into local results through Strategic Pathways.',
         liveStoriesLabel: 'Live stories from our community',
         emptyTitle: 'No success stories have been submitted yet.',
-        emptyBody: 'Once members submit stories, they will appear here directly from Supabase.',
+        emptyBody: 'Once members submit stories, they will appear here automatically.',
         readyTitle: 'Ready to add your own impact story?',
         profileCTA: 'Submit a new impact story from your profile workspace.',
         loadError: 'Failed to load impact stories.',
-        schemaHint: 'The `impact_stories` table may not exist yet. Run the new schema SQL first.',
+        schemaHint: 'Please try again in a little while.',
         defaultRole: 'Strategic Pathways Member',
         fallbackName: 'Community Member'
       };
@@ -87,7 +87,7 @@ const SuccessStoriesPage = () => {
       setStories(prependFeaturedSuccessStories((data || []) as ImpactStory[]));
     } catch (error) {
       console.error('Error loading impact stories:', error);
-      toast.error(copy.loadError, { description: copy.schemaHint });
+      toast.error(copy.loadError);
       setStories([]);
     } finally {
       setLoadingStories(false);

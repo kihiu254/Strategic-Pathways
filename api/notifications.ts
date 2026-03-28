@@ -28,7 +28,7 @@ const getBaseUrl = () => {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'This request method is not available here.' });
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({
       success: false,
       skipped: true,
-      message: 'Notification service is not configured.',
+      message: 'Notifications are temporarily unavailable.',
     });
   }
 
@@ -47,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (!accessToken) {
-    return res.status(401).json({ error: 'Missing authorization token.' });
+    return res.status(401).json({ error: 'Please sign in and try again.' });
   }
 
   const authClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -63,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } = await authClient.auth.getUser(accessToken);
 
   if (authError || !user) {
-    return res.status(401).json({ error: 'Invalid session.' });
+    return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
   }
 
   const body = (req.body ?? {}) as NotificationRequestBody;
@@ -78,7 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   );
 
   if (!title || !message) {
-    return res.status(400).json({ error: 'Title and message are required.' });
+    return res.status(400).json({ error: 'Please complete all required fields and try again.' });
   }
 
   const { data: requesterProfile } = await serviceClient
@@ -90,7 +90,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isAdmin = requesterProfile?.role === 'admin';
 
   if (!isAdmin && targetIds.some((targetId) => targetId !== user.id)) {
-    return res.status(403).json({ error: 'You can only create notifications for your own account.' });
+    return res.status(403).json({ error: 'This action is not available for your account.' });
   }
 
   const { error } = await serviceClient.from('notifications').insert(
@@ -106,7 +106,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (error) {
     console.error('Notification insert failed:', error);
-    return res.status(500).json({ error: 'Failed to create notification.' });
+    return res.status(500).json({ error: 'We could not save that notification right now.' });
   }
 
   let pushSent = 0;

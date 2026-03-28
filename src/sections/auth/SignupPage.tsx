@@ -9,6 +9,7 @@ import { EmailAutomationService } from '../../lib/emailAutomation';
 import { AppNotificationService } from '../../lib/appNotifications';
 import { applyReferralAttribution } from '../../lib/referrals';
 import { requestEmailOtp } from '../../lib/authEmailOtp';
+import { GENERIC_AUTH_ERROR, getSafeErrorMessage } from '../../lib/safeFeedback';
 
 const SignupPage = () => {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ const SignupPage = () => {
 
   const ensureSupabaseReady = () => {
     if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      toast.error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+      toast.error('Sign-up is temporarily unavailable. Please try again shortly.');
       return false;
     }
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -72,7 +73,7 @@ const SignupPage = () => {
       });
       if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message || `Failed to sign up with ${provider}`);
+      toast.error(getSafeErrorMessage(error, GENERIC_AUTH_ERROR));
       setLoading(false);
     }
   };
@@ -95,14 +96,10 @@ const SignupPage = () => {
       });
 
       setOtpSent(true);
-      toast.success(
-        delivery.delivery === 'resend'
-          ? 'Verification code sent to your email via Resend.'
-          : t('auth.toast.sentVerify')
-      );
+      toast.success(t('auth.toast.sentVerify'));
     } catch (error: any) {
       console.error('Signup error:', error);
-      toast.error(error.message || 'Unable to send the verification code.');
+      toast.error(getSafeErrorMessage(error, 'We could not send your verification code right now.'));
     } finally {
       setLoading(false);
     }
@@ -154,7 +151,7 @@ const SignupPage = () => {
       });
       navigate('/pricing');
     } catch (error: any) {
-      toast.error(error.message || 'Invalid or expired code.');
+      toast.error(getSafeErrorMessage(error, 'That code is invalid or has expired. Request a new one and try again.'));
     } finally {
       setLoading(false);
     }

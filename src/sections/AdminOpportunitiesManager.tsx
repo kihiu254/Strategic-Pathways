@@ -20,6 +20,7 @@ import {
 import { toast } from 'sonner';
 import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 
 const ROLLING_DEADLINE_DATE = '2099-12-31';
 const OWNERSHIP_PREFIX = 'ownership:';
@@ -279,7 +280,7 @@ const AdminOpportunitiesManager = () => {
       toast.success(text.deleted);
       await fetchOpportunities();
     } catch (error) {
-      toast.error(`Error: ${(error as Error).message}`);
+      toast.error(getSafeErrorMessage(error, 'That opportunity could not be deleted right now. Please try again.'));
     }
   };
 
@@ -299,7 +300,7 @@ const AdminOpportunitiesManager = () => {
       toast.success(nextStatus === 'active' ? text.reopened : text.closed);
       await fetchOpportunities();
     } catch (error) {
-      toast.error(`${text.updateOpportunityFailed}${(error as Error).message}`);
+      toast.error(getSafeErrorMessage(error, 'That opportunity could not be updated right now. Please try again.'));
     }
   };
 
@@ -347,7 +348,7 @@ const AdminOpportunitiesManager = () => {
 
       toast.success(`${text.applicationMarked}${status}.`);
     } catch (error) {
-      toast.error(`${text.updateApplicationFailed}${(error as Error).message}`);
+      toast.error(getSafeErrorMessage(error, 'That application could not be updated right now. Please try again.'));
     }
   };
 

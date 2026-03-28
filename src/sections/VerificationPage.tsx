@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Upload, CheckCircle, Clock, FileText, Award, Building2, Loader2, X, Eye } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { EmailAutomationService } from '../lib/emailAutomation';
@@ -72,7 +73,7 @@ const VerificationPage = () => {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be less than 10MB');
+      toast.error('This file is too large. Please upload a file up to 10MB.');
       return;
     }
 
@@ -140,7 +141,7 @@ const VerificationPage = () => {
       // Refresh documents list
       fetchVerificationStatus();
     } catch (error: any) {
-      toast.error('Upload failed: ' + error.message);
+      toast.error(getSafeErrorMessage(error, 'We could not upload that document right now. Please try again.'));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -194,7 +195,7 @@ const VerificationPage = () => {
       setUploadedDocuments(normalizeDocs(verificationDocs, currentTier));
       toast.success('Document deleted successfully');
     } catch (error: any) {
-      toast.error('Failed to delete document: ' + error.message);
+      toast.error(getSafeErrorMessage(error, 'We could not delete that document right now. Please try again.'));
     }
   };
 
@@ -250,7 +251,7 @@ const VerificationPage = () => {
         }
       }
     } catch (error: any) {
-      toast.error('Failed to upgrade tier: ' + error.message);
+      toast.error(getSafeErrorMessage(error, 'We could not update your verification level right now. Please try again.'));
     }
   };
 

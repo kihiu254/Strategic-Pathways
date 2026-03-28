@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import SocialIcon from '../components/SocialIcon';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import { GENERIC_SEND_ERROR, getSafeErrorMessage } from '../lib/safeFeedback';
 
 const Footer = () => {
 
@@ -36,13 +37,13 @@ const Footer = () => {
       );
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to submit your request.');
+        throw new Error(result.error || GENERIC_SEND_ERROR);
       }
 
       toast.success('Your request was sent successfully. Our team will reach out soon.');
       setRegEmail('');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to submit your request.');
+      toast.error(getSafeErrorMessage(error, GENERIC_SEND_ERROR));
     } finally {
       setIsRegistering(false);
     }

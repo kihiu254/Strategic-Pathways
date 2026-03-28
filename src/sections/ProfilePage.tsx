@@ -10,6 +10,7 @@ import {
 import { toast } from 'sonner';
 import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { hasPaidMembershipAccess } from '../lib/membershipAccess';
@@ -310,7 +311,7 @@ const ProfilePage = () => {
       const err = e as Error;
         console.error('Error fetching profile:', err);
         if (user.role === 'authenticated') {
-          toast.error('Failed to load profile data.');
+          toast.error('Your profile could not be loaded right now. Please try again shortly.');
         }
       } finally {
         setIsLoadingProfile(false);
@@ -494,11 +495,7 @@ const ProfilePage = () => {
 
       if (error) {
         console.warn('Could not load impact stories:', error);
-        const message = error.message?.toLowerCase().includes('does not exist')
-          ? 'Impact stories table is missing. Run docs/admin-dashboard-v2.sql to install it.'
-          : error.message?.toLowerCase().includes('permission')
-            ? 'Impact stories are blocked by RLS policies. Run docs/admin-dashboard-v2.sql to enable access.'
-            : 'Impact stories could not be loaded. Confirm docs/admin-dashboard-v2.sql has been applied.';
+        const message = 'Impact stories are temporarily unavailable. Please try again shortly.';
         setImpactStories([]);
         setImpactStoryCount(0);
         setImpactStoriesError(message);
@@ -559,7 +556,7 @@ const ProfilePage = () => {
     } catch (e) {
       const err = e as Error;
       console.error('Save error:', err);
-      toast.error('Failed to update profile: ' + err.message);
+      toast.error(getSafeErrorMessage(err, 'We could not update your profile right now. Please try again shortly.'));
     }
   };
 
@@ -619,7 +616,7 @@ const ProfilePage = () => {
     } catch (e) {
       const err = e as Error;
       console.error('Error saving impact story:', err);
-      toast.error('Failed to save your story. Make sure the impact stories table is installed.');
+      toast.error(getSafeErrorMessage(err, 'We could not save your story right now. Please try again shortly.'));
     } finally {
       setIsImpactSubmitting(false);
     }
@@ -629,7 +626,7 @@ const ProfilePage = () => {
     try {
       if (!user) throw new Error("Not logged in");
       if (!newProject.project_title) {
-        toast.error('Project title is required');
+        toast.error('Please add a project title before continuing.');
         return;
       }
 
@@ -681,7 +678,7 @@ const ProfilePage = () => {
     } catch (e) {
       const err = e as Error;
       console.error('Add project error:', err);
-      toast.error('Failed to add project: ' + err.message);
+      toast.error(getSafeErrorMessage(err, 'We could not add your project right now. Please try again shortly.'));
     }
   };
 
@@ -701,7 +698,7 @@ const ProfilePage = () => {
       setProfile(prev => ({ ...prev, projects: Math.max(0, prev.projects - 1) }));
     } catch (e) {
       const err = e as Error;
-      toast.error('Failed to delete project: ' + err.message);
+      toast.error(getSafeErrorMessage(err, 'We could not delete that project right now. Please try again shortly.'));
     }
   };
 
@@ -720,7 +717,7 @@ const ProfilePage = () => {
       }
     } catch (e) {
       const err = e as Error;
-      toast.error('Failed to generate share link: ' + err.message);
+      toast.error(getSafeErrorMessage(err, 'We could not create a share link right now. Please try again shortly.'));
     }
   };
 
@@ -759,7 +756,7 @@ const ProfilePage = () => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
+      toast.error('This file is too large. Please upload a file up to 5MB.');
       return;
     }
 
@@ -805,7 +802,7 @@ const ProfilePage = () => {
       );
     } catch (e) {
       const error = e as Error;
-      toast.error('Failed to upload document: ' + error.message);
+      toast.error(getSafeErrorMessage(error, 'We could not upload that document right now. Please try again.'));
     } finally {
       setIsUploadingFile(false);
       // Reset input
@@ -819,7 +816,7 @@ const ProfilePage = () => {
       openDocumentLink(url);
     } catch (e) {
       const err = e as Error;
-      toast.error('Failed to open document: ' + err.message);
+      toast.error(getSafeErrorMessage(err, 'We could not open that document right now. Please try again.'));
     }
   };
 
@@ -829,7 +826,7 @@ const ProfilePage = () => {
       openDocumentLink(url, document.display_name);
     } catch (e) {
       const err = e as Error;
-      toast.error('Failed to download: ' + err.message);
+      toast.error(getSafeErrorMessage(err, 'We could not download that file right now. Please try again.'));
     }
   };
 
@@ -847,7 +844,7 @@ const ProfilePage = () => {
       setDocuments(prev => prev.filter(doc => doc.name !== fileName));
     } catch (e) {
       const err = e as Error;
-      toast.error('Failed to delete file: ' + err.message);
+      toast.error(getSafeErrorMessage(err, 'We could not delete that file right now. Please try again.'));
     }
   };
 
@@ -887,7 +884,7 @@ const ProfilePage = () => {
       toast.success(t('profilePage.actions.switchToCommunitySuccess'));
     } catch (e) {
       const err = e as Error;
-      toast.error(err.message || t('profilePage.actions.switchToCommunityError'));
+      toast.error(getSafeErrorMessage(err, t('profilePage.actions.switchToCommunityError')));
     }
   };
 
@@ -896,7 +893,7 @@ const ProfilePage = () => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5MB');
+      toast.error('This image is too large. Please upload one up to 5MB.');
       return;
     }
 
@@ -923,7 +920,7 @@ const ProfilePage = () => {
       toast.success('Profile picture updated successfully!');
     } catch (e) {
       const error = e as Error;
-      toast.error('Failed to upload profile picture: ' + error.message);
+      toast.error(getSafeErrorMessage(error, 'We could not update your profile picture right now. Please try again.'));
     } finally {
       setIsUploadingAvatar(false);
       e.target.value = '';

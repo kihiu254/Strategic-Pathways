@@ -10,7 +10,7 @@ type InitializeRequestBody = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'This request method is not available here.' });
   }
 
   try {
@@ -22,13 +22,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { mode, secretKey } = getActivePaystackConfig();
 
     if (!secretKey) {
-      return res.status(500).json({ error: `Paystack ${mode} secret key is not configured.` });
+      return res.status(500).json({ error: 'Payment is temporarily unavailable. Please try again shortly.' });
     }
 
     const email = user.email;
 
     if (!email) {
-      return res.status(400).json({ error: 'An email address is required before starting payment.' });
+      return res.status(400).json({ error: 'Please add an email address to continue.' });
     }
 
     const callbackUrl = resolvePaystackCallbackUrl(body.origin, plan.queryTier, plan.currency);
@@ -76,6 +76,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     const statusCode = (error as Error & { statusCode?: number }).statusCode || 500;
     console.error('Paystack initialize error:', error);
-    return res.status(statusCode).json({ error: error instanceof Error ? error.message : 'Payment initialization failed.' });
+    return res.status(statusCode).json({ error: 'Payment could not be started right now. Please try again shortly.' });
   }
 }

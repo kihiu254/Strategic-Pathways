@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, ChevronLeft, ChevronRight, Check, Save } from 'luci
 import { toast } from 'sonner';
 import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import {
@@ -194,7 +195,7 @@ const EditOnboardingPage = () => {
         }
       } catch (error) {
         console.error('Error fetching onboarding data:', error);
-        toast.error('Failed to load your profile data');
+        toast.error('Your profile could not be loaded right now. Please try again shortly.');
       } finally {
         setIsLoading(false);
       }
@@ -310,7 +311,7 @@ const EditOnboardingPage = () => {
       navigate('/profile');
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile: ' + error.message);
+      toast.error(getSafeErrorMessage(error, 'We could not update your profile right now. Please try again shortly.'));
     } finally {
       setIsSaving(false);
     }
@@ -329,7 +330,7 @@ const EditOnboardingPage = () => {
       await persistProfile(payload);
       toast.success('Draft saved');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save draft');
+      toast.error(getSafeErrorMessage(error, 'We could not save your draft right now. Please try again.'));
     } finally {
       setIsDraftSaving(false);
     }

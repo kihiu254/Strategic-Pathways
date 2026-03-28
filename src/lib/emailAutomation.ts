@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { GENERIC_SEND_ERROR, getSafeErrorMessage } from './safeFeedback';
 
 export type ApplicationEntityType = 'opportunity' | 'project';
 
@@ -14,7 +15,7 @@ export class EmailAutomationService {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(result?.error || GENERIC_SEND_ERROR);
       }
       
       const text = await response.text();
@@ -24,10 +25,13 @@ export class EmailAutomationService {
       }
       
       const parsed = JSON.parse(text) as { success?: boolean; error?: string };
-      return { success: !!parsed.success, error: parsed.error };
+      return {
+        success: !!parsed.success,
+        error: parsed.error ? getSafeErrorMessage(parsed.error, GENERIC_SEND_ERROR) : undefined,
+      };
     } catch (error: unknown) {
       console.error('Email trigger failed:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      return { success: false, error: getSafeErrorMessage(error, GENERIC_SEND_ERROR) };
     }
   }
 

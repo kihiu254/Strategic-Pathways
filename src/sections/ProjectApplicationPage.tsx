@@ -19,6 +19,7 @@ import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 import {
   type Project,
   type ProjectApplication,
@@ -237,7 +238,7 @@ const ProjectApplicationPage = () => {
         toast.success('Project application submitted. Status: Pending.');
       }
     } catch (error) {
-      toast.error(`Failed to submit project application: ${(error as Error).message}`);
+      toast.error(getSafeErrorMessage(error, 'We could not submit your project application right now. Please try again shortly.'));
     } finally {
       setIsSubmitting(false);
     }

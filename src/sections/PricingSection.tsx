@@ -12,6 +12,7 @@ import {
   type MembershipCurrency,
   type MembershipTier,
 } from '../lib/membershipCheckout';
+import { GENERIC_PAYMENT_ERROR, getSafeErrorMessage } from '../lib/safeFeedback';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 
@@ -126,7 +127,7 @@ const PricingSection = ({ className = '' }: PricingSectionProps) => {
         session,
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : t('pricing.errors.selectPlan');
+      const errorMessage = getSafeErrorMessage(error, GENERIC_PAYMENT_ERROR);
       toast.error(errorMessage);
     } finally {
       setIsProcessing(null);

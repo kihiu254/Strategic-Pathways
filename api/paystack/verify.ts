@@ -44,7 +44,7 @@ const hasSavedPremiumProfile = (profile: ExistingProfile | null | undefined) => 
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'This request method is not available here.' });
   }
 
   try {
@@ -52,14 +52,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const reference = body.reference?.trim();
 
     if (!reference) {
-      return res.status(400).json({ error: 'Payment reference is required.' });
+      return res.status(400).json({ error: 'Payment details are incomplete. Please try again.' });
     }
 
     const { accessToken, user } = await getAuthContext(req);
     const { secretKey, mode } = getActivePaystackConfig();
 
     if (!secretKey) {
-      return res.status(500).json({ error: `Paystack ${mode} secret key is not configured.` });
+      return res.status(500).json({ error: 'Payment verification is temporarily unavailable. Please try again shortly.' });
     }
 
     const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
@@ -86,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ensurePlanIsConfigured(plan);
 
     if (metadata.userId && metadata.userId !== user.id) {
-      return res.status(403).json({ error: 'This payment does not belong to the current user.' });
+      return res.status(403).json({ error: 'This payment could not be verified for your account.' });
     }
 
     if (transaction.status !== 'success') {
@@ -96,11 +96,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (Number(transaction.amount) !== plan.amount) {
-      return res.status(400).json({ error: 'Payment amount does not match the selected membership.' });
+      return res.status(400).json({ error: 'Payment details could not be confirmed. Please contact support if this continues.' });
     }
 
     if (String(transaction.currency || '').toUpperCase() !== plan.currency) {
-      return res.status(400).json({ error: 'Payment currency does not match the configured membership currency.' });
+      return res.status(400).json({ error: 'Payment details could not be confirmed. Please contact support if this continues.' });
     }
 
     const userClient = createAuthenticatedClient(accessToken);
@@ -140,6 +140,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     const statusCode = (error as Error & { statusCode?: number }).statusCode || 500;
     console.error('Paystack verify error:', error);
-    return res.status(statusCode).json({ error: error instanceof Error ? error.message : 'Payment verification failed.' });
+    return res.status(statusCode).json({ error: 'Payment verification could not be completed right now. Please try again shortly.' });
   }
 }

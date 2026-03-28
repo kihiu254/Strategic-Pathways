@@ -686,7 +686,7 @@
   },
   "adminProjects": {
     "loadErrorTitle": "Miradi iliyochapishwa haikuweza kupakiwa kwa kipindi hiki cha admin.",
-    "loadErrorBody": "{{error}} Thibitisha jedwali la `opportunities` linapatikana na sera za admin zimetumika kwenye Supabase.",
+    "loadErrorBody": "{{error}} Tafadhali jaribu tena baada ya muda mfupi.",
     "introTitle": "Sehemu hii inaonyesha miradi ya portfolio iliyopakiwa na wanachama kuhusu kazi zao.",
     "introBody": "Tumia Fursa kuchapisha fursa za kina ambazo waombaji wanaweza kuziomba.",
     "createOpportunity": "Unda fursa",
@@ -698,7 +698,7 @@
     "noProjects": "Hakuna miradi ya portfolio iliyopakiwa bado."
   },
   "adminAnalytics": {
-    "liveUpdate": "Takwimu zinasasishwa kiotomatiki kutoka kwa rekodi za moja kwa moja za jukwaa kwenye Supabase.",
+    "liveUpdate": "Takwimu zinasasishwa kiotomatiki kutoka kwa rekodi za moja kwa moja za jukwaa.",
     "monthlyActivityDistribution": "Usambazaji wa shughuli za kila mwezi"
   },
   "adminProfile": {

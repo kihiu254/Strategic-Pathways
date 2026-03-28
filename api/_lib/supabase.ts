@@ -5,7 +5,7 @@ const getRequiredEnv = (name: string) => {
   const value = process.env[name];
 
   if (!value) {
-    const error = new Error(`${name} is not configured.`);
+    const error = new Error('This service is temporarily unavailable.');
     (error as Error & { statusCode?: number }).statusCode = 500;
     throw error;
   }
@@ -18,7 +18,7 @@ const extractAccessToken = (req: VercelRequest) => {
   const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (!accessToken) {
-    const error = new Error('Missing authorization token.');
+    const error = new Error('Please sign in and try again.');
     (error as Error & { statusCode?: number }).statusCode = 401;
     throw error;
   }
@@ -53,7 +53,7 @@ export const getAuthContext = async (req: VercelRequest) => {
   } = await authClient.auth.getUser(accessToken);
 
   if (authError || !user) {
-    const error = new Error('Invalid session.');
+    const error = new Error('Your session has expired. Please sign in again.');
     (error as Error & { statusCode?: number }).statusCode = 401;
     throw error;
   }

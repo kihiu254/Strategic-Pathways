@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ExternalLink, FolderArchive, Mail, MessageSquare, Search, Send, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '../../../lib/safeFeedback';
 import { supabase } from '../../../lib/supabase';
 import { AppNotificationService } from '../../../lib/appNotifications';
 import { EmailAutomationService } from '../../../lib/emailAutomation';
@@ -65,7 +66,7 @@ const AdminProjectsPage = () => {
         if (appError) {
           const message = appError.message?.toLowerCase() || '';
           if (message.includes('does not exist')) {
-            setLoadError('Run docs/project-applications.sql to enable project applications and the applicant review page.');
+            setLoadError('Project applications are temporarily unavailable right now.');
           } else {
             throw appError;
           }
@@ -99,11 +100,7 @@ const AdminProjectsPage = () => {
       } catch (error) {
         const err = error as Error;
         console.error('Error loading admin projects:', err);
-        const message = err.message?.toLowerCase().includes('permission')
-          ? 'Admin access to portfolio projects is blocked by RLS policies. Run docs/admin-dashboard-v2.sql.'
-          : err.message?.toLowerCase().includes('does not exist')
-            ? 'The user_projects table is missing. Run docs/admin-dashboard-v2.sql to create the portfolio table.'
-            : 'Portfolio projects could not be loaded for moderation.';
+        const message = getSafeErrorMessage(err, 'Portfolio projects are temporarily unavailable right now. Please try again shortly.');
         setLoadError(message);
         toast.error('Portfolio projects could not be loaded for moderation.');
       } finally {

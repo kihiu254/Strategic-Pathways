@@ -30,7 +30,7 @@ const escapeHtml = (value: string) =>
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'This request method is not available here.' });
   }
 
   const resendApiKey = process.env.RESEND_API_KEY;
@@ -38,7 +38,7 @@ export default async function handler(req: any, res: any) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!resendApiKey || !supabaseUrl || !serviceRoleKey) {
-    return res.status(500).json({ error: 'Email OTP delivery is not configured on the server.' });
+    return res.status(500).json({ error: 'We could not send your code right now. Please try again shortly.' });
   }
 
   const { email, name, shouldCreateUser } = req.body ?? {};
@@ -46,11 +46,11 @@ export default async function handler(req: any, res: any) {
   const trimmedName = typeof name === 'string' ? name.trim() : '';
 
   if (!normalizedEmail) {
-    return res.status(400).json({ error: 'Email address is required.' });
+    return res.status(400).json({ error: 'Please enter your email address to continue.' });
   }
 
   if (shouldCreateUser && !trimmedName) {
-    return res.status(400).json({ error: 'Full name is required to create an account.' });
+    return res.status(400).json({ error: 'Please enter your full name to continue.' });
   }
 
   try {
@@ -71,7 +71,7 @@ export default async function handler(req: any, res: any) {
     }
 
     if (!shouldCreateUser && !accountExists) {
-      return res.status(404).json({ error: 'No account exists for that email yet. Please sign up first.' });
+      return res.status(404).json({ error: "We couldn't find an account for that email. Please sign up first." });
     }
 
     if (shouldCreateUser && accountExists) {
@@ -95,7 +95,7 @@ export default async function handler(req: any, res: any) {
     const actionLink = data.properties?.action_link;
 
     if (!otpCode || !actionLink) {
-      throw new Error('Supabase did not return an email OTP.');
+      throw new Error('We could not prepare your sign-in code. Please try again.');
     }
 
     const safeName = escapeHtml(trimmedName || 'there');
@@ -149,7 +149,7 @@ export default async function handler(req: any, res: any) {
   } catch (error: any) {
     console.error('Email OTP send error:', error);
     return res.status(500).json({
-      error: error?.message || 'Failed to send the email code.',
+      error: 'We could not send your code right now. Please try again shortly.',
     });
   }
 }

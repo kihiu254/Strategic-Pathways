@@ -5,6 +5,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { defineConfig, loadEnv, type PluginOption } from "vite"
 import { inspectAttr } from 'kimi-plugin-inspect-react'
 import authEmailOtpHandler from "./api/auth-email-otp"
+import notificationsHandler from "./api/notifications"
 import sendHandler from "./api/send"
 import initializePaystackHandler from "./api/paystack/initialize"
 import verifyPaystackHandler from "./api/paystack/verify"
@@ -63,6 +64,7 @@ const localApiPlugin = (): PluginOption => ({
       const pathname = req.url ? req.url.split("?")[0] : ""
       const handlers: Record<string, ApiHandler> = {
         "/api/auth-email-otp": authEmailOtpHandler,
+        "/api/notifications": notificationsHandler,
         "/api/send": sendHandler,
         "/api/paystack/initialize": initializePaystackHandler,
         "/api/paystack/verify": verifyPaystackHandler,

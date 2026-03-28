@@ -124,7 +124,7 @@ const buildReminderEmail = (
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!['GET', 'POST'].includes(req.method || '')) {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'This request could not be completed.' });
   }
 
   if (process.env.NODE_ENV === 'production') {
@@ -132,11 +132,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const authHeader = req.headers.authorization;
 
     if (!cronSecret) {
-      return res.status(500).json({ error: 'CRON_SECRET is not configured.' });
+      return res.status(500).json({ error: 'Reminder processing is temporarily unavailable.' });
     }
 
     if (authHeader !== `Bearer ${cronSecret}`) {
-      return res.status(401).json({ error: 'Unauthorized.' });
+      return res.status(401).json({ error: 'This request could not be completed.' });
     }
   }
 
@@ -146,7 +146,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const productionUrl = process.env.VITE_PRODUCTION_URL || 'https://www.joinstrategicpathways.com';
 
   if (!supabaseUrl || !serviceRoleKey || !resendApiKey) {
-    return res.status(500).json({ error: 'Reminder service is not fully configured.' });
+    return res.status(500).json({ error: 'Reminder processing is temporarily unavailable.' });
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, {

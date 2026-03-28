@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 
@@ -188,7 +189,7 @@ const AdminOpportunityEditorPage = () => {
         setFormData(parseOpportunity(data as OpportunityRow));
       } catch (error) {
         console.error('Failed to load opportunity:', error);
-        toast.error('Failed to load opportunity details.');
+        toast.error('That opportunity could not be loaded right now. Please try again shortly.');
         navigate('/admin/opportunities');
       } finally {
         setIsLoading(false);
@@ -262,7 +263,7 @@ const AdminOpportunityEditorPage = () => {
 
       navigate('/admin/opportunities');
     } catch (error) {
-      toast.error(`Failed to save opportunity: ${(error as Error).message}`);
+      toast.error(getSafeErrorMessage(error, 'We could not save that opportunity right now. Please try again shortly.'));
     } finally {
       setIsSaving(false);
     }

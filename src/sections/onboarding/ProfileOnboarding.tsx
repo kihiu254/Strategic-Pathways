@@ -3,6 +3,7 @@ import { useForm, useWatch, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '../../lib/safeFeedback';
 import { isStudyAbroadReturnee, onboardingSchema, STUDY_ABROAD_RETURNEE } from './schema';
 import type { OnboardingData, OnboardingFormInput } from './schema';
 import { 
@@ -356,8 +357,7 @@ const ProfileOnboarding = () => {
       toast.success('Onboarding complete! Welcome to the network.');
       navigate('/profile');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toast.error('Failed to save profile: ' + errorMessage);
+      toast.error(getSafeErrorMessage(error, 'We could not save your profile right now. Please try again shortly.'));
     } finally {
       setIsSubmitting(false);
     }

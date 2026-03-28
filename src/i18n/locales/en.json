@@ -775,7 +775,7 @@
   },
   "siteContent": {
     "bannerTitle": "Draft CMS workspace",
-    "bannerBody": "This page is ready for content operations now and saves admin drafts locally. It is intentionally staged until a live Supabase content table is connected to the public site.",
+    "bannerBody": "This page is ready for content operations now and saves admin drafts locally. It will stay in draft mode until public publishing is enabled.",
     "status": {
       "autosaving": "Autosaving...",
       "saved": "Last saved at {{time}}",
@@ -959,7 +959,7 @@
   },
   "adminProjects": {
     "loadErrorTitle": "Published projects could not be loaded for this admin session.",
-    "loadErrorBody": "{{error}} Confirm the `opportunities` table is available and admin policies are applied in Supabase.",
+    "loadErrorBody": "{{error}} Please try again after a moment.",
     "introTitle": "This section shows portfolio projects uploaded by members about their own work.",
     "introBody": "Use Opportunities to publish detailed opportunities that applicants can apply for.",
     "createOpportunity": "Create Opportunity",
@@ -971,7 +971,7 @@
     "noProjects": "No portfolio projects have been uploaded yet."
   },
   "adminAnalytics": {
-    "liveUpdate": "Analytics update automatically from the latest live platform records in Supabase.",
+    "liveUpdate": "Analytics update automatically from the latest live platform records.",
     "monthlyActivityDistribution": "Monthly Activity Distribution"
   },
   "adminProfile": {

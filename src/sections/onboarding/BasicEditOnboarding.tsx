@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import SEO from '../../components/SEO';
 import { AppNotificationService } from '../../lib/appNotifications';
 import { EmailAutomationService } from '../../lib/emailAutomation';
+import { getSafeErrorMessage } from '../../lib/safeFeedback';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { basicOnboardingSchema, type BasicOnboardingData } from './basicSchema';
@@ -61,8 +62,7 @@ const BasicEditOnboarding = () => {
           nationality: data?.nationality || '',
         });
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to load profile.';
-        toast.error(errorMessage);
+        toast.error(getSafeErrorMessage(error, 'Your profile could not be loaded right now. Please try again shortly.'));
       } finally {
         setIsLoading(false);
       }
@@ -102,8 +102,7 @@ const BasicEditOnboarding = () => {
       toast.success('Profile updated.');
       navigate('/profile');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile.';
-      toast.error(errorMessage);
+      toast.error(getSafeErrorMessage(error, 'We could not update your profile right now. Please try again shortly.'));
     } finally {
       setIsSubmitting(false);
     }

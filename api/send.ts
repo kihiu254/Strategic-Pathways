@@ -15,14 +15,14 @@ const getProductionUrl = () => {
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'This request method is not available here.' });
   }
 
   try {
     const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
-      return res.status(500).json({ error: 'Email delivery is not configured on the server.' });
+      return res.status(500).json({ error: "We couldn't send that message right now. Please try again shortly." });
     }
 
     const resend = new Resend(resendApiKey);
@@ -617,7 +617,7 @@ export default async function handler(req: any, res: any) {
       }
 
       default:
-        return res.status(400).json({ error: 'Invalid email type' });
+        return res.status(400).json({ error: 'This request could not be completed.' });
     }
 
     const result = await resend.emails.send(emailData);
@@ -625,6 +625,6 @@ export default async function handler(req: any, res: any) {
 
   } catch (error) {
     console.error('Email send error:', error);
-    return res.status(500).json({ error: 'Failed to send email' });
+    return res.status(500).json({ error: "We couldn't send that message right now. Please try again shortly." });
   }
 }

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { SUPPORT_EMAIL } from '../lib/contact';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import { GENERIC_SEND_ERROR, getSafeErrorMessage } from '../lib/safeFeedback';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -118,13 +119,13 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
       );
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to send your message.');
+        throw new Error(result.error || GENERIC_SEND_ERROR);
       }
 
       toast.success(t('contact.success'));
       setFormData({ name: '', email: '', organization: '', message: '' });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to send your message.');
+      toast.error(getSafeErrorMessage(error, GENERIC_SEND_ERROR));
     } finally {
       setIsSubmitting(false);
     }

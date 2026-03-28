@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Cookie, Gift, MousePointerClick, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '../../../lib/safeFeedback';
 import { supabase } from '../../../lib/supabase';
 import { formatAdminDate, readCookieConsent } from '../helpers';
 
@@ -80,11 +81,7 @@ const AdminReferralsPage = () => {
       } catch (error) {
         const err = error as Error;
         console.error('Error loading admin referrals dashboard:', err);
-        const message = err.message?.toLowerCase().includes('does not exist')
-          ? 'The referrals table is missing. Run docs/admin-dashboard-v2.sql to add referral tracking tables.'
-          : err.message?.toLowerCase().includes('permission')
-            ? 'Admin access to referrals is blocked by RLS policies. Run docs/admin-dashboard-v2.sql to enable admin reads.'
-            : 'Referral data could not be loaded. Confirm docs/admin-dashboard-v2.sql has been applied.';
+        const message = getSafeErrorMessage(err, 'Referral data is temporarily unavailable. Please try again shortly.');
         setLoadError(message);
         toast.error('Referral data could not be loaded.');
       } finally {

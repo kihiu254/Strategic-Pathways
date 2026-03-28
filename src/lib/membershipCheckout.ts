@@ -1,6 +1,7 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase } from './supabase';
+import { GENERIC_PAYMENT_ERROR, getSafeErrorMessage } from './safeFeedback';
 
 export type MembershipTier = 'professional' | 'firm';
 export type MembershipCurrency = string;
@@ -89,7 +90,7 @@ const resolveMembershipAmount = (tier: MembershipTier, currency: MembershipCurre
 
 export const formatMembershipAmount = (currency: MembershipCurrency, amount: number) => {
   if (!Number.isFinite(amount) || amount <= 0) {
-    return 'Not configured';
+    return 'Unavailable';
   }
 
   try {
@@ -157,7 +158,7 @@ export const verifyMembershipPayment = async (accessToken: string, reference: st
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload.error || 'Unable to verify your payment.');
+    throw new Error(getSafeErrorMessage(payload.error, GENERIC_PAYMENT_ERROR));
   }
 
   return payload as VerificationResponse;
@@ -198,7 +199,7 @@ export const launchMembershipCheckout = async ({
   const plan = getMembershipPlanDetails(tier, currency);
 
   if (!Number.isFinite(plan.amount) || plan.amount <= 0) {
-    toast.error(`${plan.label} amount is not configured.`);
+    toast.error('This payment option is not available right now.');
     return;
   }
 
@@ -224,12 +225,12 @@ export const launchMembershipCheckout = async ({
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok || !payload.authorizationUrl) {
-      throw new Error(payload.error || 'Unable to start Paystack checkout.');
+      throw new Error(getSafeErrorMessage(payload.error, GENERIC_PAYMENT_ERROR));
     }
 
     window.location.assign(payload.authorizationUrl);
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unable to start Paystack checkout.';
+    const message = getSafeErrorMessage(error, GENERIC_PAYMENT_ERROR);
     toast.error(message);
   }
 };
@@ -240,9 +241,15 @@ export const handleMembershipVerificationFailure = async (
   onCommunityFallback?: () => void
 ) => {
   if (!shouldReturnToCommunityOnFailure(message)) {
-    toast.error(message);
+    toast.error(getSafeErrorMessage(message, GENERIC_PAYMENT_ERROR));
     return;
   }
 
-  await fallbackToCommunity(userId, `${message} Your account has been returned to Community.`, onCommunityFallback, 'error');
+  const safeMessage = getSafeErrorMessage(message, GENERIC_PAYMENT_ERROR);
+  await fallbackToCommunity(
+    userId,
+    `${safeMessage} Your account has been returned to Community.`,
+    onCommunityFallback,
+    'error'
+  );
 };

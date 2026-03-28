@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getSafeErrorMessage } from './safeFeedback';
 
 export type AppNotificationType = 'info' | 'success' | 'warning' | 'error' | 'opportunity' | 'system';
 
@@ -19,7 +20,7 @@ export class AppNotificationService {
     } = await supabase.auth.getUser();
 
     if (error || !user) {
-      throw new Error('You must be signed in to send notifications.');
+      throw new Error('Please sign in to continue.');
     }
 
     const { data: profile } = await supabase
@@ -43,7 +44,7 @@ export class AppNotificationService {
     );
 
     if (!isAdmin && targetIds.some((targetId) => targetId !== user.id)) {
-      throw new Error('You can only create notifications for your own account.');
+      throw new Error('This action is not available for your account.');
     }
 
     const { error } = await supabase.from('notifications').insert(
@@ -58,7 +59,7 @@ export class AppNotificationService {
     );
 
     if (error) {
-      throw new Error(error.message || 'Failed to create notification.');
+      throw new Error(getSafeErrorMessage(error, 'We could not save that notification right now.'));
     }
 
     return { success: true, count: targetIds.length, mode: 'direct' as const };
@@ -94,7 +95,7 @@ export class AppNotificationService {
       }
 
       if (!response.ok) {
-        throw new Error(result?.error || 'Failed to create notification.');
+        throw new Error(getSafeErrorMessage(result?.error, 'We could not save that notification right now.'));
       }
 
       return result;
@@ -105,7 +106,7 @@ export class AppNotificationService {
   }
 
   static async notifySelf(payload: Omit<NotificationPayload, 'userId' | 'userIds'>) {
-    return this.insertDirect(payload);
+    return this.send(payload);
   }
 
   static async notifyUser(userId: string, payload: Omit<NotificationPayload, 'userId' | 'userIds'>) {

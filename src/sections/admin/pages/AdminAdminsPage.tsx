@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '../../../lib/safeFeedback';
 import { supabase } from '../../../lib/supabase';
 import type { AdminRecord, DashboardMember } from '../types';
 import AdminTeam from '../AdminTeam';
@@ -125,7 +126,7 @@ const AdminAdminsPage = () => {
       await load();
     } catch (error) {
       console.error('Error creating admin:', error);
-      toast.error(error instanceof Error ? error.message : 'Admin invitation failed.');
+      toast.error(getSafeErrorMessage(error, 'Admin invitation could not be created right now. Please try again.'));
     }
   };
 

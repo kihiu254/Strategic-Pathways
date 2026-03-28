@@ -31,11 +31,9 @@ const ProjectsPage = () => {
       } catch (error) {
         const err = error as Error;
         const message = err.message?.toLowerCase() || '';
-        const friendly = message.includes('permission')
-          ? 'Projects are blocked by database permissions. Run docs/admin-dashboard-v2.sql and docs/project-applications.sql so approved portfolio projects can be published.'
-          : message.includes('does not exist')
-            ? 'The user_projects table or required columns are missing. Run docs/admin-dashboard-v2.sql and docs/project-applications.sql in Supabase before testing this page.'
-            : 'Projects could not be loaded right now.';
+        const friendly = message.includes('permission') || message.includes('does not exist')
+          ? 'Projects are temporarily unavailable. Please try again shortly.'
+          : 'Projects could not be loaded right now.';
         setLoadError(friendly);
       } finally {
         setLoading(false);

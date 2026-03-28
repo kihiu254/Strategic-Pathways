@@ -9,6 +9,7 @@ import {
   notifyVerificationStatusChange,
   VERIFIED_TIER_LABEL,
 } from '../lib/verificationStatus';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 import { supabase } from '../lib/supabase';
 
 const AdminUserDetailPage = () => {
@@ -30,7 +31,7 @@ const AdminUserDetailPage = () => {
         setUserData(data);
       } catch (error: any) {
         console.error('Error fetching user data:', error);
-        toast.error('Failed to load user data');
+        toast.error('That member profile could not be loaded right now. Please try again shortly.');
       } finally {
         setIsLoading(false);
       }
@@ -61,7 +62,7 @@ const AdminUserDetailPage = () => {
         tier: VERIFIED_TIER_LABEL,
       });
     } catch (error: any) {
-      toast.error('Failed to approve user');
+      toast.error(getSafeErrorMessage(error, 'We could not approve this member right now. Please try again.'));
     }
   };
 
@@ -94,7 +95,7 @@ const AdminUserDetailPage = () => {
         reason,
       });
     } catch (error: any) {
-      toast.error('Failed to reject user');
+      toast.error(getSafeErrorMessage(error, 'We could not reject this member right now. Please try again.'));
     }
   };
 

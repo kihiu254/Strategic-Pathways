@@ -9,6 +9,7 @@ import { consumeRejectionNotice } from '../../lib/verificationStatus';
 import { AppNotificationService } from '../../lib/appNotifications';
 import { EmailAutomationService } from '../../lib/emailAutomation';
 import { requestEmailOtp } from '../../lib/authEmailOtp';
+import { GENERIC_AUTH_ERROR, getSafeErrorMessage } from '../../lib/safeFeedback';
 
 const LoginPage = () => {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ const LoginPage = () => {
 
   const ensureSupabaseReady = () => {
     if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      toast.error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+      toast.error('Sign-in is temporarily unavailable. Please try again shortly.');
       return false;
     }
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -210,7 +211,7 @@ const LoginPage = () => {
       if (provider === 'linkedin_oidc') {
         const clientId = import.meta.env.VITE_LINKEDIN_CLIENT_ID;
         if (!clientId) {
-          throw new Error('LinkedIn client ID not configured');
+          throw new Error('This sign-in option is temporarily unavailable.');
         }
       }
       
@@ -228,7 +229,7 @@ const LoginPage = () => {
       }
     } catch (error: any) {
       console.error(`OAuth ${provider} error:`, error);
-      toast.error(error.message || `Failed to sign in with ${provider === 'linkedin_oidc' ? 'LinkedIn' : 'Google'}`);
+      toast.error(getSafeErrorMessage(error, GENERIC_AUTH_ERROR));
       setLoading(false);
     }
   };
@@ -284,16 +285,10 @@ const LoginPage = () => {
 
       setOtpSent(true);
       toast.success(
-        delivery.delivery === 'resend'
-          ? currentIsSignUp
-            ? 'Verification code sent to your email via Resend.'
-            : 'Login code sent to your email via Resend.'
-          : currentIsSignUp
-            ? t('auth.toast.sentVerify')
-            : t('auth.toast.sentLogin')
+        currentIsSignUp ? t('auth.toast.sentVerify') : t('auth.toast.sentLogin')
       );
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send code.');
+      toast.error(getSafeErrorMessage(error, 'We could not send your code right now.'));
     } finally {
       setLoading(false);
     }
@@ -313,7 +308,7 @@ const LoginPage = () => {
       if (error) throw error;
       toast.success('Password reset instructions sent to your email!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send reset instructions.');
+      toast.error(getSafeErrorMessage(error, 'We could not send reset instructions right now.'));
     } finally {
       setLoading(false);
     }
@@ -366,7 +361,7 @@ const LoginPage = () => {
         navigate('/onboarding/full');
       }
     } catch (error: any) {
-      toast.error(error.message || 'Invalid or expired code.');
+      toast.error(getSafeErrorMessage(error, 'That code is invalid or has expired. Request a new one and try again.'));
     } finally {
       setLoading(false);
     }

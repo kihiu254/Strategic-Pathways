@@ -20,6 +20,7 @@ import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { AppNotificationService } from '../lib/appNotifications';
 import { EmailAutomationService } from '../lib/emailAutomation';
+import { getSafeErrorMessage } from '../lib/safeFeedback';
 import { isOpportunityOpenForApplications } from '../lib/opportunityDeadline';
 import { hasPaidMembershipAccess } from '../lib/membershipAccess';
 import { hasCompletedPremiumProfile } from '../lib/profileCompletion';
@@ -345,7 +346,7 @@ const OpportunityApplicationPage = () => {
         toast.success('Application submitted. Status: Pending.');
       }
     } catch (error) {
-      toast.error(t('opportunitiesPage.errors.submitFailed', { message: (error as Error).message }));
+      toast.error(getSafeErrorMessage(error, 'We could not submit your application right now. Please try again shortly.'));
     } finally {
       setIsSubmitting(false);
     }
