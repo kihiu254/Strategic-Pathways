@@ -4,6 +4,8 @@ import react from "@vitejs/plugin-react"
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { defineConfig, loadEnv, type PluginOption } from "vite"
 import { inspectAttr } from 'kimi-plugin-inspect-react'
+import authEmailOtpHandler from "./api/auth-email-otp"
+import sendHandler from "./api/send"
 import initializePaystackHandler from "./api/paystack/initialize"
 import verifyPaystackHandler from "./api/paystack/verify"
 
@@ -53,19 +55,19 @@ const createJsonResponse = (res: ServerResponse) => {
   return response
 }
 
-const paystackDevApiPlugin = (): PluginOption => ({
-  name: "paystack-dev-api",
+const localApiPlugin = (): PluginOption => ({
+  name: "local-api",
   apply: "serve",
   configureServer(server) {
     server.middlewares.use(async (req, res, next) => {
       const pathname = req.url ? req.url.split("?")[0] : ""
-      let handler: ApiHandler | null = null
-
-      if (pathname === "/api/paystack/initialize") {
-        handler = initializePaystackHandler
-      } else if (pathname === "/api/paystack/verify") {
-        handler = verifyPaystackHandler
+      const handlers: Record<string, ApiHandler> = {
+        "/api/auth-email-otp": authEmailOtpHandler,
+        "/api/send": sendHandler,
+        "/api/paystack/initialize": initializePaystackHandler,
+        "/api/paystack/verify": verifyPaystackHandler,
       }
+      const handler = handlers[pathname] ?? null
 
       if (!handler) {
         next()
@@ -76,7 +78,7 @@ const paystackDevApiPlugin = (): PluginOption => ({
         ;(req as VercelRequest).body = await readJsonBody(req)
         await handler(req as VercelRequest, createJsonResponse(res))
       } catch (error) {
-        console.error("Local Paystack API error:", error)
+        console.error(`Local API error for ${pathname}:`, error)
 
         if (!res.headersSent) {
           res.statusCode = 500
@@ -98,7 +100,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
-    plugins: [inspectAttr(), react(), paystackDevApiPlugin()],
+    plugins: [inspectAttr(), react(), localApiPlugin()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

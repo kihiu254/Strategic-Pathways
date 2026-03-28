@@ -1,14 +1,15 @@
 import { useRef, useLayoutEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SEO from '../components/SEO';
-import { openSupportEmail } from '../lib/contact';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const HowItWorksPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const pageRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
@@ -110,12 +111,7 @@ const HowItWorksPage = () => {
         <div className="mt-20 text-center">
           <button 
             className="sp-btn-primary px-10 py-4 text-lg"
-            onClick={() =>
-              openSupportEmail({
-                subject: 'Strategic Pathways membership request',
-                body: 'Hi Strategic Pathways team,\n\nI would like to join the network.\n',
-              })
-            }
+            onClick={() => navigate('/login')}
           >
             {t('nav.register')}
           </button>

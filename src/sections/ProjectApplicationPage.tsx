@@ -219,12 +219,15 @@ const ProjectApplicationPage = () => {
         },
       }).catch((notificationError) => console.warn('Notification failed:', notificationError));
 
-      await EmailAutomationService.onOpportunityInterest(
+      await EmailAutomationService.onApplicationSubmitted(
         user.email || '',
         user.user_metadata?.full_name || user.email || 'Member',
         project.title,
         project.organization,
-        project.applicationLink ? 'external' : 'internal'
+        {
+          entityType: 'project',
+          mode: project.applicationLink ? 'external' : 'internal',
+        }
       );
 
       if (project.applicationLink) {

@@ -327,12 +327,15 @@ const OpportunityApplicationPage = () => {
         },
       }).catch((notificationError) => console.warn('Notification failed:', notificationError));
 
-      await EmailAutomationService.onOpportunityInterest(
+      await EmailAutomationService.onApplicationSubmitted(
         user.email || '',
         user.user_metadata?.full_name || user.email || 'Member',
         opportunity.title,
         opportunity.organization,
-        opportunity.applicationLink ? 'external' : 'internal'
+        {
+          entityType: 'opportunity',
+          mode: opportunity.applicationLink ? 'external' : 'internal',
+        }
       );
 
       if (opportunity.applicationLink) {

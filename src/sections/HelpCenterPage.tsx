@@ -1,11 +1,12 @@
 import { useRef, useLayoutEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HelpCircle, Book, MessageCircle, Code, ExternalLink } from 'lucide-react';
 import SEO from '../components/SEO';
-import { openSupportEmail } from '../lib/contact';
 
 const HelpCenterPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const pageRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -56,12 +57,7 @@ const HelpCenterPage = () => {
             <p className="text-[var(--text-secondary)] mb-6">Can't find what you're looking for? Chat with our team or send us a message directly.</p>
             <button
               className="sp-btn-primary w-full"
-              onClick={() =>
-                openSupportEmail({
-                  subject: 'Strategic Pathways help request',
-                  body: 'Hi Strategic Pathways team,\n\nI need help with:\n',
-                })
-              }
+              onClick={() => navigate('/contact')}
             >
               Contact Support
             </button>
@@ -95,12 +91,7 @@ const HelpCenterPage = () => {
           </p>
           <button
             type="button"
-            onClick={() =>
-              openSupportEmail({
-                subject: 'Strategic Pathways website support',
-                body: 'Hi Strategic Pathways team,\n\nI need help with:\n',
-              })
-            }
+            onClick={() => navigate('/contact')}
             className="sp-btn-primary flex items-center gap-3 px-10 py-4 text-lg"
           >
             Email Support

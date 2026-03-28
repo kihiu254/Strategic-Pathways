@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, Send, Globe } from 'lucide-react';
-import { openSupportEmail } from '../lib/contact';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import SocialIcon from '../components/SocialIcon';
+import { EmailAutomationService } from '../lib/emailAutomation';
 
 const Footer = () => {
 
@@ -17,6 +17,7 @@ const Footer = () => {
   
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [regEmail, setRegEmail] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +26,26 @@ const Footer = () => {
       return;
     }
 
-    openSupportEmail({
-      subject: 'Strategic Pathways membership request',
-      body: `Hi Strategic Pathways team,\n\nI would like to join the network.\n\nEmail: ${regEmail}\n`,
-    });
+    setIsRegistering(true);
+
+    try {
+      const result = await EmailAutomationService.submitPartnerInquiry(
+        regEmail,
+        'Website visitor',
+        'I would like to join the Strategic Pathways network.'
+      );
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to submit your request.');
+      }
+
+      toast.success('Your request was sent successfully. Our team will reach out soon.');
+      setRegEmail('');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to submit your request.');
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   useEffect(() => {
@@ -186,9 +203,10 @@ const Footer = () => {
               </div>
               <button 
                 type="submit"
-                className="sp-btn-primary px-10 py-4 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap active:scale-95 transition-all"
+                disabled={isRegistering}
+                className="sp-btn-primary px-10 py-4 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap active:scale-95 transition-all disabled:opacity-50"
               >
-                {t('nav.register')}
+                {isRegistering ? t('contact.labels.submitting') : t('nav.register')}
                 <Send size={18} />
               </button>
             </form>

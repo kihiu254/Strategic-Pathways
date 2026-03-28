@@ -1,5 +1,7 @@
 import { supabase } from './supabase';
 
+export type ApplicationEntityType = 'opportunity' | 'project';
+
 export class EmailAutomationService {
   private static apiUrl = '/api/send';
 
@@ -83,8 +85,20 @@ export class EmailAutomationService {
   }
 
   // Trigger application status email
-  static async onApplicationStatus(email: string, name: string, opportunityTitle: string, status: string) {
-    await this.triggerEmail('application_status', { email, name, opportunityTitle, status });
+  static async onApplicationStatus(
+    email: string,
+    name: string,
+    opportunityTitle: string,
+    status: string,
+    entityType: ApplicationEntityType = 'opportunity'
+  ) {
+    await this.triggerEmail('application_status', {
+      email,
+      name,
+      opportunityTitle,
+      status,
+      entityType,
+    });
   }
 
   // Trigger opportunity interest / application email
@@ -95,7 +109,87 @@ export class EmailAutomationService {
     organization: string,
     mode: 'internal' | 'external' = 'internal'
   ) {
-    await this.triggerEmail('opportunity_interest', { email, name, opportunityTitle, organization, mode });
+    await this.onApplicationSubmitted(email, name, opportunityTitle, organization, {
+      entityType: 'opportunity',
+      mode,
+    });
+  }
+
+  static async onApplicationSubmitted(
+    email: string,
+    name: string,
+    title: string,
+    organization: string,
+    options: {
+      entityType?: ApplicationEntityType;
+      mode?: 'internal' | 'external';
+    } = {}
+  ) {
+    const { entityType = 'opportunity', mode = 'internal' } = options;
+
+    await this.triggerEmail('application_submission', {
+      email,
+      name,
+      title,
+      organization,
+      mode,
+      entityType,
+    });
+  }
+
+  static async onProjectApplicationStatus(
+    email: string,
+    name: string,
+    projectTitle: string,
+    status: string
+  ) {
+    await this.triggerEmail('application_status', {
+      email,
+      name,
+      opportunityTitle: projectTitle,
+      status,
+      entityType: 'project' satisfies ApplicationEntityType,
+    });
+  }
+
+  static async onPortfolioProjectModeration(
+    email: string,
+    name: string,
+    projectTitle: string,
+    status: 'published' | 'review' | 'archived' | 'restored'
+  ) {
+    await this.triggerEmail('portfolio_project_moderation', {
+      email,
+      name,
+      projectTitle,
+      status,
+    });
+  }
+
+  static async onProjectOwnerFollowUp(
+    email: string,
+    name: string,
+    projectTitle: string,
+    message: string
+  ) {
+    await this.triggerEmail('project_owner_follow_up', {
+      email,
+      name,
+      projectTitle,
+      message,
+    });
+  }
+
+  static async onImpactStoryModeration(
+    email: string,
+    name: string,
+    published: boolean
+  ) {
+    await this.triggerEmail('impact_story_moderation', {
+      email,
+      name,
+      published,
+    });
   }
 
   // Trigger verification document uploaded email
@@ -130,5 +224,19 @@ export class EmailAutomationService {
 
   static async onIntroCallInvite(email: string, name: string) {
     return this.triggerEmail('intro_call_invite', { email, name });
+  }
+
+  static async submitPartnerInquiry(
+    email: string,
+    name: string,
+    message: string,
+    organization?: string
+  ) {
+    return this.triggerEmail('partner_inquiry', {
+      email,
+      name,
+      message,
+      organization: organization || '',
+    });
   }
 }

@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { SUPPORT_EMAIL, openSupportEmail } from '../lib/contact';
+import { SUPPORT_EMAIL } from '../lib/contact';
+import { EmailAutomationService } from '../lib/emailAutomation';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -108,24 +109,25 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
     }
 
     setIsSubmitting(true);
+    try {
+      const result = await EmailAutomationService.submitPartnerInquiry(
+        formData.email,
+        formData.name,
+        formData.message,
+        formData.organization
+      );
 
-    const bodyLines = [
-      `Name: ${formData.name}`,
-      `Email: ${formData.email}`,
-      `Organization: ${formData.organization || 'Not provided'}`,
-      '',
-      'Message:',
-      formData.message,
-    ];
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send your message.');
+      }
 
-    openSupportEmail({
-      subject: 'Strategic Pathways contact request',
-      body: bodyLines.join('\n'),
-    });
-
-    toast.success(t('contact.success'));
-    setFormData({ name: '', email: '', organization: '', message: '' });
-    setIsSubmitting(false);
+      toast.success(t('contact.success'));
+      setFormData({ name: '', email: '', organization: '', message: '' });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to send your message.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

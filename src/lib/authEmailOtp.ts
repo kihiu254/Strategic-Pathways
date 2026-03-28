@@ -13,6 +13,14 @@ type RequestEmailOtpResponse = {
 
 const getLoginRedirectUrl = () => `${window.location.origin}/login`;
 
+const shouldPreferServerOtp = () => {
+  if (import.meta.env.VITE_USE_SERVER_EMAIL_OTP === 'true') {
+    return true;
+  }
+
+  return import.meta.env.PROD;
+};
+
 const sendOtpWithSupabase = async ({ email, name, shouldCreateUser }: RequestEmailOtpParams) => {
   const { error } = await supabase.auth.signInWithOtp({
     email,
@@ -33,6 +41,10 @@ const sendOtpWithSupabase = async ({ email, name, shouldCreateUser }: RequestEma
 export const requestEmailOtp = async (
   params: RequestEmailOtpParams
 ): Promise<RequestEmailOtpResponse> => {
+  if (!shouldPreferServerOtp()) {
+    return sendOtpWithSupabase(params);
+  }
+
   try {
     const response = await fetch('/api/auth-email-otp', {
       method: 'POST',
@@ -44,6 +56,9 @@ export const requestEmailOtp = async (
     const payload = text ? (JSON.parse(text) as { error?: string; success?: boolean }) : {};
 
     if (!response.ok) {
+      if (response.status === 404 || response.status >= 500) {
+        throw new Error('Route not found');
+      }
       throw new Error(payload.error || 'Failed to send email code.');
     }
 

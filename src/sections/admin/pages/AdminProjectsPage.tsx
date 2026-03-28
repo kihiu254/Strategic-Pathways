@@ -4,6 +4,7 @@ import { ExternalLink, FolderArchive, Mail, MessageSquare, Search, Send, Trash2,
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
 import { AppNotificationService } from '../../../lib/appNotifications';
+import { EmailAutomationService } from '../../../lib/emailAutomation';
 import {
   PROJECT_APPROVED_TAG,
   PROJECT_ARCHIVED_TAG,
@@ -165,6 +166,32 @@ const AdminProjectsPage = () => {
 
     try {
       await updateProjectTags(project.id, nextTags);
+
+      const nextStatus = archived ? 'restored' : 'archived';
+      const ownerMessage = archived
+        ? `"${project.project_title || 'Your project'}" has been restored to the active moderation queue.`
+        : `"${project.project_title || 'Your project'}" has been archived by the admin team.`;
+
+      await AppNotificationService.notifyUser(project.user_id, {
+        title: archived ? 'Portfolio project restored' : 'Portfolio project archived',
+        message: ownerMessage,
+        type: archived ? 'info' : 'warning',
+        data: {
+          action: archived ? 'portfolio_project_restored' : 'portfolio_project_archived',
+          projectId: project.id,
+          projectTitle: project.project_title || 'Portfolio project',
+        },
+      }).catch((notificationError) => console.warn('Project archive notification failed:', notificationError));
+
+      if (project.profile?.email) {
+        await EmailAutomationService.onPortfolioProjectModeration(
+          project.profile.email,
+          project.profile.full_name || 'Member',
+          project.project_title || 'Portfolio project',
+          nextStatus
+        );
+      }
+
       toast.success(archived ? 'Project restored to the active moderation queue.' : 'Project archived.');
     } catch (error) {
       console.error('Error updating project archive status:', error);
@@ -181,17 +208,29 @@ const AdminProjectsPage = () => {
     try {
       await updateProjectTags(project.id, nextTags);
 
-      if (!approved) {
-        await AppNotificationService.notifyUser(project.user_id, {
-          title: 'Portfolio project published',
-          message: `"${project.project_title || 'Your project'}" has been approved and published on the projects page.`,
-          type: 'success',
-          data: {
-            action: 'portfolio_project_published',
-            projectId: project.id,
-            projectTitle: project.project_title || 'Portfolio project',
-          },
-        }).catch((notificationError) => console.warn('Project publish notification failed:', notificationError));
+      const moderationTitle = approved ? 'Portfolio project moved to review' : 'Portfolio project published';
+      const moderationMessage = approved
+        ? `"${project.project_title || 'Your project'}" has been moved back to the review queue.`
+        : `"${project.project_title || 'Your project'}" has been approved and published on the projects page.`;
+
+      await AppNotificationService.notifyUser(project.user_id, {
+        title: moderationTitle,
+        message: moderationMessage,
+        type: approved ? 'warning' : 'success',
+        data: {
+          action: approved ? 'portfolio_project_review' : 'portfolio_project_published',
+          projectId: project.id,
+          projectTitle: project.project_title || 'Portfolio project',
+        },
+      }).catch((notificationError) => console.warn('Project publish notification failed:', notificationError));
+
+      if (project.profile?.email) {
+        await EmailAutomationService.onPortfolioProjectModeration(
+          project.profile.email,
+          project.profile.full_name || 'Member',
+          project.project_title || 'Portfolio project',
+          approved ? 'review' : 'published'
+        );
       }
 
       toast.success(approved ? 'Project moved back to review.' : 'Project approved and published.');
@@ -219,6 +258,16 @@ const AdminProjectsPage = () => {
           projectTitle: project.project_title || 'Portfolio project',
         },
       });
+
+      if (project.profile?.email) {
+        await EmailAutomationService.onProjectOwnerFollowUp(
+          project.profile.email,
+          project.profile.full_name || 'Member',
+          project.project_title || 'Portfolio project',
+          message
+        );
+      }
+
       setMessageDrafts((current) => ({ ...current, [project.id]: '' }));
       toast.success('Project owner notified.');
     } catch (error) {

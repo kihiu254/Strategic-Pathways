@@ -164,7 +164,8 @@ const AdminApplicationsPage = () => {
             application.profile.email,
             application.profile.full_name || 'Member',
             application.opportunity?.title || 'Opportunity',
-            updates.status
+            updates.status,
+            'opportunity'
           );
         }
       }

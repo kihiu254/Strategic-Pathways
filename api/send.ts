@@ -1,7 +1,5 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const getProductionUrl = () => {
   const explicitUrl = process.env.VITE_PRODUCTION_URL || process.env.PRODUCTION_URL || process.env.SITE_URL;
   if (explicitUrl) {
@@ -21,6 +19,13 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    const resendApiKey = process.env.RESEND_API_KEY;
+
+    if (!resendApiKey) {
+      return res.status(500).json({ error: 'Email delivery is not configured on the server.' });
+    }
+
+    const resend = new Resend(resendApiKey);
     const { type, data } = req.body;
     
     const fromEmail = 'Strategic Pathways <noreply@joinstrategicpathways.com>';
@@ -162,35 +167,48 @@ export default async function handler(req: any, res: any) {
         };
         break;
 
-      case 'opportunity_interest':
+      case 'application_submission':
+      case 'opportunity_interest': {
+        const entityType = data.entityType === 'project' ? 'project' : 'opportunity';
+        const entityLabel = entityType === 'project' ? 'project' : 'opportunity';
+        const entityLabelTitle = entityType === 'project' ? 'Project' : 'Opportunity';
+        const actionTitle = data.mode === 'external' ? `${entityLabelTitle} Selected` : 'Application Submitted';
+        const title = data.title || data.opportunityTitle;
+        const targetPath = entityType === 'project' ? '/projects' : '/opportunities';
+
         emailData = {
           from: fromEmail,
           to: data.email,
           subject: data.mode === 'external'
-            ? `External application opened for "${data.opportunityTitle}"`
-            : `Application submitted for "${data.opportunityTitle}"`,
+            ? `External application opened for "${title}"`
+            : `Application submitted for "${title}"`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #0b2a3c 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">${data.mode === 'external' ? 'Opportunity Selected' : 'Application Submitted'}</h1>
+                <h1 style="color: white; margin: 0; font-size: 28px;">${actionTitle}</h1>
               </div>
               <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
                 <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
                 <p style="color: #4a5568; line-height: 1.6;">
                   ${data.mode === 'external'
-                    ? `You opened the external application flow for <strong>${data.opportunityTitle}</strong> at <strong>${data.organization}</strong>.`
-                    : `Your application for <strong>${data.opportunityTitle}</strong> at <strong>${data.organization}</strong> has been submitted successfully.`}
+                    ? `You opened the external application flow for the <strong>${entityLabel}</strong> <strong>${title}</strong> at <strong>${data.organization}</strong>.`
+                    : `Your application for the <strong>${entityLabel}</strong> <strong>${title}</strong> at <strong>${data.organization}</strong> has been submitted successfully.`}
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${productionUrl}/opportunities" style="background: #c89f5e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View Opportunities</a>
+                  <a href="${productionUrl}${targetPath}" style="background: #c89f5e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View ${entityType === 'project' ? 'Projects' : 'Opportunities'}</a>
                 </div>
               </div>
             </div>
           `
         };
         break;
+      }
 
-      case 'application_status':
+      case 'application_status': {
+        const entityType = data.entityType === 'project' ? 'project' : 'opportunity';
+        const entityLabel = entityType === 'project' ? 'project application' : 'application';
+        const entityDestination = entityType === 'project' ? '/projects' : '/opportunities';
+
         emailData = {
           from: fromEmail,
           to: data.email,
@@ -204,19 +222,20 @@ export default async function handler(req: any, res: any) {
                 <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
                 <p style="color: #4a5568; line-height: 1.6;">
                   ${data.status === 'accepted'
-                    ? `Congratulations. Your application for <strong>${data.opportunityTitle}</strong> has been accepted.`
+                    ? `Congratulations. Your ${entityLabel} for <strong>${data.opportunityTitle}</strong> has been accepted.`
                     : data.status === 'rejected'
-                      ? `Your application for <strong>${data.opportunityTitle}</strong> was not selected this time.`
-                      : `Your application for <strong>${data.opportunityTitle}</strong> is under review.`}
+                      ? `Your ${entityLabel} for <strong>${data.opportunityTitle}</strong> was not selected this time.`
+                      : `Your ${entityLabel} for <strong>${data.opportunityTitle}</strong> is under review.`}
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${productionUrl}/opportunities" style="background: #0b2a3c; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Browse Opportunities</a>
+                  <a href="${productionUrl}${entityDestination}" style="background: #0b2a3c; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Browse ${entityType === 'project' ? 'Projects' : 'Opportunities'}</a>
                 </div>
               </div>
             </div>
           `
         };
         break;
+      }
 
       case 'cv_uploaded':
         emailData = {
@@ -283,6 +302,111 @@ export default async function handler(req: any, res: any) {
                 <p style="color: #4a5568; line-height: 1.6;">Your subscription is active and the relevant onboarding flow is now unlocked.</p>
                 <div style="text-align: center; margin: 30px 0;">
                   <a href="${productionUrl}/profile" style="background: #15803d; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Continue in Strategic Pathways</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
+      case 'portfolio_project_moderation': {
+        const statusConfig = {
+          published: {
+            title: 'Portfolio Project Published',
+            subject: `Your project "${data.projectTitle}" is now published`,
+            color: '#15803d',
+            body: `Your portfolio project <strong>${data.projectTitle}</strong> has been approved and published on the projects page.`,
+          },
+          review: {
+            title: 'Portfolio Project Review Update',
+            subject: `Your project "${data.projectTitle}" was moved back to review`,
+            color: '#f59e0b',
+            body: `Your portfolio project <strong>${data.projectTitle}</strong> has been moved back to the review queue for further checks.`,
+          },
+          archived: {
+            title: 'Portfolio Project Archived',
+            subject: `Your project "${data.projectTitle}" was archived`,
+            color: '#b91c1c',
+            body: `Your portfolio project <strong>${data.projectTitle}</strong> has been archived and is no longer visible in the active moderation queue.`,
+          },
+          restored: {
+            title: 'Portfolio Project Restored',
+            subject: `Your project "${data.projectTitle}" was restored`,
+            color: '#2563eb',
+            body: `Your portfolio project <strong>${data.projectTitle}</strong> has been restored to the active moderation queue.`,
+          },
+        } as const;
+
+        const config = statusConfig[data.status as keyof typeof statusConfig] || statusConfig.review;
+
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: config.subject,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, ${config.color} 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">${config.title}</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
+                <p style="color: #4a5568; line-height: 1.6;">${config.body}</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/profile" style="background: ${config.color}; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Open Your Profile</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+      }
+
+      case 'project_owner_follow_up':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: `Update on your project "${data.projectTitle}"`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #0b2a3c 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Project Follow-Up</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
+                <p style="color: #4a5568; line-height: 1.6;">
+                  The Strategic Pathways admin team sent an update about your project <strong>${data.projectTitle}</strong>.
+                </p>
+                <div style="margin: 24px 0; padding: 18px 20px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0;">
+                  <p style="margin: 0; color: #334155; line-height: 1.6; white-space: pre-wrap;">${data.message}</p>
+                </div>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/profile" style="background: #0b2a3c; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Open Your Profile</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
+      case 'impact_story_moderation':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: data.published ? 'Your impact story is now live' : 'Your impact story was moved back to review',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, ${data.published ? '#15803d' : '#f59e0b'} 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">${data.published ? 'Impact Story Approved' : 'Impact Story Review Update'}</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
+                <p style="color: #4a5568; line-height: 1.6;">
+                  ${data.published
+                    ? 'Your impact story has been approved and is now live on the Strategic Pathways Impact page.'
+                    : 'Your impact story has been moved out of the public Impact page for further review.'}
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/profile" style="background: ${data.published ? '#15803d' : '#f59e0b'}; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Open Your Profile</a>
                 </div>
               </div>
             </div>

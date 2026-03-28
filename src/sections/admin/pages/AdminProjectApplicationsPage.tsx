@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../store/authStore';
 import { AppNotificationService } from '../../../lib/appNotifications';
+import { EmailAutomationService } from '../../../lib/emailAutomation';
 import { formatAdminDate, getStatusTone } from '../helpers';
 
 type ApplicationRow = {
@@ -200,6 +201,15 @@ const AdminProjectApplicationsPage = () => {
             status: updates.status,
           },
         }).catch((notificationError) => console.warn('Project application notification failed:', notificationError));
+
+        if (application.profile?.email) {
+          await EmailAutomationService.onProjectApplicationStatus(
+            application.profile.email,
+            application.profile.full_name || 'Member',
+            application.project?.project_title || 'Project',
+            updates.status
+          );
+        }
       }
 
       toast.success(updates.status ? `Application marked ${updates.status}.` : 'Application notes saved.');

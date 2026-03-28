@@ -3,6 +3,7 @@ import { ImagePlus, PlusCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
 import { AppNotificationService } from '../../../lib/appNotifications';
+import { EmailAutomationService } from '../../../lib/emailAutomation';
 import { formatAdminDate, getStatusTone } from '../helpers';
 import { uploadFile } from '../../../lib/uploadUtils';
 import { prependFeaturedSuccessStories } from '../../../data/featuredSuccessStories';
@@ -105,6 +106,20 @@ const AdminSuccessStoriesPage = () => {
             published: isPublished,
           },
         }).catch((error) => console.warn('Impact story notification failed:', error));
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', story.user_id)
+          .maybeSingle();
+
+        if (profile?.email) {
+          await EmailAutomationService.onImpactStoryModeration(
+            profile.email,
+            story.full_name || 'Member',
+            isPublished
+          );
+        }
       }
 
       toast.success(isPublished ? 'Story approved and published.' : 'Story moved back to moderation.');

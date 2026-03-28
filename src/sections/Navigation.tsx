@@ -6,7 +6,6 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import NotificationCenter from '../components/NotificationCenter';
 import { useNotifications } from '../hooks/useNotifications';
 import { isAvatarUrlBlocked, markAvatarUrlBlocked } from '../lib/avatarCache';
-import { openSupportEmail } from '../lib/contact';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -279,12 +278,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
 
             {!isLoggedIn && (
               <button 
-                onClick={() =>
-                  openSupportEmail({
-                    subject: 'Strategic Pathways membership request',
-                    body: 'Hi Strategic Pathways team,\n\nI would like to join the network.\n',
-                  })
-                }
+                onClick={() => navigate('/login')}
                 className="sp-btn-glass text-sm"
               >
                 {t('common.register')}
@@ -405,10 +399,7 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
               </button>
               <button 
                 onClick={() => {
-                  openSupportEmail({
-                    subject: 'Strategic Pathways membership request',
-                    body: 'Hi Strategic Pathways team,\n\nI would like to join the network.\n',
-                  });
+                  navigate('/login');
                   setIsMobileMenuOpen(false);
                 }}
                 className="sp-btn-glass mt-2 w-48 text-center"

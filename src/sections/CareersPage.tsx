@@ -1,12 +1,13 @@
 import { useRef, useLayoutEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { Briefcase, MapPin, Search } from 'lucide-react';
 import SEO from '../components/SEO';
-import { openSupportEmail } from '../lib/contact';
 
 const CareersPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const pageRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -89,12 +90,7 @@ const CareersPage = () => {
               </div>
               <button 
                 className="sp-btn-glass px-8 py-3 whitespace-nowrap"
-                onClick={() =>
-                  openSupportEmail({
-                    subject: `Strategic Pathways career interest: ${job.title}`,
-                    body: `Hi Strategic Pathways team,\n\nI am interested in the ${job.title} role.\n`,
-                  })
-                }
+                onClick={() => navigate('/contact')}
               >
                 Apply Now
               </button>

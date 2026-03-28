@@ -339,7 +339,8 @@ const AdminOpportunitiesManager = () => {
             applicationRecord.profile.email,
             applicationRecord.profile.full_name || 'Member',
             applicationRecord.opportunity?.title || text.untitledOpportunity,
-            status
+            status,
+            'opportunity'
           );
         }
       }
