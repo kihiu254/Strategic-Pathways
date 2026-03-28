@@ -8,6 +8,7 @@ import { useAuthStore } from '../../store/authStore';
 import { EmailAutomationService } from '../../lib/emailAutomation';
 import { AppNotificationService } from '../../lib/appNotifications';
 import { applyReferralAttribution } from '../../lib/referrals';
+import { requestEmailOtp } from '../../lib/authEmailOtp';
 
 const SignupPage = () => {
   const { t } = useTranslation();
@@ -87,25 +88,21 @@ const SignupPage = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const delivery = await requestEmailOtp({
         email: formData.email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/pricing`,
-          shouldCreateUser: true,
-          data: { full_name: formData.name }
-        }
+        name: formData.name,
+        shouldCreateUser: true,
       });
 
-      if (error) {
-        console.error('OTP Error:', error);
-        throw error;
-      }
-      
       setOtpSent(true);
-      toast.success(t('auth.toast.sentVerify'));
+      toast.success(
+        delivery.delivery === 'resend'
+          ? 'Verification code sent to your email via Resend.'
+          : t('auth.toast.sentVerify')
+      );
     } catch (error: any) {
       console.error('Signup error:', error);
-      toast.error(error.message || 'Email template error. Please contact support.');
+      toast.error(error.message || 'Unable to send the verification code.');
     } finally {
       setLoading(false);
     }

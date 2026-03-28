@@ -8,6 +8,7 @@ import { useAuthStore } from '../../store/authStore';
 import { consumeRejectionNotice } from '../../lib/verificationStatus';
 import { AppNotificationService } from '../../lib/appNotifications';
 import { EmailAutomationService } from '../../lib/emailAutomation';
+import { requestEmailOtp } from '../../lib/authEmailOtp';
 
 const LoginPage = () => {
   const { t } = useTranslation();
@@ -275,19 +276,22 @@ const LoginPage = () => {
         return;
       }
 
-      const { error } = await supabase.auth.signInWithOtp({
+      const delivery = await requestEmailOtp({
         email: formData.email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/pricing`,
-          shouldCreateUser: currentIsSignUp,
-          data: currentIsSignUp ? { full_name: formData.name } : undefined
-        }
+        name: currentIsSignUp ? formData.name : undefined,
+        shouldCreateUser: currentIsSignUp,
       });
 
-      if (error) throw error;
-      
       setOtpSent(true);
-      toast.success(currentIsSignUp ? t('auth.toast.sentVerify') : t('auth.toast.sentLogin'));
+      toast.success(
+        delivery.delivery === 'resend'
+          ? currentIsSignUp
+            ? 'Verification code sent to your email via Resend.'
+            : 'Login code sent to your email via Resend.'
+          : currentIsSignUp
+            ? t('auth.toast.sentVerify')
+            : t('auth.toast.sentLogin')
+      );
     } catch (error: any) {
       toast.error(error.message || 'Failed to send code.');
     } finally {
@@ -304,7 +308,7 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/pricing`,
+        redirectTo: `${window.location.origin}/login`,
       });
       if (error) throw error;
       toast.success('Password reset instructions sent to your email!');
