@@ -54,6 +54,11 @@ export const requestEmailOtp = async (
     return sendOtpWithSupabase(params);
   }
 
+  const fallbackToSupabase = async (reason: unknown) => {
+    console.warn('Server OTP unavailable, falling back to Supabase OTP.', reason);
+    return sendOtpWithSupabase(params);
+  };
+
   try {
     const response = await fetch('/api/auth-email-otp', {
       method: 'POST',
@@ -75,9 +80,9 @@ export const requestEmailOtp = async (
         throw new Error('An account already exists for that email. Please sign in instead.');
       }
       if (response.status >= 500) {
-        throw new Error('Route not found');
+        return fallbackToSupabase(payload.error);
       }
-      throw new Error(getSafeErrorMessage(payload.error, 'We could not send your code right now.'));
+      return fallbackToSupabase(payload.error);
     }
 
     return {
@@ -89,13 +94,12 @@ export const requestEmailOtp = async (
     const shouldFallback =
       message.includes('Failed to fetch') ||
       message.includes('Unexpected token') ||
-      message.includes('Route not found') ||
       message.includes('Cannot POST');
 
     if (!shouldFallback) {
       throw new Error(getSafeErrorMessage(error, 'We could not send your code right now.'));
     }
 
-    return sendOtpWithSupabase(params);
+    return fallbackToSupabase(error);
   }
 };

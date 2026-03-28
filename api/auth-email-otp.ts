@@ -107,7 +107,7 @@ export default async function handler(req: any, res: any) {
       : 'Your Strategic Pathways sign-in code';
 
     await resend.emails.send({
-      from: 'Strategic Pathways <noreply@joinstrategicpathways.com>',
+      from: 'Strategic Pathways <noreply@updates.joinstrategicpathways.com>',
       to: normalizedEmail,
       subject,
       html: `

@@ -28,7 +28,7 @@ export default async function handler(req: any, res: any) {
     const resend = new Resend(resendApiKey);
     const { type, data } = req.body;
     
-    const fromEmail = 'Strategic Pathways <noreply@joinstrategicpathways.com>';
+    const fromEmail = 'Strategic Pathways <noreply@updates.joinstrategicpathways.com>';
     const productionUrl = getProductionUrl();
 
     let emailData;

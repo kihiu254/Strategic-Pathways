@@ -94,7 +94,7 @@ const buildReminderEmail = (
   const urgencyColor = stage === 'week' ? '#0b2a3c' : '#b45309';
 
   return {
-    from: 'Strategic Pathways <noreply@joinstrategicpathways.com>',
+    from: 'Strategic Pathways <noreply@updates.joinstrategicpathways.com>',
     to: recipient.email as string,
     subject: `${stage === 'week' ? '7-day' : '5-day'} reminder: ${opportunity.title} closes soon`,
     html: `

@@ -4,7 +4,7 @@ declare const process: any;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export class EmailService {
-  private static fromEmail = 'Strategic Pathways <noreply@joinstrategicpathways.com>';
+  private static fromEmail = 'Strategic Pathways <noreply@updates.joinstrategicpathways.com>';
   
   // Welcome email when user signs up
   static async sendWelcomeEmail(userEmail: string, userName: string) {
