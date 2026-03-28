@@ -1,15 +1,4 @@
-import admin from 'firebase-admin';
-
-// Initialize Firebase Admin SDK
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: 'strategic-pathways-ba4ba',
-      privateKey: 'WBTRLIbTj56aezjy0QaE7llHaRbXbz0egYq5gtq8h_4'.replace(/\\n/g, '\n'),
-      clientEmail: `firebase-adminsdk@strategic-pathways-ba4ba.iam.gserviceaccount.com`
-    })
-  });
-}
+import { getFirebaseMessaging } from './_lib/firebaseAdmin';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
@@ -18,6 +7,19 @@ export default async function handler(req: any, res: any) {
 
   try {
     const { token, notification, data } = req.body;
+    const messaging = getFirebaseMessaging();
+
+    if (!messaging) {
+      return res.status(200).json({
+        success: false,
+        skipped: true,
+        message: 'Firebase push is not configured.',
+      });
+    }
+
+    if (!token || !notification?.title || !notification?.body) {
+      return res.status(400).json({ error: 'token, notification.title, and notification.body are required.' });
+    }
 
     const message = {
       token,
@@ -26,7 +28,11 @@ export default async function handler(req: any, res: any) {
         body: notification.body,
         icon: '/logo.png'
       },
-      data: data || {},
+      data: Object.entries(data || {}).reduce<Record<string, string>>((accumulator, [key, value]) => {
+        if (value === undefined || value === null) return accumulator;
+        accumulator[key] = typeof value === 'string' ? value : JSON.stringify(value);
+        return accumulator;
+      }, {}),
       webpush: {
         fcmOptions: {
           link: data?.url || 'https://www.joinstrategicpathways.com'
@@ -34,7 +40,7 @@ export default async function handler(req: any, res: any) {
       }
     };
 
-    const response = await admin.messaging().send(message);
+    const response = await messaging.send(message);
     res.json({ success: true, messageId: response });
 
   } catch (error) {

@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { getFirebaseMessaging } from './_lib/firebaseAdmin';
 
 type NotificationType = 'info' | 'success' | 'warning' | 'error' | 'opportunity' | 'system';
 
@@ -10,6 +11,19 @@ type NotificationRequestBody = {
   message?: string;
   type?: NotificationType;
   data?: Record<string, unknown>;
+};
+
+const getBaseUrl = () => {
+  const explicitUrl = process.env.VITE_PRODUCTION_URL || process.env.PRODUCTION_URL || process.env.SITE_URL;
+  if (explicitUrl) {
+    return explicitUrl.replace(/\/$/, '');
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return 'https://www.joinstrategicpathways.com';
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -95,5 +109,70 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Failed to create notification.' });
   }
 
-  return res.status(200).json({ success: true, count: targetIds.length });
+  let pushSent = 0;
+  try {
+    const { data: recipientProfiles, error: profileError } = await serviceClient
+      .from('profiles')
+      .select('id, fcm_token')
+      .in('id', targetIds);
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    const tokens = (recipientProfiles || [])
+      .map((profile) => profile.fcm_token)
+      .filter((token): token is string => typeof token === 'string' && token.trim().length > 0);
+
+    const messaging = tokens.length > 0 ? getFirebaseMessaging() : null;
+    if (messaging && tokens.length > 0) {
+      const response = await messaging.sendEachForMulticast({
+        tokens,
+        notification: {
+          title,
+          body: message,
+        },
+        data: Object.entries(data).reduce<Record<string, string>>((accumulator, [key, value]) => {
+          if (value === undefined || value === null) return accumulator;
+          accumulator[key] = typeof value === 'string' ? value : JSON.stringify(value);
+          return accumulator;
+        }, {}),
+        webpush: {
+          fcmOptions: {
+            link:
+              typeof data.url === 'string'
+                ? data.url
+                : typeof data.opportunityId === 'string'
+                  ? `${getBaseUrl()}/opportunities/${data.opportunityId}`
+                  : typeof data.projectId === 'string'
+                    ? `${getBaseUrl()}/projects/${data.projectId}`
+                    : `${getBaseUrl()}/notifications`,
+          },
+        },
+      });
+
+      pushSent = response.successCount;
+
+      const invalidTokens = response.responses
+        .map((result, index) => {
+          const code = result.error?.code;
+          const isInvalidToken =
+            code === 'messaging/invalid-registration-token' ||
+            code === 'messaging/registration-token-not-registered';
+          return !result.success && isInvalidToken ? tokens[index] : null;
+        })
+        .filter((token): token is string => Boolean(token));
+
+      if (invalidTokens.length > 0) {
+        await serviceClient
+          .from('profiles')
+          .update({ fcm_token: null })
+          .in('fcm_token', invalidTokens);
+      }
+    }
+  } catch (pushError) {
+    console.error('Push dispatch failed:', pushError);
+  }
+
+  return res.status(200).json({ success: true, count: targetIds.length, pushSent });
 }

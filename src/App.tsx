@@ -32,6 +32,7 @@ const AdminOpportunityEditorPage = lazy(() => import('./sections/AdminOpportunit
 const AdminOverviewPage = lazy(() => import('./sections/admin/pages/AdminOverviewPage'));
 const AdminMembersPage = lazy(() => import('./sections/admin/pages/AdminMembersPage'));
 const AdminProjectsPage = lazy(() => import('./sections/admin/pages/AdminProjectsPage'));
+const AdminProjectApplicationsPage = lazy(() => import('./sections/admin/pages/AdminProjectApplicationsPage'));
 const AdminApplicationsPage = lazy(() => import('./sections/admin/pages/AdminApplicationsPage'));
 const AdminAdminsPage = lazy(() => import('./sections/admin/pages/AdminAdminsPage'));
 const AdminSuccessStoriesPage = lazy(() => import('./sections/admin/pages/AdminSuccessStoriesPage'));
@@ -49,6 +50,7 @@ const OpportunitiesPage = lazy(() => import('./sections/OpportunitiesPageRedesig
 const OpportunityDetailPage = lazy(() => import('./sections/OpportunityDetailPage'));
 const OpportunityApplicationPage = lazy(() => import('./sections/OpportunityApplicationPage'));
 const ProjectDetailPage = lazy(() => import('./sections/ProjectDetailPage'));
+const ProjectApplicationPage = lazy(() => import('./sections/ProjectApplicationPage'));
 const OnboardingFlow = lazy(() => import('./sections/onboarding/ProfileOnboarding'));
 const BasicOnboarding = lazy(() => import('./sections/onboarding/BasicOnboarding'));
 const BasicEditOnboarding = lazy(() => import('./sections/onboarding/BasicEditOnboarding'));
@@ -242,6 +244,7 @@ function MainLayout() {
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/projects" element={<ProjectsPage />} />
                     <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+                    <Route path="/projects/:projectId/apply" element={<ProjectApplicationPage />} />
                     <Route path="/payment" element={<PaymentPage />} />
                     
                     {/* Protected Admin Route */}
@@ -250,6 +253,7 @@ function MainLayout() {
                         <Route index element={<AdminOverviewPage />} />
                         <Route path="members" element={<AdminMembersPage />} />
                         <Route path="projects" element={<AdminProjectsPage />} />
+                        <Route path="projects/applications" element={<AdminProjectApplicationsPage />} />
                         <Route path="applications" element={<AdminApplicationsPage />} />
                         <Route path="opportunities" element={<AdminOpportunitiesManager />} />
                         <Route path="opportunities/new" element={<AdminOpportunityEditorPage />} />

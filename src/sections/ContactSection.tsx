@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { supabase } from '../lib/supabase';
+import { SUPPORT_EMAIL, openSupportEmail } from '../lib/contact';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -106,46 +106,26 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
       toast.error('Please fill in all required fields.');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
-    try {
-      // 1. Save to Database
-      const { error } = await supabase
-        .from('partner_inquiries')
-        .insert([
-          { 
-            name: formData.name, 
-            email: formData.email, 
-            organization: formData.organization, 
-            message: formData.message 
-          }
-        ]);
 
-      if (error) throw error;
-      
-      // 2. Trigger Email Notification via Vercel Serverless Function
-      try {
-        await fetch('/api/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'partner_inquiry',
-            data: formData
-          })
-        });
-      } catch (emailError) {
-        console.error('Failed to dispatch email:', emailError);
-        // We don't throw here because the DB save was successful
-      }
+    const bodyLines = [
+      `Name: ${formData.name}`,
+      `Email: ${formData.email}`,
+      `Organization: ${formData.organization || 'Not provided'}`,
+      '',
+      'Message:',
+      formData.message,
+    ];
 
-      toast.success(t('contact.success'));
-      setFormData({ name: '', email: '', organization: '', message: '' });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to submit inquiry. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    openSupportEmail({
+      subject: 'Strategic Pathways contact request',
+      body: bodyLines.join('\n'),
+    });
+
+    toast.success(t('contact.success'));
+    setFormData({ name: '', email: '', organization: '', message: '' });
+    setIsSubmitting(false);
   };
 
   return (
@@ -179,8 +159,8 @@ const ContactSection = ({ className = '' }: ContactSectionProps) => {
                 </div>
                 <div>
                   <p className="text-[var(--text-secondary)] text-sm">{t('contact.labels.email')}</p>
-                  <a href="mailto:info@joinstrategicpathways.com" className="text-[var(--text-primary)] hover:text-[var(--sp-accent)] transition-colors">
-                    info@joinstrategicpathways.com
+                  <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[var(--text-primary)] hover:text-[var(--sp-accent)] transition-colors">
+                    {SUPPORT_EMAIL}
                   </a>
                 </div>
               </div>

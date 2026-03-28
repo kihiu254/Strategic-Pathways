@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { clearSupabaseAuthStorage, isInvalidRefreshTokenError, supabase } from '../../lib/supabase';
+import { PushNotificationService } from '../../lib/pushNotifications';
 import { useAuthStore } from '../../store/authStore';
 import { fetchLatestRejectionNotice, storeRejectionNotice } from '../../lib/verificationStatus';
 import { applyReferralAttribution } from '../../lib/referrals';
@@ -157,6 +158,11 @@ const AuthLayout = () => {
       supabase.removeChannel(channel);
     };
   }, [navigate, setSession, setUser, user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    void PushNotificationService.syncTokenForCurrentUser();
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;

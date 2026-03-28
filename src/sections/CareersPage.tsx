@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { Briefcase, MapPin, Search } from 'lucide-react';
 import SEO from '../components/SEO';
+import { openSupportEmail } from '../lib/contact';
 
 const CareersPage = () => {
   const { t } = useTranslation();
@@ -88,7 +89,12 @@ const CareersPage = () => {
               </div>
               <button 
                 className="sp-btn-glass px-8 py-3 whitespace-nowrap"
-                onClick={() => window.location.href = 'mailto:joinstrategicpathways@gmail.com'}
+                onClick={() =>
+                  openSupportEmail({
+                    subject: `Strategic Pathways career interest: ${job.title}`,
+                    body: `Hi Strategic Pathways team,\n\nI am interested in the ${job.title} role.\n`,
+                  })
+                }
               >
                 Apply Now
               </button>

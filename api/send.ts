@@ -2,6 +2,19 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const getProductionUrl = () => {
+  const explicitUrl = process.env.VITE_PRODUCTION_URL || process.env.PRODUCTION_URL || process.env.SITE_URL;
+  if (explicitUrl) {
+    return explicitUrl.replace(/\/$/, '');
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return 'https://www.joinstrategicpathways.com';
+};
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -11,7 +24,7 @@ export default async function handler(req: any, res: any) {
     const { type, data } = req.body;
     
     const fromEmail = 'Strategic Pathways <noreply@joinstrategicpathways.com>';
-    const productionUrl = process.env.VITE_PRODUCTION_URL;
+    const productionUrl = getProductionUrl();
 
     let emailData;
 
@@ -76,6 +89,28 @@ export default async function handler(req: any, res: any) {
                 <p style="color: #4a5568; line-height: 1.6;">Your profile details have been saved successfully. Your account is now better positioned for opportunities, referrals, and collaboration inside Strategic Pathways.</p>
                 <div style="text-align: center; margin: 30px 0;">
                   <a href="${productionUrl}/profile" style="background: #c89f5e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Review Your Profile</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
+      case 'onboarding_reminder':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: 'Complete your Strategic Pathways profile',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #0b2a3c 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Complete Your Profile</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
+                <p style="color: #4a5568; line-height: 1.6;">You are one step away from unlocking more relevant opportunities and collaboration pathways. Complete your onboarding to activate your profile fully.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/onboarding" style="background: #c89f5e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Continue Onboarding</a>
                 </div>
               </div>
             </div>
@@ -198,6 +233,33 @@ export default async function handler(req: any, res: any) {
                 <p style="color: #4a5568; line-height: 1.6;">Your CV/Resume has been uploaded successfully. You can now apply to opportunities with one click!</p>
                 <div style="text-align: center; margin: 30px 0;">
                   <a href="${productionUrl}/opportunities" style="background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Browse Opportunities</a>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        break;
+
+      case 'opportunity_match':
+        emailData = {
+          from: fromEmail,
+          to: data.email,
+          subject: `New opportunity match: ${data.opportunityTitle}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #0b2a3c 0%, #c89f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">New Opportunity Match</h1>
+              </div>
+              <div style="background: white; padding: 40px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="color: #0b2a3c; margin-top: 0;">Hi ${data.name},</h2>
+                <p style="color: #4a5568; line-height: 1.6;">
+                  We found a strong opportunity match for you: <strong>${data.opportunityTitle}</strong> at <strong>${data.organization}</strong>.
+                </p>
+                <p style="color: #4a5568; line-height: 1.6;">
+                  Match score: <strong>${data.matchScore}%</strong>
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${productionUrl}/opportunities" style="background: #c89f5e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View Opportunities</a>
                 </div>
               </div>
             </div>

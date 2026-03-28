@@ -2,6 +2,7 @@ import { useRef, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HelpCircle, Book, MessageCircle, Code, ExternalLink } from 'lucide-react';
 import SEO from '../components/SEO';
+import { openSupportEmail } from '../lib/contact';
 
 const HelpCenterPage = () => {
   const { t } = useTranslation();
@@ -53,7 +54,17 @@ const HelpCenterPage = () => {
             <MessageCircle className="w-12 h-12 text-[var(--sp-accent)] mb-6" />
             <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4">Direct Support</h3>
             <p className="text-[var(--text-secondary)] mb-6">Can't find what you're looking for? Chat with our team or send us a message directly.</p>
-            <button className="sp-btn-primary w-full" onClick={() => window.location.href = '/contact'}>Contact Support</button>
+            <button
+              className="sp-btn-primary w-full"
+              onClick={() =>
+                openSupportEmail({
+                  subject: 'Strategic Pathways help request',
+                  body: 'Hi Strategic Pathways team,\n\nI need help with:\n',
+                })
+              }
+            >
+              Contact Support
+            </button>
           </div>
         </div>
 
@@ -78,19 +89,23 @@ const HelpCenterPage = () => {
         {/* Contact Developer Section */}
         <div className="glass-card p-12 rounded-3xl border-2 border-[var(--sp-accent)]/20 bg-gradient-to-r from-[var(--sp-accent)]/5 to-transparent flex flex-col items-center text-center">
           <Code className="w-16 h-16 text-[var(--sp-accent)] mb-6" />
-          <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-4">Contact Developer</h2>
+          <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-4">Contact Support Team</h2>
           <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto mb-8">
-            Experience technical issues or have feedback about the website's performance? Contact the developer directly.
+            Experience technical issues or have feedback about the website? Reach Strategic Pathways directly by email.
           </p>
-          <a 
-            href="https://paul-kihiu-portfolio.vercel.app/" 
-            target="_blank" 
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() =>
+              openSupportEmail({
+                subject: 'Strategic Pathways website support',
+                body: 'Hi Strategic Pathways team,\n\nI need help with:\n',
+              })
+            }
             className="sp-btn-primary flex items-center gap-3 px-10 py-4 text-lg"
           >
-            Visit Developer Portfolio
+            Email Support
             <ExternalLink size={20} />
-          </a>
+          </button>
         </div>
       </div>
     </div>

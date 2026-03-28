@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { consumeRejectionNotice } from '../../lib/verificationStatus';
 import { AppNotificationService } from '../../lib/appNotifications';
+import { EmailAutomationService } from '../../lib/emailAutomation';
 
 const LoginPage = () => {
   const { t } = useTranslation();
@@ -77,7 +78,11 @@ const LoginPage = () => {
 
             const tier = existingProfile?.tier || 'Community';
             const completed = !!existingProfile?.onboarding_completed;
-            await notifyLoginActivity(metadata.provider || (searchParams.get('code') ? 'OAuth' : undefined));
+            await notifyLoginActivity(
+              metadata.provider || (searchParams.get('code') ? 'OAuth' : undefined),
+              currentSession.user.email,
+              (metadata.full_name || metadata.name || currentSession.user.email) as string
+            );
 
             if (currentSession.user.email?.includes('admin') || currentSession.user.email?.includes('joinstrategicpathways')) {
               navigate('/admin');
@@ -171,13 +176,21 @@ const LoginPage = () => {
     token: ''
   });
 
-  const notifyLoginActivity = async (provider?: string) => {
+  const notifyLoginActivity = async (provider?: string, email?: string | null, name?: string | null) => {
     await AppNotificationService.notifySelf({
       title: 'Login successful',
       message: `You signed in successfully${provider ? ` using ${provider}` : ''}.`,
       type: 'info',
       data: { action: 'login_activity', provider: provider || null },
     }).catch((notificationError) => console.warn('Notification failed:', notificationError));
+
+    if (email) {
+      await EmailAutomationService.onLoginActivity(
+        email,
+        name || email,
+        provider
+      ).catch((emailError) => console.warn('Login activity email failed:', emailError));
+    }
   };
 
   useEffect(() => {
@@ -319,7 +332,7 @@ const LoginPage = () => {
       
       setSession(data.session);
       setUser(data.user);
-      await notifyLoginActivity('Email code');
+      await notifyLoginActivity('Email code', data.user.email, (data.user.user_metadata?.full_name || data.user.email) as string);
       toast.success(t('auth.toast.success'));
 
       const { data: profile } = await supabase

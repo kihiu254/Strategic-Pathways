@@ -37,7 +37,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
           </div>
           <div className="space-y-2">
             <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">{t('dashboard.settings.contactEmail')}</label>
-            <input type="email" defaultValue="joinstrategicpathways@gmail.com" className="input-glass w-full px-4 py-3" aria-label={t('dashboard.settings.contactEmail')} title={t('dashboard.settings.contactEmail')} />
+            <input type="email" defaultValue="info@joinstrategicpathways.com" className="input-glass w-full px-4 py-3" aria-label={t('dashboard.settings.contactEmail')} title={t('dashboard.settings.contactEmail')} />
           </div>
           <div className="md:col-span-2 space-y-2">
             <label className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest pl-1">{t('dashboard.settings.defaultCurrency')}</label>

@@ -3,7 +3,9 @@ import { Menu, X, User, LayoutDashboard, LogOut, ChevronDown, LogIn, Bell, Sun, 
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import NotificationCenter from '../components/NotificationCenter';
 import { isAvatarUrlBlocked, markAvatarUrlBlocked } from '../lib/avatarCache';
+import { openSupportEmail } from '../lib/contact';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -160,93 +162,96 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
 
             {/* Profile Dropdown */}
             {isLoggedIn ? (
-              <div className="relative">
-                <button 
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-2 glass-light px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center overflow-hidden">
-                    {userAvatar ? (
-                      <img 
-                        src={userAvatar} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                        onError={() => {
-                          markAvatarUrlBlocked(userAvatar);
-                          setUserAvatar(null);
-                        }}
-                      />
-                    ) : (
-                      <User size={16} className="text-[var(--text-inverse)]" />
-                    )}
-                  </div>
-                  <ChevronDown size={16} className="text-[var(--text-secondary)]" />
-                </button>
-
-                {/* Profile Dropdown Menu */}
-                {isProfileOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 glass-card p-2 z-50">
-                    <div className="px-3 py-2 border-b border-white/10 mb-2">
-                      <p className="text-[var(--text-primary)] font-medium truncate">{user?.user_metadata?.full_name || user?.email}</p>
-                      <p className="text-[var(--text-secondary)] text-xs">{roleLabel}</p>
+              <div className="flex items-center gap-3">
+                <NotificationCenter />
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center gap-2 glass-light px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C89F5E] to-[#8B7355] flex items-center justify-center overflow-hidden">
+                      {userAvatar ? (
+                        <img 
+                          src={userAvatar} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={() => {
+                            markAvatarUrlBlocked(userAvatar);
+                            setUserAvatar(null);
+                          }}
+                        />
+                      ) : (
+                        <User size={16} className="text-[var(--text-inverse)]" />
+                      )}
                     </div>
-                    <button 
-                      onClick={() => {
-                        navigate('/profile');
-                        setIsProfileOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
-                    >
-                      <User size={16} />
-                      <span className="text-sm">{t('common.profile')}</span>
-                    </button>
-                    <button 
-                      onClick={() => {
-                        navigate('/dashboard');
-                        setIsProfileOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
-                    >
-                      <LayoutDashboard size={16} />
-                      <span className="text-sm">{t('common.dashboard')}</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate('/notifications');
-                        setIsProfileOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
-                    >
-                      <Bell size={16} />
-                      <span className="text-sm">{t('notifications.title')}</span>
-                    </button>
-                    {userRole === 'admin' && (
+                    <ChevronDown size={16} className="text-[var(--text-secondary)]" />
+                  </button>
+
+                  {/* Profile Dropdown Menu */}
+                  {isProfileOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 glass-card p-2 z-50">
+                      <div className="px-3 py-2 border-b border-white/10 mb-2">
+                        <p className="text-[var(--text-primary)] font-medium truncate">{user?.user_metadata?.full_name || user?.email}</p>
+                        <p className="text-[var(--text-secondary)] text-xs">{roleLabel}</p>
+                      </div>
                       <button 
                         onClick={() => {
-                          navigate('/admin');
+                          navigate('/profile');
+                          setIsProfileOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
+                      >
+                        <User size={16} />
+                        <span className="text-sm">{t('common.profile')}</span>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          navigate('/dashboard');
                           setIsProfileOpen(false);
                         }}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
                       >
                         <LayoutDashboard size={16} />
-                        <span className="text-sm">{t('adminHeader.adminDashboard')}</span>
+                        <span className="text-sm">{t('common.dashboard')}</span>
                       </button>
-                    )}
-                    <div className="border-t border-white/10 mt-2 pt-2">
-                       <button 
+                      <button
                         onClick={() => {
-                          handleSignOut();
+                          navigate('/notifications');
                           setIsProfileOpen(false);
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
                       >
-                        <LogOut size={16} />
-                        <span className="text-sm">{t('common.signOut')}</span>
+                        <Bell size={16} />
+                        <span className="text-sm">{t('notifications.title')}</span>
                       </button>
+                      {userRole === 'admin' && (
+                        <button 
+                          onClick={() => {
+                            navigate('/admin');
+                            setIsProfileOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors text-left"
+                        >
+                          <LayoutDashboard size={16} />
+                          <span className="text-sm">{t('adminHeader.adminDashboard')}</span>
+                        </button>
+                      )}
+                      <div className="border-t border-white/10 mt-2 pt-2">
+                         <button 
+                          onClick={() => {
+                            handleSignOut();
+                            setIsProfileOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                        >
+                          <LogOut size={16} />
+                          <span className="text-sm">{t('common.signOut')}</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ) : (
               <button 
@@ -260,7 +265,12 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
 
             {!isLoggedIn && (
               <button 
-                onClick={() => navigate('/signup')}
+                onClick={() =>
+                  openSupportEmail({
+                    subject: 'Strategic Pathways membership request',
+                    body: 'Hi Strategic Pathways team,\n\nI would like to join the network.\n',
+                  })
+                }
                 className="sp-btn-glass text-sm"
               >
                 {t('common.register')}
@@ -380,7 +390,10 @@ const Navigation = ({ currentPage = 'home' }: NavigationProps) => {
               </button>
               <button 
                 onClick={() => {
-                  navigate('/signup');
+                  openSupportEmail({
+                    subject: 'Strategic Pathways membership request',
+                    body: 'Hi Strategic Pathways team,\n\nI would like to join the network.\n',
+                  });
                   setIsMobileMenuOpen(false);
                 }}
                 className="sp-btn-glass mt-2 w-48 text-center"

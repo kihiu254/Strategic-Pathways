@@ -651,11 +651,11 @@ const ProfilePage = () => {
 
       await AppNotificationService.notifySelf({
         title: 'Portfolio project added',
-        message: `"${newProject.project_title}" was added to your portfolio.`,
+        message: `"${newProject.project_title}" was added to your portfolio and is now waiting for admin review.`,
         type: 'success',
         data: { action: 'project_added', projectTitle: newProject.project_title },
       }).catch((notificationError) => console.warn('Notification failed:', notificationError));
-      toast.success('Portfolio project added successfully!');
+      toast.success('Portfolio project added and sent for admin review.');
       setShowAddProject(false);
       setNewProject({
         project_title: '',
@@ -1322,7 +1322,7 @@ const ProfilePage = () => {
                   <div className="glass-light p-6 rounded-xl mb-6 space-y-4">
                     <h4 className="text-[var(--text-primary)] font-medium mb-1">Add Portfolio Project</h4>
                     <p className="text-sm text-[var(--text-secondary)] mb-4">
-                      Showcase work you personally created, contributed to, or led. These are portfolio items, not public opportunities for applicants.
+                      Showcase work you personally created, contributed to, or led. Admins can review and publish approved projects to the public projects page for applicants to discover.
                     </p>
                     <input
                       placeholder="Portfolio Project Title *"

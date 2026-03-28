@@ -42,7 +42,8 @@ const AdminOverviewPage = () => {
         const [
           membersResult,
           opportunitiesResult,
-          applicationsResult,
+          opportunityApplicationsResult,
+          projectApplicationsResult,
           storiesResult,
           adminsResult,
           projectsResult,
@@ -52,6 +53,10 @@ const AdminOverviewPage = () => {
           supabase.from('opportunities').select('*', { count: 'exact', head: true }),
           supabase
             .from('opportunity_applications')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'pending'),
+          supabase
+            .from('project_applications')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pending'),
           supabase
@@ -69,7 +74,7 @@ const AdminOverviewPage = () => {
         setSnapshot({
           members: membersResult.count || 0,
           opportunities: opportunitiesResult.count || 0,
-          pendingApplications: applicationsResult.count || 0,
+          pendingApplications: (opportunityApplicationsResult.count || 0) + (projectApplicationsResult.count || 0),
           pendingStories: storiesResult.count || 0,
           admins: adminsResult.count || 0,
           projects: projectsResult.count || 0,
@@ -103,7 +108,7 @@ const AdminOverviewPage = () => {
     {
       label: 'Portfolio moderation',
       value: snapshot.projects,
-      hint: 'Inspect member projects and contact owners directly.',
+      hint: 'Review member-submitted portfolio projects, publish them, and manage applicants.',
       path: '/admin/projects',
       icon: Shield,
     },

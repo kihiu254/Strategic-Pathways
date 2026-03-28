@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, Send, Globe } from 'lucide-react';
+import { openSupportEmail } from '../lib/contact';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import SocialIcon from '../components/SocialIcon';
@@ -23,7 +24,11 @@ const Footer = () => {
       toast.error(t('auth.toast.invalidEmail'));
       return;
     }
-    navigate('/signup');
+
+    openSupportEmail({
+      subject: 'Strategic Pathways membership request',
+      body: `Hi Strategic Pathways team,\n\nI would like to join the network.\n\nEmail: ${regEmail}\n`,
+    });
   };
 
   useEffect(() => {
