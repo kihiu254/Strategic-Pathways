@@ -10,9 +10,36 @@
       "schedule": "0 5 * * *"
     }
   ],
-  "rewrites": [
+  "headers": [
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ],
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text/html.*"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!api/|assets/|images/|docs/|favicon.ico|robots.txt|sitemap.xml|logo(?:-og|-social)?\\.(?:png|jpg)|firebase-messaging-sw\\.js).*)",
       "destination": "/index.html"
     }
   ]
