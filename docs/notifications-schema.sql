@@ -1,5 +1,5 @@
 -- Notifications table
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS public.notifications (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -12,27 +12,28 @@ CREATE TABLE notifications (
 );
 
 -- Enable RLS
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
-CREATE POLICY "Users can view their own notifications" ON notifications
+-- Users can view their own notifications
+DROP POLICY IF EXISTS "Users can view their own notifications" ON public.notifications;
+CREATE POLICY "Users can view their own notifications" ON public.notifications
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert their own notifications" ON notifications
+-- Users can insert their own notifications (Fallback for when API is down)
+DROP POLICY IF EXISTS "Users can insert their own notifications" ON public.notifications;
+CREATE POLICY "Users can insert their own notifications" ON public.notifications
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own notifications" ON notifications
+-- Users can update their own notifications (e.g., mark as read)
+DROP POLICY IF EXISTS "Users can update their own notifications" ON public.notifications;
+CREATE POLICY "Users can update their own notifications" ON public.notifications
   FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY "Admins can manage all notifications" ON notifications
+-- Admins can manage all notifications
+DROP POLICY IF EXISTS "Admins can manage all notifications" ON public.notifications;
+CREATE POLICY "Admins can manage all notifications" ON public.notifications
   FOR ALL USING (
-    EXISTS (
-      SELECT 1
-      FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin'
-    )
-  )
-  WITH CHECK (
     EXISTS (
       SELECT 1
       FROM public.profiles
@@ -41,9 +42,19 @@ CREATE POLICY "Admins can manage all notifications" ON notifications
   );
 
 -- Indexes
-CREATE INDEX idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX idx_notifications_read ON notifications(read);
-CREATE INDEX idx_notifications_created_at ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read ON public.notifications(read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(created_at DESC);
 
--- Enable realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+-- Enable realtime (Safe way to add if not already present)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+    AND schemaname = 'public' 
+    AND tablename = 'notifications'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+  END IF;
+END $$;

@@ -104,9 +104,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }))
   );
 
+  let dbError = null;
   if (error) {
-    console.error('Notification insert failed:', error);
-    return res.status(500).json({ error: 'We could not save that notification right now.' });
+    console.error('Notification insert failed:', JSON.stringify(error, null, 2));
+    dbError = error;
+    // We don't return 500 immediately to allow push notifications to still be attempted
   }
 
   let pushSent = 0;
@@ -174,5 +176,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error('Push dispatch failed:', pushError);
   }
 
-  return res.status(200).json({ success: true, count: targetIds.length, pushSent });
+  // If DB failed but push succeeded (or was attempted), return success but with a warning or the DB error if both failed
+  if (dbError && pushSent === 0) {
+    return res.status(500).json({ 
+      error: 'We could not save that notification right now.',
+      details: process.env.NODE_ENV === 'development' ? dbError : undefined 
+    });
+  }
+
+  return res.status(200).json({ 
+    success: !dbError || pushSent > 0, 
+    count: targetIds.length, 
+    pushSent,
+    warning: dbError ? 'Database sync failed, but push was attempted.' : undefined
+  });
 }

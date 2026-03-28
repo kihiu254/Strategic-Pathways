@@ -602,16 +602,23 @@ export default async function handler(req: any, res: any) {
 
         // Also create in-app notifications for all admins
         if (supabase && admins && admins.length > 0) {
-          await supabase.from('notifications').insert(
-            admins.map(admin => ({
-              user_id: admin.id,
-              title: 'New Partner Inquiry',
-              message: `${data.name} from ${data.organization || 'Individual'} sent a message.`,
-              type: 'system',
-              read: false,
-              data: { inquiry_email: data.email }
-            }))
-          );
+          try {
+            const { error: notifyError } = await supabase.from('notifications').insert(
+              admins.map(admin => ({
+                user_id: admin.id,
+                title: 'New Partner Inquiry',
+                message: `${data.name} from ${data.organization || 'Individual'} sent a message.`,
+                type: 'system',
+                read: false,
+                data: { inquiry_email: data.email }
+              }))
+            );
+            if (notifyError) {
+              console.warn('Admin notification failed during inquiry:', JSON.stringify(notifyError, null, 2));
+            }
+          } catch (e) {
+            console.warn('Admin notification error during inquiry:', e);
+          }
         }
         break;
       }
